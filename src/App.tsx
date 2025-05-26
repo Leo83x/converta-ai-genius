@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -22,33 +23,138 @@ import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>;
+  }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={
+      <PublicRoute>
+        <Index />
+      </PublicRoute>
+    } />
+    <Route path="/login" element={
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    } />
+    <Route path="/dashboard" element={
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    } />
+    <Route path="/agents" element={
+      <ProtectedRoute>
+        <Agents />
+      </ProtectedRoute>
+    } />
+    <Route path="/agents/create" element={
+      <ProtectedRoute>
+        <CreateAgent />
+      </ProtectedRoute>
+    } />
+    <Route path="/crm" element={
+      <ProtectedRoute>
+        <CRM />
+      </ProtectedRoute>
+    } />
+    <Route path="/conversations" element={
+      <ProtectedRoute>
+        <Conversations />
+      </ProtectedRoute>
+    } />
+    <Route path="/integrations" element={
+      <ProtectedRoute>
+        <Integrations />
+      </ProtectedRoute>
+    } />
+    <Route path="/channels/whatsapp" element={
+      <ProtectedRoute>
+        <WhatsAppConnection />
+      </ProtectedRoute>
+    } />
+    <Route path="/channels/instagram" element={
+      <ProtectedRoute>
+        <InstagramConnection />
+      </ProtectedRoute>
+    } />
+    <Route path="/channels/widget" element={
+      <ProtectedRoute>
+        <WidgetConnection />
+      </ProtectedRoute>
+    } />
+    <Route path="/profile" element={
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    } />
+    <Route path="/profile/tutorial" element={
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    } />
+    <Route path="/profile/subscription" element={
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    } />
+    <Route path="/profile/account" element={
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    } />
+    <Route path="/support" element={
+      <ProtectedRoute>
+        <Support />
+      </ProtectedRoute>
+    } />
+    <Route path="/admin" element={
+      <ProtectedRoute>
+        <AdminDashboard />
+      </ProtectedRoute>
+    } />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/agents" element={<Agents />} />
-          <Route path="/agents/create" element={<CreateAgent />} />
-          <Route path="/crm" element={<CRM />} />
-          <Route path="/conversations" element={<Conversations />} />
-          <Route path="/integrations" element={<Integrations />} />
-          <Route path="/channels/whatsapp" element={<WhatsAppConnection />} />
-          <Route path="/channels/instagram" element={<InstagramConnection />} />
-          <Route path="/channels/widget" element={<WidgetConnection />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/tutorial" element={<Profile />} />
-          <Route path="/profile/subscription" element={<Profile />} />
-          <Route path="/profile/account" element={<Profile />} />
-          <Route path="/support" element={<Support />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
