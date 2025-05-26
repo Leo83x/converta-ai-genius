@@ -9,7 +9,410 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      agent_channels: {
+        Row: {
+          agent_id: string | null
+          channel_type: string | null
+          created_at: string
+          id: string
+          routing_number: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          channel_type?: string | null
+          created_at?: string
+          id?: string
+          routing_number?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          channel_type?: string | null
+          created_at?: string
+          id?: string
+          routing_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_channels_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_conversations: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          id: string
+          messages: Json | null
+          qualification_score: number | null
+          user_session_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          id?: string
+          messages?: Json | null
+          qualification_score?: number | null
+          user_session_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          id?: string
+          messages?: Json | null
+          qualification_score?: number | null
+          user_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          active: boolean | null
+          channel: string | null
+          created_at: string
+          id: string
+          name: string | null
+          system_prompt: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          channel?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          system_prompt?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          channel?: string | null
+          created_at?: string
+          id?: string
+          name?: string | null
+          system_prompt?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_inbound_messages: {
+        Row: {
+          evolution_token_id: string | null
+          id: string
+          message_content: Json | null
+          message_id: string | null
+          processed: boolean | null
+          timestamp: string
+          type: string | null
+          whatsapp_from: string | null
+          whatsapp_to: string | null
+        }
+        Insert: {
+          evolution_token_id?: string | null
+          id?: string
+          message_content?: Json | null
+          message_id?: string | null
+          processed?: boolean | null
+          timestamp?: string
+          type?: string | null
+          whatsapp_from?: string | null
+          whatsapp_to?: string | null
+        }
+        Update: {
+          evolution_token_id?: string | null
+          id?: string
+          message_content?: Json | null
+          message_id?: string | null
+          processed?: boolean | null
+          timestamp?: string
+          type?: string | null
+          whatsapp_from?: string | null
+          whatsapp_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_inbound_messages_evolution_token_id_fkey"
+            columns: ["evolution_token_id"]
+            isOneToOne: false
+            referencedRelation: "evolution_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_outbound_messages: {
+        Row: {
+          evolution_token_id: string | null
+          id: string
+          message_content: Json | null
+          message_id: string | null
+          response_status: string | null
+          timestamp: string
+          whatsapp_to: string | null
+        }
+        Insert: {
+          evolution_token_id?: string | null
+          id?: string
+          message_content?: Json | null
+          message_id?: string | null
+          response_status?: string | null
+          timestamp?: string
+          whatsapp_to?: string | null
+        }
+        Update: {
+          evolution_token_id?: string | null
+          id?: string
+          message_content?: Json | null
+          message_id?: string | null
+          response_status?: string | null
+          timestamp?: string
+          whatsapp_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_outbound_messages_evolution_token_id_fkey"
+            columns: ["evolution_token_id"]
+            isOneToOne: false
+            referencedRelation: "evolution_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evolution_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          instance_id: string | null
+          qr_code_url: string | null
+          session_name: string | null
+          status: string | null
+          token: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          qr_code_url?: string | null
+          session_name?: string | null
+          status?: string | null
+          token?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          qr_code_url?: string | null
+          session_name?: string | null
+          status?: string | null
+          token?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evolution_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      genius_inputs: {
+        Row: {
+          analyzed: boolean | null
+          content: Json | null
+          created_at: string
+          id: string
+          input_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analyzed?: boolean | null
+          content?: Json | null
+          created_at?: string
+          id?: string
+          input_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analyzed?: boolean | null
+          content?: Json | null
+          created_at?: string
+          id?: string
+          input_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genius_inputs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      genius_logs: {
+        Row: {
+          created_at: string
+          id: string
+          insights: Json | null
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          insights?: Json | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          insights?: Json | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "genius_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_connections: {
+        Row: {
+          access_token: string | null
+          channel_type: string | null
+          created_at: string
+          id: string
+          page_id: string | null
+          page_name: string | null
+          token_expiration: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          channel_type?: string | null
+          created_at?: string
+          id?: string
+          page_id?: string | null
+          page_name?: string | null
+          token_expiration?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          channel_type?: string | null
+          created_at?: string
+          id?: string
+          page_id?: string | null
+          page_name?: string | null
+          token_expiration?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_connections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_webhook_events: {
+        Row: {
+          connection_id: string | null
+          event_type: string | null
+          id: string
+          message: Json | null
+          processed: boolean | null
+          sender_id: string | null
+          timestamp: string
+        }
+        Insert: {
+          connection_id?: string | null
+          event_type?: string | null
+          id?: string
+          message?: Json | null
+          processed?: boolean | null
+          sender_id?: string | null
+          timestamp?: string
+        }
+        Update: {
+          connection_id?: string | null
+          event_type?: string | null
+          id?: string
+          message?: Json | null
+          processed?: boolean | null
+          sender_id?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_webhook_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "meta_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          openai_key: string | null
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          openai_key?: string | null
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          openai_key?: string | null
+          phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
