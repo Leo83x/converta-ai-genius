@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,15 +80,30 @@ const WhatsAppConnection = () => {
     setCheckingStatus(true);
     try {
       console.log('Checking status for session:', sessionNameToCheck);
-      const { data, error } = await supabase.functions.invoke('whatsapp-check-status', {
-        body: { sessionName: sessionNameToCheck }
-      });
-
-      if (error) {
-        console.error('Error checking status:', error);
-        return;
+      
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Usuário não autenticado');
       }
 
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionName: sessionNameToCheck
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+      }
+
+      const data = await response.json();
       console.log('Status check response:', data);
 
       if (data.success) {
@@ -205,11 +221,27 @@ const WhatsAppConnection = () => {
     if (!currentSession) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('whatsapp-disconnect', {
-        body: { sessionName: currentSession }
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-disconnect', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionName: currentSession
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+      }
 
       setConnectionStatus('disconnected');
       setQrCode('');
@@ -230,9 +262,9 @@ const WhatsAppConnection = () => {
     }
   };
 
-  const refreshQrCode = () => {
+  const refreshQrCode = async () => {
     if (currentSession && !checkingStatus) {
-      checkSessionStatus(currentSession);
+      await checkSessionStatus(currentSession);
       toast({
         title: "Atualizando QR Code",
         description: "Buscando novo QR Code...",
