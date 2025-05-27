@@ -2,14 +2,23 @@
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, TrendingUp, Phone } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, TrendingUp, Phone, Kanban, List } from 'lucide-react';
 import NewLeadDialog from '@/components/NewLeadDialog';
 import KanbanBoard from '@/components/KanbanBoard';
+import LeadsListView from '@/components/LeadsListView';
+import PipelineStageConfig from '@/components/PipelineStageConfig';
 
 const CRM = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
 
   const handleLeadCreated = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleStagesUpdated = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -21,7 +30,10 @@ const CRM = () => {
             <h1 className="text-3xl font-bold text-gray-900">CRM</h1>
             <p className="text-gray-600 mt-2">Gerencie seus leads e funil de vendas</p>
           </div>
-          <NewLeadDialog onLeadCreated={handleLeadCreated} />
+          <div className="flex gap-3">
+            <PipelineStageConfig onStagesUpdated={handleStagesUpdated} />
+            <NewLeadDialog onLeadCreated={handleLeadCreated} />
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -72,13 +84,35 @@ const CRM = () => {
           </Card>
         </div>
 
-        {/* Kanban Board */}
+        {/* View Toggle and Content */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Funil de Vendas</CardTitle>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+              >
+                <Kanban className="h-4 w-4 mr-2" />
+                Kanban
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4 mr-2" />
+                Lista
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <KanbanBoard refreshTrigger={refreshTrigger} />
+            {viewMode === 'kanban' ? (
+              <KanbanBoard refreshTrigger={refreshTrigger} />
+            ) : (
+              <LeadsListView refreshTrigger={refreshTrigger} />
+            )}
           </CardContent>
         </Card>
       </div>

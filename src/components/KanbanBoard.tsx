@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Lead } from './LeadDetailsDialog';
@@ -31,13 +30,28 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Primeiro tenta buscar estágios do usuário
+      let { data: userStages, error: userError } = await supabase
         .from('pipeline_stages')
         .select('*')
+        .eq('user_id', user.id)
         .order('order_index');
 
-      if (error) throw error;
-      setStages(data || []);
+      if (userError) throw userError;
+
+      // Se não tem estágios próprios, usa os padrão
+      if (!userStages || userStages.length === 0) {
+        const { data: defaultStages, error: defaultError } = await supabase
+          .from('pipeline_stages')
+          .select('*')
+          .eq('user_id', '00000000-0000-0000-0000-000000000000')
+          .order('order_index');
+
+        if (defaultError) throw defaultError;
+        setStages(defaultStages || []);
+      } else {
+        setStages(userStages);
+      }
     } catch (error) {
       console.error('Erro ao carregar estágios:', error);
     }
@@ -57,27 +71,32 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
       // Agrupar leads por estágio
       const groupedLeads: { [key: string]: Lead[] } = {};
       
-      // Mapear estágios do banco para estágios da interface
-      const stageMapping: { [key: string]: string } = {
-        'new': 'Novo Lead',
-        'qualified': 'Qualificado', 
-        'contacted': 'Em Contato',
-        'proposal': 'Proposta',
-        'negotiation': 'Negociação',
-        'won': 'Ganho',
-        'lost': 'Perdido'
-      };
-
       stages.forEach(stage => {
         groupedLeads[stage.name] = [];
       });
 
       data?.forEach(lead => {
-        const stageName = stageMapping[lead.stage] || 'Novo Lead';
-        if (!groupedLeads[stageName]) {
-          groupedLeads[stageName] = [];
+        // Mapear estágios do banco para estágios configurados
+        const stageMapping: { [key: string]: string } = {
+          'new': 'Novo Lead',
+          'qualified': 'Qualificado', 
+          'contacted': 'Em Contato',
+          'proposal': 'Proposta',
+          'negotiation': 'Negociação',
+          'won': 'Ganho',
+          'lost': 'Perdido'
+        };
+
+        const stageName = stageMapping[lead.stage] || lead.stage;
+        
+        // Encontrar estágio correspondente ou usar o primeiro estágio
+        const matchingStage = stages.find(s => s.name === stageName);
+        const targetStageName = matchingStage ? matchingStage.name : (stages[0]?.name || 'Novo Lead');
+        
+        if (!groupedLeads[targetStageName]) {
+          groupedLeads[targetStageName] = [];
         }
-        groupedLeads[stageName].push(lead);
+        groupedLeads[targetStageName].push(lead);
       });
 
       setLeadsByStage(groupedLeads);
@@ -90,7 +109,7 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
 
   useEffect(() => {
     fetchStages();
-  }, [user]);
+  }, [user, refreshTrigger]);
 
   useEffect(() => {
     if (stages.length > 0) {
@@ -113,7 +132,7 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {stages.map((stage) => (
           <Card key={stage.id} className="h-fit">
             <CardHeader className="pb-3">
