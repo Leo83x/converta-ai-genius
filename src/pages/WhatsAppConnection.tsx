@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,17 +133,19 @@ const WhatsAppConnection = () => {
     try {
       console.log('Creating session with name:', sessionName);
       
+      // Recupera o token JWT do usuário autenticado
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !session?.access_token) {
         throw new Error('Usuário não autenticado');
       }
 
+      // Envia requisição POST para o endpoint
       const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-create-session', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           sessionName: sessionName.trim()
@@ -163,14 +163,15 @@ const WhatsAppConnection = () => {
       if (data.success) {
         setCurrentSession(sessionName.trim());
         
-        if (data.qr_code) {
-          setQrCode(data.qr_code);
+        // Se a resposta contiver QR code, exibe imediatamente
+        if (data.data && data.data.qr_code) {
+          setQrCode(data.data.qr_code);
           setConnectionStatus('qr_code');
           toast({
             title: "QR Code gerado",
             description: "Escaneie o QR Code com seu WhatsApp para conectar.",
           });
-        } else if (data.status === 'open') {
+        } else if (data.data && data.data.status === 'open') {
           setConnectionStatus('connected');
           toast({
             title: "Conectado com sucesso",
@@ -178,6 +179,7 @@ const WhatsAppConnection = () => {
           });
         }
       } else {
+        // Se success for false, exibe o erro
         throw new Error(data.error || 'Falha ao criar sessão');
       }
     } catch (error) {
@@ -427,4 +429,3 @@ const WhatsAppConnection = () => {
 };
 
 export default WhatsAppConnection;
-
