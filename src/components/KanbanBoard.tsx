@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Lead } from './LeadDetailsDialog';
 import LeadDetailsDialog from './LeadDetailsDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PipelineStage {
   id: string;
@@ -25,6 +25,7 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const fetchStages = async () => {
     if (!user) return;
@@ -132,21 +133,26 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className={`grid gap-3 md:gap-4 ${
+        isMobile 
+          ? 'grid-cols-1' 
+          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+      }`}>
         {stages.map((stage) => (
           <Card key={stage.id} className="h-fit">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium flex items-center justify-between">
-                <span>{stage.name}</span>
+                <span className="truncate mr-2">{stage.name}</span>
                 <Badge 
                   variant="outline" 
                   style={{ backgroundColor: stage.color + '20', borderColor: stage.color }}
+                  className="shrink-0"
                 >
                   {leadsByStage[stage.name]?.length || 0}
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 p-3 md:p-6">
               {leadsByStage[stage.name]?.map((lead) => (
                 <Card 
                   key={lead.id} 
@@ -154,23 +160,23 @@ const KanbanBoard = ({ refreshTrigger }: KanbanBoardProps) => {
                   onClick={() => handleLeadClick(lead)}
                 >
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">{lead.name}</h4>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-xs">
+                    <h4 className="font-medium text-sm truncate">{lead.name}</h4>
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="outline" className="text-xs truncate">
                         {lead.source}
                       </Badge>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 shrink-0">
                         Score: {lead.score}
                       </span>
                     </div>
                     {lead.phone && (
-                      <p className="text-xs text-gray-600">{lead.phone}</p>
+                      <p className="text-xs text-gray-600 truncate">{lead.phone}</p>
                     )}
                   </div>
                 </Card>
               ))}
               {(!leadsByStage[stage.name] || leadsByStage[stage.name].length === 0) && (
-                <div className="text-center py-8 text-gray-500 text-sm">
+                <div className="text-center py-6 md:py-8 text-gray-500 text-sm">
                   Nenhum lead neste estágio
                 </div>
               )}
