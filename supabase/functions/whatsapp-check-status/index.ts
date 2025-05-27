@@ -34,40 +34,48 @@ serve(async (req) => {
 
     const { sessionName } = await req.json();
 
-    console.log('Checking WhatsApp status for session:', sessionName);
+    console.log('Checking status for session:', sessionName);
 
-    // Verificar status na Evolution API
-    const evolutionResponse = await fetch(`https://api.evolution-api.com/status/session/${sessionName}`, {
+    // Buscar o status na Evolution API
+    const statusResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
       method: 'GET',
       headers: {
-        'Authorization': 'Bearer token_padrao_converta',
+        'apikey': 'token_padrao_converta',
+        'Content-Type': 'application/json',
       }
     });
 
-    if (!evolutionResponse.ok) {
-      throw new Error(`Evolution API error: ${evolutionResponse.status}`);
+    if (!statusResponse.ok) {
+      throw new Error(`Evolution API error: ${statusResponse.status}`);
     }
 
-    const statusData = await evolutionResponse.json();
+    const statusData = await statusResponse.json();
     console.log('Status response:', statusData);
 
-    // Atualizar status na tabela evolution_tokens
+    const status = statusData.connectionStatus === 'open' ? 'connected' : 
+                  statusData.connectionStatus === 'connecting' ? 'connecting' : 'pending';
+    
+    const qrCode = statusData.qrcode || statusData.qr || null;
+
+    // Atualizar no banco de dados
     const { error: updateError } = await supabase
       .from('evolution_tokens')
       .update({ 
-        status: statusData.status || 'disconnected',
-        updated_at: new Date().toISOString()
+        status: status,
+        qr_code_url: qrCode || undefined
       })
       .eq('session_name', sessionName)
       .eq('user_id', user.id);
 
     if (updateError) {
-      throw updateError;
+      console.error('Error updating status:', updateError);
     }
 
     return new Response(JSON.stringify({
       success: true,
-      status: statusData.status || 'disconnected'
+      status: status,
+      qr_code: qrCode,
+      connection_status: statusData.connectionStatus
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

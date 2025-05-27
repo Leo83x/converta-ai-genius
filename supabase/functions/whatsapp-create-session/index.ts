@@ -40,24 +40,76 @@ serve(async (req) => {
 
     console.log('Creating WhatsApp session:', sessionName);
 
+    // Verificar se já existe uma sessão com este nome
+    const { data: existingSession } = await supabase
+      .from('evolution_tokens')
+      .select('*')
+      .eq('session_name', sessionName)
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingSession) {
+      throw new Error('Já existe uma sessão com este nome');
+    }
+
     // Criar sessão na Evolution API
-    const evolutionResponse = await fetch('https://api.evolution-api.com/instance/init', {
+    const evolutionResponse = await fetch('https://api.evolution-api.com/instance/create', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer token_padrao_converta',
+        'apikey': 'token_padrao_converta',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sessionName: sessionName
+        instanceName: sessionName,
+        qrcode: true,
+        integration: "WHATSAPP-BAILEYS"
       })
     });
 
     if (!evolutionResponse.ok) {
-      throw new Error(`Evolution API error: ${evolutionResponse.status}`);
+      const errorText = await evolutionResponse.text();
+      console.error('Evolution API error:', errorText);
+      throw new Error(`Evolution API error: ${evolutionResponse.status} - ${errorText}`);
     }
 
     const evolutionData = await evolutionResponse.json();
     console.log('Evolution API response:', evolutionData);
+
+    // Conectar a instância e gerar QR Code
+    const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
+      method: 'GET',
+      headers: {
+        'apikey': 'token_padrao_converta',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!connectResponse.ok) {
+      const errorText = await connectResponse.text();
+      console.error('Evolution connect error:', errorText);
+      throw new Error(`Evolution connect error: ${connectResponse.status} - ${errorText}`);
+    }
+
+    const connectData = await connectResponse.json();
+    console.log('Evolution connect response:', connectData);
+
+    // Aguardar um pouco e buscar o QR Code
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const qrResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
+      method: 'GET',
+      headers: {
+        'apikey': 'token_padrao_converta',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    let qrCodeData = null;
+    if (qrResponse.ok) {
+      const qrData = await qrResponse.json();
+      qrCodeData = qrData.qrcode || qrData.qr || null;
+      console.log('QR Code data:', qrCodeData);
+    }
 
     // Armazenar dados na tabela evolution_tokens
     const { data: tokenData, error: tokenError } = await supabase
@@ -65,25 +117,27 @@ serve(async (req) => {
       .insert({
         user_id: user.id,
         session_name: sessionName,
-        instance_id: evolutionData.instance_id,
-        token: evolutionData.token,
-        qr_code_url: evolutionData.qrCode,
+        instance_id: evolutionData.instance?.instanceName || sessionName,
+        token: evolutionData.hash || 'temp_token',
+        qr_code_url: qrCodeData,
         status: 'pending'
       })
       .select()
       .single();
 
     if (tokenError) {
+      console.error('Database error:', tokenError);
       throw tokenError;
     }
 
     return new Response(JSON.stringify({
       success: true,
       data: {
-        instance_id: evolutionData.instance_id,
-        qr_code: evolutionData.qrCode,
+        instance_id: evolutionData.instance?.instanceName || sessionName,
+        qr_code: qrCodeData,
         session_name: sessionName,
-        token_id: tokenData.id
+        token_id: tokenData.id,
+        status: 'pending'
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
