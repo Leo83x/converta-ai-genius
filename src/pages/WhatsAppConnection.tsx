@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,7 +74,7 @@ const WhatsAppConnection = () => {
   };
 
   const checkSessionStatus = async (sessionNameToCheck: string) => {
-    if (checkingStatus) return; // Evitar múltiplas verificações simultâneas
+    if (checkingStatus) return;
     
     setCheckingStatus(true);
     try {
@@ -100,13 +99,12 @@ const WhatsAppConnection = () => {
         }
         
         if (data.status === 'connected') {
-          setQrCode(''); // Limpar QR code quando conectado
+          setQrCode('');
           toast({
             title: "WhatsApp Conectado!",
             description: "Sua conta está ativa e pronta para uso",
           });
         } else if (data.status === 'pending' && !data.qr_code) {
-          // Se ainda estiver pendente mas sem QR code, tentar novamente em alguns segundos
           setTimeout(() => {
             checkSessionStatus(sessionNameToCheck);
           }, 3000);
@@ -135,27 +133,56 @@ const WhatsAppConnection = () => {
     
     try {
       console.log('Creating session:', sessionName.trim());
-      const { data, error } = await supabase.functions.invoke('whatsapp-create-session', {
-        body: { sessionName: sessionName.trim() }
+      
+      // Obter o token JWT do usuário
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Fazer requisição POST direta para o endpoint da função
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-create-session', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sessionName: sessionName.trim()
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+      }
 
+      const data = await response.json();
       console.log('Session creation response:', data);
 
       if (data.success) {
         setCurrentSession(sessionName.trim());
         setConnectionStatus('pending');
         
-        toast({
-          title: "Sessão criada!",
-          description: "Aguarde enquanto geramos o QR Code...",
-        });
-
-        // Começar a verificar status após alguns segundos
-        setTimeout(() => {
-          checkSessionStatus(sessionName.trim());
-        }, 3000);
+        // Se o QR code foi retornado imediatamente, exibir
+        if (data.data.qr_code) {
+          setQrCode(data.data.qr_code);
+          toast({
+            title: "Sessão criada!",
+            description: "Escaneie o QR Code com seu WhatsApp",
+          });
+        } else {
+          toast({
+            title: "Sessão criada!",
+            description: "Aguarde enquanto geramos o QR Code...",
+          });
+          
+          // Começar a verificar status após alguns segundos
+          setTimeout(() => {
+            checkSessionStatus(sessionName.trim());
+          }, 3000);
+        }
         
       } else {
         throw new Error(data.error || 'Erro desconhecido');
