@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateAgent from "./pages/CreateAgent";
+import EditAgent from "./pages/EditAgent";
 import WhatsAppConnection from "./pages/WhatsAppConnection";
 import InstagramConnection from "./pages/InstagramConnection";
 import WidgetConnection from "./pages/WidgetConnection";
@@ -80,6 +81,11 @@ const AppRoutes = () => (
     <Route path="/agents/create" element={
       <ProtectedRoute>
         <CreateAgent />
+      </ProtectedRoute>
+    } />
+    <Route path="/agents/edit/:id" element={
+      <ProtectedRoute>
+        <EditAgent />
       </ProtectedRoute>
     } />
     <Route path="/crm" element={

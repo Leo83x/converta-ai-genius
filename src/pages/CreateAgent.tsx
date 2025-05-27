@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import Layout from '@/components/Layout';
 
 const CreateAgent = () => {
   const [formData, setFormData] = useState({
@@ -20,22 +23,76 @@ const CreateAgent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para criar um agente.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.name || !formData.prompt || !formData.channel) {
+      toast({
+        title: "Erro",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
-    // TODO: Implementar criação do agente via Supabase
-    console.log('Criando agente:', formData);
+    try {
+      // Criar o agente
+      const { data: agent, error: agentError } = await supabase
+        .from('agents')
+        .insert({
+          user_id: user.id,
+          name: formData.name,
+          channel: formData.channel,
+          system_prompt: formData.prompt,
+          active: true
+        })
+        .select()
+        .single();
 
-    setTimeout(() => {
-      setIsLoading(false);
+      if (agentError) throw agentError;
+
+      // Se tiver routing number, criar o canal
+      if (formData.routingNumber && agent) {
+        const { error: channelError } = await supabase
+          .from('agent_channels')
+          .insert({
+            agent_id: agent.id,
+            channel_type: formData.channel,
+            routing_number: formData.routingNumber
+          });
+
+        if (channelError) throw channelError;
+      }
+
       toast({
         title: "Agente criado com sucesso!",
         description: `${formData.name} foi configurado e está pronto para uso.`,
       });
-      navigate('/dashboard');
-    }, 2000);
+      
+      navigate('/agents');
+    } catch (error) {
+      console.error('Erro ao criar agente:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o agente. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -43,21 +100,8 @@ const CreateAgent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              Converta+
-            </h1>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              Voltar ao Dashboard
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout>
+      <div className="p-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Criar Novo Agente</h2>
           <p className="text-gray-600">Configure um agente de IA personalizado para suas necessidades</p>
@@ -157,7 +201,7 @@ const CreateAgent = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/agents')}
                   disabled={isLoading}
                 >
                   Cancelar
@@ -166,8 +210,8 @@ const CreateAgent = () => {
             </form>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
