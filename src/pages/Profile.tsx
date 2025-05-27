@@ -103,15 +103,27 @@ const Profile = () => {
     
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('users')
         .upsert({
           id: user.id,
           openai_key: userData.openai_key,
-        });
+        }, {
+          onConflict: 'id'
+        })
+        .select()
+        .single();
 
       if (error) {
         throw error;
+      }
+
+      // Atualiza o estado local com os dados retornados
+      if (data) {
+        setUserData(prev => ({
+          ...prev,
+          openai_key: data.openai_key || ''
+        }));
       }
 
       toast({
