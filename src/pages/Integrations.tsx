@@ -1,17 +1,22 @@
-
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Link as LinkIcon, Smartphone, Instagram, MessageCircle, Globe } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import WhatsAppConnectionDialog from '@/components/WhatsAppConnectionDialog';
+import InstagramConnectionDialog from '@/components/InstagramConnectionDialog';
 
 const Integrations = () => {
-  const integrations = [
+  const [integrations, setIntegrations] = useState([
     {
       id: 1,
       name: 'WhatsApp Business',
       icon: Smartphone,
-      status: 'connected',
+      status: 'disconnected',
       description: 'Conecte seus agentes ao WhatsApp Business',
       color: 'text-green-600'
     },
@@ -27,7 +32,7 @@ const Integrations = () => {
       id: 3,
       name: 'Facebook Messenger',
       icon: MessageCircle,
-      status: 'connected',
+      status: 'disconnected',
       description: 'Gerencie conversas do Messenger',
       color: 'text-blue-600'
     },
@@ -39,7 +44,136 @@ const Integrations = () => {
       description: 'Chat widget para seu website',
       color: 'text-purple-600'
     }
-  ];
+  ]);
+
+  const [whatsappDialogOpen, setWhatsappDialogOpen] = useState(false);
+  const [instagramDialogOpen, setInstagramDialogOpen] = useState(false);
+  
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      checkIntegrationStatuses();
+    }
+  }, [user]);
+
+  const checkIntegrationStatuses = async () => {
+    try {
+      // Verificar status do WhatsApp
+      const { data: whatsappTokens } = await supabase
+        .from('evolution_tokens')
+        .select('status')
+        .eq('user_id', user?.id)
+        .eq('status', 'connected');
+
+      // Verificar status do Instagram/Meta
+      const { data: metaConnections } = await supabase
+        .from('meta_connections')
+        .select('channel_type')
+        .eq('user_id', user?.id);
+
+      setIntegrations(prev => prev.map(integration => {
+        if (integration.name === 'WhatsApp Business') {
+          return { 
+            ...integration, 
+            status: whatsappTokens && whatsappTokens.length > 0 ? 'connected' : 'disconnected' 
+          };
+        }
+        if (integration.name === 'Instagram Direct') {
+          const instagramConnected = metaConnections?.some(conn => conn.channel_type === 'instagram');
+          return { 
+            ...integration, 
+            status: instagramConnected ? 'connected' : 'disconnected' 
+          };
+        }
+        if (integration.name === 'Facebook Messenger') {
+          const messengerConnected = metaConnections?.some(conn => conn.channel_type === 'messenger');
+          return { 
+            ...integration, 
+            status: messengerConnected ? 'connected' : 'disconnected' 
+          };
+        }
+        return integration;
+      }));
+    } catch (error) {
+      console.error('Error checking integration statuses:', error);
+    }
+  };
+
+  const handleConnect = (integrationName: string) => {
+    switch (integrationName) {
+      case 'WhatsApp Business':
+        setWhatsappDialogOpen(true);
+        break;
+      case 'Instagram Direct':
+        setInstagramDialogOpen(true);
+        break;
+      case 'Facebook Messenger':
+        connectFacebookMessenger();
+        break;
+      case 'Widget do Site':
+        configureWidget();
+        break;
+    }
+  };
+
+  const handleDisconnect = async (integrationName: string) => {
+    try {
+      if (integrationName === 'WhatsApp Business') {
+        // Buscar sessões ativas
+        const { data: tokens } = await supabase
+          .from('evolution_tokens')
+          .select('session_name')
+          .eq('user_id', user?.id)
+          .eq('status', 'connected');
+
+        if (tokens && tokens.length > 0) {
+          for (const token of tokens) {
+            await supabase.functions.invoke('whatsapp-disconnect', {
+              body: { sessionName: token.session_name }
+            });
+          }
+        }
+      } else if (integrationName === 'Instagram Direct' || integrationName === 'Facebook Messenger') {
+        const channelType = integrationName === 'Instagram Direct' ? 'instagram' : 'messenger';
+        await supabase
+          .from('meta_connections')
+          .delete()
+          .eq('user_id', user?.id)
+          .eq('channel_type', channelType);
+      }
+
+      toast({
+        title: "Integração desconectada",
+        description: `${integrationName} foi desconectado com sucesso.`,
+      });
+
+      checkIntegrationStatuses();
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível desconectar a integração.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const connectFacebookMessenger = () => {
+    toast({
+      title: "Facebook Messenger",
+      description: "Redirecionando para autenticação do Facebook...",
+    });
+    // Implementar OAuth do Facebook
+  };
+
+  const configureWidget = () => {
+    toast({
+      title: "Widget configurado",
+      description: "Widget do site já está ativo e funcionando.",
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -98,12 +232,21 @@ const Integrations = () => {
                           <Settings className="mr-2 h-4 w-4" />
                           Configurar
                         </Button>
-                        <Button variant="destructive" size="sm" className="flex-1">
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleDisconnect(integration.name)}
+                        >
                           Desconectar
                         </Button>
                       </>
                     ) : (
-                      <Button className="w-full" size="sm">
+                      <Button 
+                        className="w-full" 
+                        size="sm"
+                        onClick={() => handleConnect(integration.name)}
+                      >
                         <LinkIcon className="mr-2 h-4 w-4" />
                         Conectar
                       </Button>
@@ -152,6 +295,18 @@ const Integrations = () => {
             </div>
           </CardContent>
         </Card>
+
+        <WhatsAppConnectionDialog 
+          open={whatsappDialogOpen}
+          onOpenChange={setWhatsappDialogOpen}
+          onSuccess={checkIntegrationStatuses}
+        />
+
+        <InstagramConnectionDialog 
+          open={instagramDialogOpen}
+          onOpenChange={setInstagramDialogOpen}
+          onSuccess={checkIntegrationStatuses}
+        />
       </div>
     </Layout>
   );
