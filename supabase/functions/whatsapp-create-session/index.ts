@@ -14,12 +14,16 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting whatsapp-create-session function');
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
       throw new Error('No authorization header');
     }
@@ -28,11 +32,21 @@ serve(async (req) => {
       authHeader.replace('Bearer ', '')
     );
 
-    if (authError || !user) {
-      throw new Error('Unauthorized');
+    if (authError) {
+      console.error('Auth error:', authError);
+      throw new Error('Authentication failed: ' + authError.message);
     }
 
-    const { sessionName } = await req.json();
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    console.log('User authenticated:', user.id);
+
+    const requestBody = await req.json();
+    console.log('Request body:', requestBody);
+    
+    const { sessionName } = requestBody;
 
     if (!sessionName) {
       throw new Error('Session name is required');
@@ -40,23 +54,33 @@ serve(async (req) => {
 
     console.log('Creating WhatsApp session:', sessionName);
 
-    // Verificar se já existe uma sessão com este nome
-    const { data: existingSession } = await supabase
+    // Verificar se já existe uma sessão com este nome para este usuário
+    const { data: existingSession, error: checkError } = await supabase
       .from('evolution_tokens')
       .select('*')
       .eq('session_name', sessionName)
       .eq('user_id', user.id)
       .single();
 
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking existing session:', checkError);
+      throw new Error('Error checking existing session: ' + checkError.message);
+    }
+
     if (existingSession) {
       throw new Error('Session with this name already exists');
     }
 
+    console.log('No existing session found, proceeding to create new one');
+
     // Obter a chave da API da Evolution das variáveis de ambiente
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     if (!evolutionApiKey) {
+      console.error('Evolution API key not found in environment variables');
       throw new Error('Evolution API key not configured');
     }
+
+    console.log('Evolution API key found, making request to Evolution API');
 
     // Criar sessão na Evolution API
     const evolutionResponse = await fetch('https://api.evolution-api.com/instance/create', {
@@ -72,61 +96,82 @@ serve(async (req) => {
       })
     });
 
+    console.log('Evolution API response status:', evolutionResponse.status);
+
     if (!evolutionResponse.ok) {
       const errorText = await evolutionResponse.text();
-      console.error('Evolution API error:', errorText);
+      console.error('Evolution API error response:', errorText);
       throw new Error(`Evolution API error: ${evolutionResponse.status} - ${errorText}`);
     }
 
     const evolutionData = await evolutionResponse.json();
-    console.log('Evolution API response:', evolutionData);
+    console.log('Evolution API success response:', JSON.stringify(evolutionData, null, 2));
 
     // Conectar a instância
-    const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
-      method: 'GET',
-      headers: {
-        'apikey': evolutionApiKey,
-        'Content-Type': 'application/json',
-      }
-    });
+    try {
+      const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
 
-    if (!connectResponse.ok) {
-      console.error('Evolution connect error:', connectResponse.status);
-    } else {
-      const connectData = await connectResponse.json();
-      console.log('Evolution connect response:', connectData);
+      console.log('Evolution connect response status:', connectResponse.status);
+      
+      if (connectResponse.ok) {
+        const connectData = await connectResponse.json();
+        console.log('Evolution connect success:', connectData);
+      } else {
+        const connectError = await connectResponse.text();
+        console.warn('Evolution connect warning:', connectError);
+      }
+    } catch (connectError) {
+      console.warn('Evolution connect failed (non-critical):', connectError);
     }
 
     // Extrair QR code se disponível na resposta
     let qrCodeUrl = null;
     if (evolutionData.qrcode) {
       qrCodeUrl = evolutionData.qrcode;
+      console.log('QR code found in qrcode field');
     } else if (evolutionData.qr) {
       qrCodeUrl = evolutionData.qr;
+      console.log('QR code found in qr field');
     } else if (evolutionData.base64) {
       qrCodeUrl = evolutionData.base64;
+      console.log('QR code found in base64 field');
+    } else {
+      console.log('No QR code found in response');
     }
+
+    // Preparar dados para inserção
+    const insertData = {
+      user_id: user.id,
+      session_name: sessionName,
+      instance_id: evolutionData.instance?.instanceName || sessionName,
+      token: evolutionData.hash || 'temp_token',
+      qr_code_url: qrCodeUrl,
+      status: 'pending'
+    };
+
+    console.log('Inserting data into evolution_tokens:', insertData);
 
     // Armazenar dados na tabela evolution_tokens
     const { data: tokenData, error: tokenError } = await supabase
       .from('evolution_tokens')
-      .insert({
-        user_id: user.id,
-        session_name: sessionName,
-        instance_id: evolutionData.instance?.instanceName || sessionName,
-        token: evolutionData.hash || 'temp_token',
-        qr_code_url: qrCodeUrl,
-        status: 'pending'
-      })
+      .insert(insertData)
       .select()
       .single();
 
     if (tokenError) {
-      console.error('Database error:', tokenError);
-      throw tokenError;
+      console.error('Database insertion error:', tokenError);
+      throw new Error('Database error: ' + tokenError.message);
     }
 
-    return new Response(JSON.stringify({
+    console.log('Database insertion successful:', tokenData);
+
+    const responseData = {
       success: true,
       data: {
         instance_id: evolutionData.instance?.instanceName || sessionName,
@@ -135,16 +180,24 @@ serve(async (req) => {
         status: 'pending',
         qr_code: qrCodeUrl
       }
-    }), {
+    };
+
+    console.log('Returning success response:', responseData);
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Error in whatsapp-create-session:', error);
-    return new Response(JSON.stringify({ 
+    const errorResponse = { 
       success: false, 
-      error: error.message 
-    }), {
+      error: error.message || 'Unknown error occurred'
+    };
+    
+    console.log('Returning error response:', errorResponse);
+    
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
