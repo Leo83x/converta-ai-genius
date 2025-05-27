@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -75,16 +74,22 @@ const Sidebar = () => {
 
   const handleSignOut = async () => {
     try {
+      console.log('Botão sair clicado');
       await signOut();
+      
       toast({
         title: "Logout realizado",
         description: "Você foi desconectado com sucesso.",
       });
-      navigate('/login');
+      
+      // Redireciona para a página de login
+      navigate('/login', { replace: true });
+      
     } catch (error) {
+      console.error('Erro no logout:', error);
       toast({
         title: "Erro no logout",
-        description: "Ocorreu um erro ao fazer logout.",
+        description: "Ocorreu um erro ao fazer logout. Tente novamente.",
         variant: "destructive"
       });
     }

@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -73,12 +74,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await createUserProfile(session.user);
         }
         
+        // Limpar estados quando o usuário fizer logout
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+        }
+        
         setLoading(false);
       }
     );
 
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Initial session:', session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -94,7 +102,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      console.log('Iniciando logout...');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Erro no logout:', error);
+        throw error;
+      }
+      
+      console.log('Logout realizado com sucesso');
+      
+      // Força a limpeza dos estados localmente
+      setSession(null);
+      setUser(null);
+      
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      throw error;
+    }
   };
 
   const value = {
