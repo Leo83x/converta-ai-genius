@@ -14,9 +14,10 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    // Create admin client for auth verification
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const authHeader = req.headers.get('Authorization');
@@ -24,7 +25,20 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
+    // Create user client for RLS-compliant operations
+    const supabaseUser = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
@@ -36,8 +50,8 @@ serve(async (req) => {
 
     console.log('Disconnecting WhatsApp session:', sessionName);
 
-    // Buscar dados da sessão
-    const { data: tokenData, error: tokenError } = await supabase
+    // Find session data using user client (RLS compliant)
+    const { data: tokenData, error: tokenError } = await supabaseUser
       .from('evolution_tokens')
       .select('*')
       .eq('session_name', sessionName)
@@ -48,13 +62,13 @@ serve(async (req) => {
       throw new Error('Session not found');
     }
 
-    // Obter a chave da API
+    // Get Evolution API key
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     if (!evolutionApiKey) {
       throw new Error('Evolution API key not configured');
     }
 
-    // Desconectar na Evolution API
+    // Disconnect from Evolution API
     const evolutionResponse = await fetch(`https://api.evolution-api.com/instance/disconnect/${sessionName}`, {
       method: 'DELETE',
       headers: {
@@ -66,8 +80,8 @@ serve(async (req) => {
       console.warn('Evolution API disconnect failed, but updating local status');
     }
 
-    // Atualizar status local
-    const { error: updateError } = await supabase
+    // Update local status using user client (RLS compliant)
+    const { error: updateError } = await supabaseUser
       .from('evolution_tokens')
       .update({ 
         status: 'disconnected',

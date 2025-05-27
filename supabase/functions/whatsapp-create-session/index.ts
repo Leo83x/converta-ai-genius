@@ -16,11 +16,13 @@ serve(async (req) => {
   try {
     console.log('Starting whatsapp-create-session function');
     
-    const supabase = createClient(
+    // Create admin client for auth verification
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Create user client for RLS-compliant operations
     const authHeader = req.headers.get('Authorization');
     console.log('Auth header present:', !!authHeader);
     
@@ -28,8 +30,20 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Verificar o usuário autenticado
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
+    const supabaseUser = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    // Verify the user with admin client
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
@@ -55,8 +69,8 @@ serve(async (req) => {
 
     console.log('Creating WhatsApp session:', sessionName);
 
-    // Verificar se já existe uma sessão com este nome para este usuário
-    const { data: existingSession, error: checkError } = await supabase
+    // Check for existing session using user client (RLS compliant)
+    const { data: existingSession, error: checkError } = await supabaseUser
       .from('evolution_tokens')
       .select('*')
       .eq('session_name', sessionName)
@@ -74,7 +88,7 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Obter a chave da API da Evolution das variáveis de ambiente
+    // Get Evolution API key
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     if (!evolutionApiKey) {
       console.error('Evolution API key not found in environment variables');
@@ -83,7 +97,7 @@ serve(async (req) => {
 
     console.log('Evolution API key found, making request to Evolution API');
 
-    // Criar sessão na Evolution API
+    // Create session in Evolution API
     const evolutionResponse = await fetch('https://api.evolution-api.com/instance/create', {
       method: 'POST',
       headers: {
@@ -108,7 +122,7 @@ serve(async (req) => {
     const evolutionData = await evolutionResponse.json();
     console.log('Evolution API success response:', JSON.stringify(evolutionData, null, 2));
 
-    // Conectar a instância
+    // Connect the instance
     try {
       const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
         method: 'GET',
@@ -131,7 +145,7 @@ serve(async (req) => {
       console.warn('Evolution connect failed (non-critical):', connectError);
     }
 
-    // Extrair QR code se disponível na resposta
+    // Extract QR code if available
     let qrCodeUrl = null;
     if (evolutionData.qrcode) {
       qrCodeUrl = evolutionData.qrcode;
@@ -146,7 +160,7 @@ serve(async (req) => {
       console.log('No QR code found in response');
     }
 
-    // Preparar dados para inserção
+    // Store data using user client (RLS compliant)
     const insertData = {
       user_id: user.id,
       session_name: sessionName,
@@ -158,8 +172,7 @@ serve(async (req) => {
 
     console.log('Inserting data into evolution_tokens:', insertData);
 
-    // Armazenar dados na tabela evolution_tokens usando a autenticação do usuário
-    const { data: tokenData, error: tokenError } = await supabase
+    const { data: tokenData, error: tokenError } = await supabaseUser
       .from('evolution_tokens')
       .insert(insertData)
       .select()

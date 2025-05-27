@@ -14,9 +14,10 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    // Create admin client for auth verification
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const authHeader = req.headers.get('Authorization');
@@ -24,7 +25,20 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
+    // Create user client for RLS-compliant operations
+    const supabaseUser = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
@@ -36,13 +50,13 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Buscar a chave da API
+    // Get Evolution API key
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     if (!evolutionApiKey) {
       throw new Error('Evolution API key not configured');
     }
 
-    // Buscar o status na Evolution API usando a nova endpoint
+    // Check status in Evolution API
     const statusResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
       method: 'GET',
       headers: {
@@ -54,7 +68,7 @@ serve(async (req) => {
     if (!statusResponse.ok) {
       console.error('Evolution API status error:', statusResponse.status);
       
-      // Se não conseguir buscar, tentar buscar QR code diretamente
+      // Try to get QR code directly
       const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
         method: 'GET',
         headers: {
@@ -83,7 +97,7 @@ serve(async (req) => {
     const statusData = await statusResponse.json();
     console.log('Status response:', statusData);
 
-    // Determinar o status baseado na resposta
+    // Determine status based on response
     let status = 'pending';
     let qrCode = null;
 
@@ -91,10 +105,10 @@ serve(async (req) => {
       status = 'connected';
     } else if (statusData.connectionStatus === 'connecting' || statusData.connectionStatus === 'close') {
       status = 'pending';
-      // Buscar QR code
+      // Get QR code
       qrCode = statusData.qrcode || statusData.qr || null;
       
-      // Se não tiver QR code na resposta, tentar buscar diretamente
+      // If no QR code in response, try to fetch directly
       if (!qrCode) {
         const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
           method: 'GET',
@@ -112,8 +126,8 @@ serve(async (req) => {
       }
     }
 
-    // Atualizar no banco de dados
-    const { error: updateError } = await supabase
+    // Update database using user client (RLS compliant)
+    const { error: updateError } = await supabaseUser
       .from('evolution_tokens')
       .update({ 
         status: status,
