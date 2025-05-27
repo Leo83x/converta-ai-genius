@@ -35,5 +35,8 @@ verify_jwt = true
 [functions.whatsapp-disconnect]
 verify_jwt = true
 
+[functions.whatsapp-send-message]
+verify_jwt = true
+
 [functions.evolution-webhook]
 verify_jwt = false

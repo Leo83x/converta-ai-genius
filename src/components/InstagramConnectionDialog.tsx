@@ -43,7 +43,7 @@ const InstagramConnectionDialog = ({ open, onOpenChange, onSuccess }: InstagramC
           page_id: pageId.trim(),
           page_name: pageName.trim(),
           access_token: accessToken.trim(),
-          token_expiration: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 dias
+          token_expiration: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString() // 60 dias em formato ISO string
         });
 
       if (error) throw error;

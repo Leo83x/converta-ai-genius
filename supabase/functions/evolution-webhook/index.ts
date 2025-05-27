@@ -57,7 +57,7 @@ serve(async (req) => {
     }
 
     // Armazenar mensagem recebida
-    const { error: inboundError } = await supabase
+    const { data: inboundMessage, error: inboundError } = await supabase
       .from('evolution_inbound_messages')
       .insert({
         evolution_token_id: evolutionToken.id,
@@ -67,7 +67,9 @@ serve(async (req) => {
         message_content: messageContent,
         type: 'text',
         processed: false
-      });
+      })
+      .select()
+      .single();
 
     if (inboundError) {
       console.error('Error storing inbound message:', inboundError);
@@ -81,6 +83,7 @@ serve(async (req) => {
         agents!inner(*)
       `)
       .eq('channel_type', 'whatsapp')
+      .eq('routing_number', sessionName)
       .eq('agents.active', true);
 
     if (channelsError) {
@@ -95,12 +98,113 @@ serve(async (req) => {
     // Processar cada agente ativo
     for (const channel of agentChannels || []) {
       try {
-        // Aqui você pode implementar a lógica de processamento com OpenAI
         console.log(`Processing message for agent: ${channel.agents.name}`);
         
-        // Por enquanto, vamos apenas registrar que processamos
-        // A integração com OpenAI Assistant API seria implementada aqui
-        
+        // Buscar usuário do agente para pegar OpenAI key
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('openai_key')
+          .eq('id', channel.agents.user_id)
+          .single();
+
+        if (userError || !userData?.openai_key) {
+          console.error('OpenAI key not found for user:', channel.agents.user_id);
+          continue;
+        }
+
+        // Extrair texto da mensagem
+        let messageText = '';
+        if (messageContent.conversation) {
+          messageText = messageContent.conversation;
+        } else if (messageContent.extendedTextMessage) {
+          messageText = messageContent.extendedTextMessage.text;
+        } else if (messageContent.text) {
+          messageText = messageContent.text;
+        }
+
+        if (!messageText) {
+          console.log('No text content found in message');
+          continue;
+        }
+
+        // Processar com OpenAI
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${userData.openai_key}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: channel.agents.system_prompt || 'Você é um assistente virtual útil e prestativo.'
+              },
+              {
+                role: 'user',
+                content: messageText
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
+          }),
+        });
+
+        if (!openaiResponse.ok) {
+          console.error('OpenAI API error:', await openaiResponse.text());
+          continue;
+        }
+
+        const aiResponse = await openaiResponse.json();
+        const replyText = aiResponse.choices[0]?.message?.content;
+
+        if (!replyText) {
+          console.error('No response from OpenAI');
+          continue;
+        }
+
+        // Enviar resposta via Evolution API
+        const sendResponse = await fetch('https://api.evolution-api.com/message/send-text', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${evolutionToken.token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionName: sessionName,
+            number: fromNumber,
+            text: replyText
+          }),
+        });
+
+        if (!sendResponse.ok) {
+          console.error('Error sending message via Evolution API:', await sendResponse.text());
+          continue;
+        }
+
+        const sendResult = await sendResponse.json();
+        console.log('Message sent successfully:', sendResult);
+
+        // Armazenar mensagem enviada
+        await supabase
+          .from('evolution_outbound_messages')
+          .insert({
+            evolution_token_id: evolutionToken.id,
+            whatsapp_to: fromNumber,
+            message_content: { text: replyText },
+            message_id: sendResult.key?.id,
+            response_status: 'sent'
+          });
+
+        // Marcar mensagem como processada
+        if (inboundMessage) {
+          await supabase
+            .from('evolution_inbound_messages')
+            .update({ processed: true })
+            .eq('id', inboundMessage.id);
+        }
+
       } catch (error) {
         console.error(`Error processing agent ${channel.agents.id}:`, error);
       }
