@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,136 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Crown, User, Mail, Phone, Key, CreditCard } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    openai_key: ''
+  });
+
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+
+  const fetchUserData = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar dados do usuário:', error);
+        return;
+      }
+
+      if (data) {
+        setUserData({
+          name: data.name || '',
+          email: data.email || user.email || '',
+          phone: data.phone || '',
+          openai_key: data.openai_key || ''
+        });
+      } else {
+        // Se não há dados na tabela users, usa dados do auth
+        setUserData({
+          name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+          email: user.email || '',
+          phone: user.user_metadata?.phone || '',
+          openai_key: ''
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do usuário:', error);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .upsert({
+          id: user.id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram salvas com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar suas informações.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveOpenAIKey = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .upsert({
+          id: user.id,
+          openai_key: userData.openai_key,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Chave OpenAI atualizada",
+        description: "Sua chave da OpenAI foi salva com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao salvar chave OpenAI:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar sua chave da OpenAI.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setUserData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   return (
     <Layout>
       <div className="p-8 max-w-4xl">
@@ -30,23 +159,37 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Nome Completo</Label>
-                    <Input id="name" defaultValue="João Silva" />
+                    <Input 
+                      id="name" 
+                      value={userData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="email">E-mail</Label>
-                    <Input id="email" type="email" defaultValue="joao@email.com" />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={userData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="phone">Telefone</Label>
-                    <Input id="phone" defaultValue="+55 11 99999-9999" />
-                  </div>
-                  <div>
-                    <Label htmlFor="company">Empresa</Label>
-                    <Input id="company" defaultValue="Minha Empresa Ltda" />
+                    <Input 
+                      id="phone" 
+                      value={userData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="+55 11 99999-9999"
+                    />
                   </div>
                 </div>
-                <Button className="w-full md:w-auto">
-                  Salvar Alterações
+                <Button 
+                  className="w-full md:w-auto" 
+                  onClick={handleSaveProfile}
+                  disabled={loading}
+                >
+                  {loading ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </CardContent>
             </Card>
@@ -65,14 +208,19 @@ const Profile = () => {
                     id="openai-key" 
                     type="password" 
                     placeholder="sk-..." 
-                    defaultValue="sk-abc123..."
+                    value={userData.openai_key}
+                    onChange={(e) => handleInputChange('openai_key', e.target.value)}
                   />
                   <p className="text-sm text-gray-500 mt-1">
                     Sua chave da OpenAI para utilizar os agentes de IA
                   </p>
                 </div>
-                <Button variant="outline">
-                  Atualizar Chave
+                <Button 
+                  variant="outline" 
+                  onClick={handleSaveOpenAIKey}
+                  disabled={loading}
+                >
+                  {loading ? 'Atualizando...' : 'Atualizar Chave'}
                 </Button>
               </CardContent>
             </Card>
