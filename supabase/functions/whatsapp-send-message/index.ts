@@ -48,11 +48,17 @@ serve(async (req) => {
       throw new Error('Evolution token not found');
     }
 
+    // Obter a chave da API
+    const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
+    if (!evolutionApiKey) {
+      throw new Error('Evolution API key not configured');
+    }
+
     // Enviar mensagem via Evolution API
     const evolutionResponse = await fetch('https://api.evolution-api.com/message/send-text', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${evolutionToken.token}`,
+        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

@@ -18,7 +18,7 @@ serve(async (req) => {
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
     const authHeader = req.headers.get('Authorization');
@@ -28,9 +28,10 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Usar o cliente com service role para verificar o usuário
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Verificar o usuário autenticado
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
 
     if (authError) {
       console.error('Auth error:', authError);
@@ -157,7 +158,7 @@ serve(async (req) => {
 
     console.log('Inserting data into evolution_tokens:', insertData);
 
-    // Armazenar dados na tabela evolution_tokens usando service role
+    // Armazenar dados na tabela evolution_tokens usando a autenticação do usuário
     const { data: tokenData, error: tokenError } = await supabase
       .from('evolution_tokens')
       .insert(insertData)

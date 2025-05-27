@@ -48,11 +48,17 @@ serve(async (req) => {
       throw new Error('Session not found');
     }
 
+    // Obter a chave da API
+    const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
+    if (!evolutionApiKey) {
+      throw new Error('Evolution API key not configured');
+    }
+
     // Desconectar na Evolution API
     const evolutionResponse = await fetch(`https://api.evolution-api.com/instance/disconnect/${sessionName}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': 'Bearer token_padrao_converta',
+        'apikey': evolutionApiKey,
       }
     });
 

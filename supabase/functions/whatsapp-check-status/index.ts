@@ -36,11 +36,17 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
+    // Buscar a chave da API
+    const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
+    if (!evolutionApiKey) {
+      throw new Error('Evolution API key not configured');
+    }
+
     // Buscar o status na Evolution API usando a nova endpoint
     const statusResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
       method: 'GET',
       headers: {
-        'apikey': 'token_padrao_converta',
+        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       }
     });
@@ -52,7 +58,7 @@ serve(async (req) => {
       const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
         method: 'GET',
         headers: {
-          'apikey': 'token_padrao_converta',
+          'apikey': evolutionApiKey,
           'Content-Type': 'application/json',
         }
       });
@@ -93,7 +99,7 @@ serve(async (req) => {
         const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
           method: 'GET',
           headers: {
-            'apikey': 'token_padrao_converta',
+            'apikey': evolutionApiKey,
             'Content-Type': 'application/json',
           }
         });
