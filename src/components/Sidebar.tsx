@@ -1,10 +1,12 @@
 
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   LayoutDashboard,
   Bot,
@@ -15,7 +17,9 @@ import {
   HelpCircle,
   LogOut,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  X
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -66,7 +70,9 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [profileExpanded, setProfileExpanded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -85,11 +91,15 @@ const Sidebar = () => {
     }
   };
 
-  return (
-    <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const SidebarContent = () => (
+    <>
       {/* Logo */}
       <div className="flex h-16 items-center border-b px-4">
-        <Link to="/dashboard" className="flex items-center space-x-2">
+        <Link to="/dashboard" className="flex items-center space-x-2" onClick={closeMobileMenu}>
           <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-600 to-green-600"></div>
           <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
             Converta+
@@ -107,6 +117,7 @@ const Sidebar = () => {
             <Link
               key={item.href}
               to={item.href}
+              onClick={closeMobileMenu}
               className={cn(
                 'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
@@ -151,6 +162,7 @@ const Sidebar = () => {
                   <Link
                     key={item.href}
                     to={item.href}
+                    onClick={closeMobileMenu}
                     className={cn(
                       'block rounded-lg px-3 py-2 text-sm transition-colors',
                       isActive
@@ -169,6 +181,7 @@ const Sidebar = () => {
         {/* Support */}
         <Link
           to="/support"
+          onClick={closeMobileMenu}
           className={cn(
             'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
             location.pathname === '/support'
@@ -192,8 +205,45 @@ const Sidebar = () => {
           <span>Sair</span>
         </Button>
       </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-50 bg-white shadow-md"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </Button>
+
+        {/* Mobile Sidebar Overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={closeMobileMenu} />
+            <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
+              <SidebarContent />
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
+      <SidebarContent />
     </div>
   );
 };
 
 export default Sidebar;
+
