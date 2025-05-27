@@ -1,5 +1,4 @@
 
-
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,8 +12,8 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {!isMobile && <Sidebar />}
-      <main className="flex-1 overflow-auto w-full">
+      <Sidebar />
+      <main className={`flex-1 overflow-auto w-full ${isMobile ? 'pt-16' : ''}`}>
         {children}
       </main>
     </div>
@@ -22,4 +21,3 @@ const Layout = ({ children }: LayoutProps) => {
 };
 
 export default Layout;
-

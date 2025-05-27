@@ -1,5 +1,4 @@
 
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -211,11 +210,11 @@ const Sidebar = () => {
   if (isMobile) {
     return (
       <>
-        {/* Mobile Menu Button */}
+        {/* Mobile Menu Button - Fixed position */}
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 bg-white shadow-md"
+          className="fixed top-4 left-4 z-50 bg-white shadow-md border"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? (
@@ -227,9 +226,9 @@ const Sidebar = () => {
 
         {/* Mobile Sidebar Overlay */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="fixed inset-0 z-40">
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={closeMobileMenu} />
-            <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
+            <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
               <SidebarContent />
             </div>
           </div>
@@ -246,4 +245,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-
