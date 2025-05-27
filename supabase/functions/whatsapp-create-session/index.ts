@@ -49,14 +49,20 @@ serve(async (req) => {
       .single();
 
     if (existingSession) {
-      throw new Error('Já existe uma sessão com este nome');
+      throw new Error('Session with this name already exists');
+    }
+
+    // Obter a chave da API da Evolution das variáveis de ambiente
+    const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
+    if (!evolutionApiKey) {
+      throw new Error('Evolution API key not configured');
     }
 
     // Criar sessão na Evolution API
     const evolutionResponse = await fetch('https://api.evolution-api.com/instance/create', {
       method: 'POST',
       headers: {
-        'apikey': 'token_padrao_converta',
+        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -79,7 +85,7 @@ serve(async (req) => {
     const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
       method: 'GET',
       headers: {
-        'apikey': 'token_padrao_converta',
+        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       }
     });
@@ -91,6 +97,16 @@ serve(async (req) => {
       console.log('Evolution connect response:', connectData);
     }
 
+    // Extrair QR code se disponível na resposta
+    let qrCodeUrl = null;
+    if (evolutionData.qrcode) {
+      qrCodeUrl = evolutionData.qrcode;
+    } else if (evolutionData.qr) {
+      qrCodeUrl = evolutionData.qr;
+    } else if (evolutionData.base64) {
+      qrCodeUrl = evolutionData.base64;
+    }
+
     // Armazenar dados na tabela evolution_tokens
     const { data: tokenData, error: tokenError } = await supabase
       .from('evolution_tokens')
@@ -99,7 +115,7 @@ serve(async (req) => {
         session_name: sessionName,
         instance_id: evolutionData.instance?.instanceName || sessionName,
         token: evolutionData.hash || 'temp_token',
-        qr_code_url: null, // Será atualizado quando o QR code for gerado
+        qr_code_url: qrCodeUrl,
         status: 'pending'
       })
       .select()
@@ -116,7 +132,8 @@ serve(async (req) => {
         instance_id: evolutionData.instance?.instanceName || sessionName,
         session_name: sessionName,
         token_id: tokenData.id,
-        status: 'pending'
+        status: 'pending',
+        qr_code: qrCodeUrl
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
