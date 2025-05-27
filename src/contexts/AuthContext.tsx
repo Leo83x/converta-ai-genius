@@ -25,20 +25,68 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const createUserProfile = async (user: User) => {
+    try {
+      // Verifica se o usuário já existe na tabela users
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Erro ao verificar usuário:', checkError);
+        return;
+      }
+
+      // Se o usuário não existe, cria o registro
+      if (!existingUser) {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+            phone: user.user_metadata?.phone || null
+          });
+
+        if (insertError) {
+          console.error('Erro ao criar perfil do usuário:', insertError);
+        } else {
+          console.log('Perfil do usuário criado com sucesso');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao processar perfil do usuário:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Criar perfil do usuário quando ele fizer login
+        if (event === 'SIGNED_IN' && session?.user) {
+          await createUserProfile(session.user);
+        }
+        
         setLoading(false);
       }
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Se já tem uma sessão ativa, garante que o perfil existe
+      if (session?.user) {
+        await createUserProfile(session.user);
+      }
+      
       setLoading(false);
     });
 
