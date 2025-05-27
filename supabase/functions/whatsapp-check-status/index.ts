@@ -36,7 +36,7 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Buscar o status na Evolution API
+    // Buscar o status na Evolution API usando a nova endpoint
     const statusResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
       method: 'GET',
       headers: {
@@ -46,16 +46,65 @@ serve(async (req) => {
     });
 
     if (!statusResponse.ok) {
-      throw new Error(`Evolution API error: ${statusResponse.status}`);
+      console.error('Evolution API status error:', statusResponse.status);
+      
+      // Se não conseguir buscar, tentar buscar QR code diretamente
+      const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
+        method: 'GET',
+        headers: {
+          'apikey': 'token_padrao_converta',
+          'Content-Type': 'application/json',
+        }
+      });
+
+      let qrCode = null;
+      if (qrResponse.ok) {
+        const qrData = await qrResponse.json();
+        qrCode = qrData.qrcode || qrData.base64 || null;
+        console.log('QR Code found:', !!qrCode);
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        status: 'pending',
+        qr_code: qrCode,
+        connection_status: 'connecting'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const statusData = await statusResponse.json();
     console.log('Status response:', statusData);
 
-    const status = statusData.connectionStatus === 'open' ? 'connected' : 
-                  statusData.connectionStatus === 'connecting' ? 'connecting' : 'pending';
-    
-    const qrCode = statusData.qrcode || statusData.qr || null;
+    // Determinar o status baseado na resposta
+    let status = 'pending';
+    let qrCode = null;
+
+    if (statusData.connectionStatus === 'open') {
+      status = 'connected';
+    } else if (statusData.connectionStatus === 'connecting' || statusData.connectionStatus === 'close') {
+      status = 'pending';
+      // Buscar QR code
+      qrCode = statusData.qrcode || statusData.qr || null;
+      
+      // Se não tiver QR code na resposta, tentar buscar diretamente
+      if (!qrCode) {
+        const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
+          method: 'GET',
+          headers: {
+            'apikey': 'token_padrao_converta',
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (qrResponse.ok) {
+          const qrData = await qrResponse.json();
+          qrCode = qrData.qrcode || qrData.base64 || null;
+          console.log('QR Code from direct endpoint:', !!qrCode);
+        }
+      }
+    }
 
     // Atualizar no banco de dados
     const { error: updateError } = await supabase
@@ -75,7 +124,7 @@ serve(async (req) => {
       success: true,
       status: status,
       qr_code: qrCode,
-      connection_status: statusData.connectionStatus
+      connection_status: statusData.connectionStatus || 'unknown'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

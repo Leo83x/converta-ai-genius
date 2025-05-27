@@ -15,6 +15,7 @@ const WhatsAppConnection = () => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [isConnecting, setIsConnecting] = useState(false);
   const [currentSession, setCurrentSession] = useState<string | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -25,12 +26,20 @@ const WhatsAppConnection = () => {
 
   // Verificar status periodicamente quando há uma sessão ativa
   useEffect(() => {
-    if (currentSession && connectionStatus === 'pending') {
+    if (currentSession && (connectionStatus === 'pending' || connectionStatus === 'connecting')) {
       const interval = setInterval(() => {
         checkSessionStatus(currentSession);
-      }, 3000);
+      }, 5000); // Verificar a cada 5 segundos
 
-      return () => clearInterval(interval);
+      // Limpar interval após 10 minutos
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+      }, 600000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     }
   }, [currentSession, connectionStatus]);
 
@@ -54,8 +63,10 @@ const WhatsAppConnection = () => {
         }
         
         // Se estiver pendente, verificar status imediatamente
-        if (session.status === 'pending') {
-          checkSessionStatus(session.session_name);
+        if (session.status === 'pending' || session.status === 'connecting') {
+          setTimeout(() => {
+            checkSessionStatus(session.session_name);
+          }, 2000);
         }
       }
     } catch (error) {
@@ -64,28 +75,47 @@ const WhatsAppConnection = () => {
   };
 
   const checkSessionStatus = async (sessionNameToCheck: string) => {
+    if (checkingStatus) return; // Evitar múltiplas verificações simultâneas
+    
+    setCheckingStatus(true);
     try {
+      console.log('Checking status for session:', sessionNameToCheck);
       const { data, error } = await supabase.functions.invoke('whatsapp-check-status', {
         body: { sessionName: sessionNameToCheck }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking status:', error);
+        return;
+      }
+
+      console.log('Status check response:', data);
 
       if (data.success) {
         setConnectionStatus(data.status);
+        
         if (data.qr_code && data.qr_code !== qrCode) {
+          console.log('New QR code received');
           setQrCode(data.qr_code);
         }
         
         if (data.status === 'connected') {
+          setQrCode(''); // Limpar QR code quando conectado
           toast({
             title: "WhatsApp Conectado!",
             description: "Sua conta está ativa e pronta para uso",
           });
+        } else if (data.status === 'pending' && !data.qr_code) {
+          // Se ainda estiver pendente mas sem QR code, tentar novamente em alguns segundos
+          setTimeout(() => {
+            checkSessionStatus(sessionNameToCheck);
+          }, 3000);
         }
       }
     } catch (error) {
       console.error('Error checking status:', error);
+    } finally {
+      setCheckingStatus(false);
     }
   };
 
@@ -101,28 +131,28 @@ const WhatsAppConnection = () => {
 
     setIsConnecting(true);
     setQrCode('');
+    setConnectionStatus('connecting');
     
     try {
+      console.log('Creating session:', sessionName.trim());
       const { data, error } = await supabase.functions.invoke('whatsapp-create-session', {
         body: { sessionName: sessionName.trim() }
       });
 
       if (error) throw error;
 
+      console.log('Session creation response:', data);
+
       if (data.success) {
         setCurrentSession(sessionName.trim());
         setConnectionStatus('pending');
         
-        if (data.data.qr_code) {
-          setQrCode(data.data.qr_code);
-        }
-        
         toast({
           title: "Sessão criada!",
-          description: "Aguarde o QR Code ser gerado...",
+          description: "Aguarde enquanto geramos o QR Code...",
         });
 
-        // Verificar status após alguns segundos para buscar o QR Code
+        // Começar a verificar status após alguns segundos
         setTimeout(() => {
           checkSessionStatus(sessionName.trim());
         }, 3000);
@@ -174,7 +204,7 @@ const WhatsAppConnection = () => {
   };
 
   const refreshQrCode = () => {
-    if (currentSession) {
+    if (currentSession && !checkingStatus) {
       checkSessionStatus(currentSession);
       toast({
         title: "Atualizando QR Code",
@@ -277,16 +307,23 @@ const WhatsAppConnection = () => {
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <h4 className="font-semibold text-blue-800 mb-2">⏳ Aguardando Conexão</h4>
                     <p className="text-sm text-blue-700">
-                      Escaneie o QR Code para conectar
+                      {qrCode ? 'Escaneie o QR Code para conectar' : 'Gerando QR Code...'}
                     </p>
+                    {checkingStatus && (
+                      <div className="flex items-center mt-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+                        <span className="text-xs text-blue-600">Verificando status...</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex space-x-2">
                     <Button
                       onClick={refreshQrCode}
                       variant="outline"
                       className="flex-1"
+                      disabled={checkingStatus}
                     >
-                      Atualizar QR Code
+                      {checkingStatus ? "Verificando..." : "Atualizar QR Code"}
                     </Button>
                     <Button
                       onClick={disconnectSession}

@@ -75,7 +75,7 @@ serve(async (req) => {
     const evolutionData = await evolutionResponse.json();
     console.log('Evolution API response:', evolutionData);
 
-    // Conectar a instância e gerar QR Code
+    // Conectar a instância
     const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
       method: 'GET',
       headers: {
@@ -85,30 +85,10 @@ serve(async (req) => {
     });
 
     if (!connectResponse.ok) {
-      const errorText = await connectResponse.text();
-      console.error('Evolution connect error:', errorText);
-      throw new Error(`Evolution connect error: ${connectResponse.status} - ${errorText}`);
-    }
-
-    const connectData = await connectResponse.json();
-    console.log('Evolution connect response:', connectData);
-
-    // Aguardar um pouco e buscar o QR Code
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const qrResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
-      method: 'GET',
-      headers: {
-        'apikey': 'token_padrao_converta',
-        'Content-Type': 'application/json',
-      }
-    });
-
-    let qrCodeData = null;
-    if (qrResponse.ok) {
-      const qrData = await qrResponse.json();
-      qrCodeData = qrData.qrcode || qrData.qr || null;
-      console.log('QR Code data:', qrCodeData);
+      console.error('Evolution connect error:', connectResponse.status);
+    } else {
+      const connectData = await connectResponse.json();
+      console.log('Evolution connect response:', connectData);
     }
 
     // Armazenar dados na tabela evolution_tokens
@@ -119,7 +99,7 @@ serve(async (req) => {
         session_name: sessionName,
         instance_id: evolutionData.instance?.instanceName || sessionName,
         token: evolutionData.hash || 'temp_token',
-        qr_code_url: qrCodeData,
+        qr_code_url: null, // Será atualizado quando o QR code for gerado
         status: 'pending'
       })
       .select()
@@ -134,7 +114,6 @@ serve(async (req) => {
       success: true,
       data: {
         instance_id: evolutionData.instance?.instanceName || sessionName,
-        qr_code: qrCodeData,
         session_name: sessionName,
         token_id: tokenData.id,
         status: 'pending'
