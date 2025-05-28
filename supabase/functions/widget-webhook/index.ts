@@ -26,37 +26,38 @@ serve(async (req) => {
       throw new Error('Message and userId are required');
     }
 
-    // Buscar agentes ativos para o canal widget
-    const { data: agentChannels, error: channelsError } = await supabase
-      .from('agent_channels')
-      .select(`
-        *,
-        agents!inner(*)
-      `)
-      .eq('channel_type', 'widget')
-      .eq('agents.user_id', userId)
-      .eq('agents.active', true);
+    // Buscar agentes ativos do usuário que tenham canal widget
+    const { data: agents, error: agentsError } = await supabase
+      .from('agents')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('active', true);
 
-    if (channelsError) {
-      console.error('Error fetching agent channels:', channelsError);
-      return new Response(JSON.stringify({ success: false, error: 'Agent not found' }), {
-        status: 404,
+    if (agentsError) {
+      console.error('Error fetching agents:', agentsError);
+      return new Response(JSON.stringify({ success: false, error: 'Error fetching agents' }), {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (!agentChannels || agentChannels.length === 0) {
-      console.log('No active widget agents found for user:', userId);
+    // Verificar se há agentes com canal widget
+    const widgetAgents = agents?.filter(agent => 
+      agent.channel === 'widget' || agent.channel === 'Widget do Site'
+    ) || [];
+
+    if (widgetAgents.length === 0) {
+      console.log('No widget agents found for user:', userId);
       return new Response(JSON.stringify({ 
         success: true, 
-        reply: 'Desculpe, não há agentes disponíveis no momento. Por favor, tente novamente mais tarde.' 
+        reply: 'Desculpe, não há agentes disponíveis no momento. Por favor, configure um agente para o canal "Widget do Site".' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const agent = agentChannels[0].agents;
-    console.log('Processing message for agent:', agent.name);
+    const agent = widgetAgents[0];
+    console.log('Using agent:', agent.name, 'with channel:', agent.channel);
 
     // Buscar chave OpenAI do usuário
     const { data: userData, error: userError } = await supabase
@@ -66,7 +67,7 @@ serve(async (req) => {
       .single();
 
     if (userError || !userData?.openai_key) {
-      console.error('OpenAI key not found for user:', userId);
+      console.error('OpenAI key not found for user:', userId, userError);
       return new Response(JSON.stringify({ 
         success: true, 
         reply: 'Desculpe, configuração de IA não encontrada. Por favor, configure sua chave OpenAI no perfil.' 
@@ -74,6 +75,8 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    console.log('Found OpenAI key for user');
 
     // Buscar histórico da conversa para contexto
     const { data: conversationData } = await supabase
@@ -93,9 +96,9 @@ serve(async (req) => {
     ];
 
     // Adicionar histórico se existir
-    if (conversationData?.messages) {
-      const historyMessages = Array.isArray(conversationData.messages) ? conversationData.messages : [];
-      messages = [...messages, ...historyMessages.slice(-10)]; // Últimas 10 mensagens
+    if (conversationData?.messages && Array.isArray(conversationData.messages)) {
+      const historyMessages = conversationData.messages.slice(-10); // Últimas 10 mensagens
+      messages = [...messages, ...historyMessages];
     }
 
     // Adicionar mensagem atual
@@ -103,6 +106,8 @@ serve(async (req) => {
       role: 'user',
       content: message
     });
+
+    console.log('Sending request to OpenAI with', messages.length, 'messages');
 
     // Processar com OpenAI
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -120,20 +125,23 @@ serve(async (req) => {
     });
 
     if (!openaiResponse.ok) {
-      console.error('OpenAI API error:', await openaiResponse.text());
+      const errorText = await openaiResponse.text();
+      console.error('OpenAI API error:', openaiResponse.status, errorText);
       return new Response(JSON.stringify({ 
         success: true, 
-        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.' 
+        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Verifique se sua chave OpenAI está válida.' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const aiResponse = await openaiResponse.json();
-    const replyText = aiResponse.choices[0]?.message?.content;
+    console.log('OpenAI response received');
+    
+    const replyText = aiResponse.choices?.[0]?.message?.content;
 
     if (!replyText) {
-      console.error('No response from OpenAI');
+      console.error('No response content from OpenAI');
       return new Response(JSON.stringify({ 
         success: true, 
         reply: 'Desculpe, não consegui gerar uma resposta. Tente novamente.' 

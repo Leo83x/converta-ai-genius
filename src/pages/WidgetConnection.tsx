@@ -194,6 +194,13 @@ const WidgetConnection = () => {
         messages.scrollTop = messages.scrollHeight;
         
         try {
+          console.log('Sending message to:', window.ConvertaPlus.apiUrl);
+          console.log('Message data:', {
+            message: message,
+            userId: window.ConvertaPlus.userId,
+            sessionId: window.ConvertaPlus.sessionId
+          });
+          
           // Enviar para API
           const response = await fetch(window.ConvertaPlus.apiUrl, {
             method: 'POST',
@@ -207,7 +214,14 @@ const WidgetConnection = () => {
             })
           });
           
+          console.log('Response status:', response.status);
+          
+          if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
+          }
+          
           const data = await response.json();
+          console.log('Response data:', data);
           
           // Esconder indicador de digitação
           typingIndicator.style.display = 'none';
