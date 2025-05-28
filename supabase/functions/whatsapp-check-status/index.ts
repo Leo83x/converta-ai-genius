@@ -8,15 +8,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function findQRCodeRobust(validatedUrl: string, evolutionApiKey: string, sessionName: string) {
-  console.log(`Starting robust QR code search for session: ${sessionName}`);
+async function checkInstanceStatus(validatedUrl: string, evolutionApiKey: string, sessionName: string) {
+  console.log(`Checking instance status for session: ${sessionName}`);
   
   const endpoints = [
-    { name: 'connect', url: `${validatedUrl}/instance/connect/${sessionName}`, method: 'GET' },
-    { name: 'qrcode', url: `${validatedUrl}/instance/qrcode/${sessionName}`, method: 'GET' },
-    { name: 'fetchInstances', url: `${validatedUrl}/instance/fetchInstances/${sessionName}`, method: 'GET' },
-    { name: 'find', url: `${validatedUrl}/instance/find/${sessionName}`, method: 'GET' },
-    { name: 'fetchInstances-all', url: `${validatedUrl}/instance/fetchInstances`, method: 'GET' }
+    { 
+      name: 'connectionState', 
+      url: `${validatedUrl}/instance/connectionState/${sessionName}`, 
+      method: 'GET' 
+    },
+    { 
+      name: 'instanceInfo', 
+      url: `${validatedUrl}/instance/instanceInfo/${sessionName}`, 
+      method: 'GET' 
+    }
   ];
 
   for (const endpoint of endpoints) {
@@ -37,46 +42,17 @@ async function findQRCodeRobust(validatedUrl: string, evolutionApiKey: string, s
         const data = await response.json();
         console.log(`${endpoint.name} response:`, JSON.stringify(data, null, 2));
 
-        // Handle array response for fetchInstances-all
-        if (endpoint.name === 'fetchInstances-all' && Array.isArray(data)) {
-          const sessionInstance = data.find(instance => 
-            instance.instance === sessionName || instance.instanceName === sessionName
-          );
-          if (sessionInstance) {
-            console.log(`Found session in fetchInstances-all:`, sessionInstance);
-            
-            if (sessionInstance.connectionStatus === 'open') {
-              return { status: 'connected', qrCode: null };
-            }
-            
-            const qrCode = sessionInstance.qrcode || sessionInstance.qr || sessionInstance.base64;
-            if (qrCode && qrCode.length > 50) {
-              return { status: 'pending', qrCode: qrCode };
-            }
-          }
-          continue;
-        }
-
         // Check for connection status first
-        if (data.connectionStatus === 'open' || data.state === 'open') {
+        if (data.state === 'open' || data.connectionStatus === 'open') {
           console.log(`Instance connected via ${endpoint.name}`);
           return { status: 'connected', qrCode: null };
         }
 
-        // Look for QR code in various fields
+        // Look for QR code in response
         const qrCode = data.qrcode || data.qr || data.base64;
         if (qrCode && typeof qrCode === 'string' && qrCode.length > 50) {
           console.log(`QR Code found via ${endpoint.name}, length:`, qrCode.length);
           return { status: 'pending', qrCode: qrCode };
-        }
-
-        // Check nested data
-        if (data.instance) {
-          const nestedQrCode = data.instance.qrcode || data.instance.qr || data.instance.base64;
-          if (nestedQrCode && typeof nestedQrCode === 'string' && nestedQrCode.length > 50) {
-            console.log(`QR Code found in nested data via ${endpoint.name}`);
-            return { status: 'pending', qrCode: nestedQrCode };
-          }
         }
 
       } else {
@@ -89,7 +65,53 @@ async function findQRCodeRobust(validatedUrl: string, evolutionApiKey: string, s
     }
   }
   
-  console.log('No QR code found in any endpoint');
+  // If no QR code found, try to restart the instance to force QR generation
+  try {
+    console.log('Attempting to restart instance to force QR generation');
+    const restartUrl = `${validatedUrl}/instance/restart/${sessionName}`;
+    
+    const restartResponse = await fetch(restartUrl, {
+      method: 'PUT',
+      headers: {
+        'apikey': evolutionApiKey,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (restartResponse.ok) {
+      console.log('Instance restarted successfully');
+      
+      // Wait a moment and check status again
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      const statusResponse = await fetch(`${validatedUrl}/instance/connectionState/${sessionName}`, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        console.log('Status after restart:', JSON.stringify(statusData, null, 2));
+        
+        if (statusData.state === 'open') {
+          return { status: 'connected', qrCode: null };
+        }
+        
+        const qrCode = statusData.qrcode || statusData.qr || statusData.base64;
+        if (qrCode && typeof qrCode === 'string' && qrCode.length > 50) {
+          console.log('QR Code found after restart');
+          return { status: 'pending', qrCode: qrCode };
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Restart attempt failed:', error);
+  }
+  
+  console.log('No QR code found and unable to restart instance');
   return { status: 'connecting', qrCode: null };
 }
 
@@ -174,8 +196,8 @@ serve(async (req) => {
 
     console.log('Using validated Evolution API URL:', validatedUrl);
 
-    // Use robust QR code finding strategy
-    const result = await findQRCodeRobust(validatedUrl, evolutionApiKey, sessionName);
+    // Check instance status using correct endpoints
+    const result = await checkInstanceStatus(validatedUrl, evolutionApiKey, sessionName);
     
     let status = result.status;
     let qrCode = result.qrCode;
