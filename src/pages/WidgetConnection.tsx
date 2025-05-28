@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,21 +49,11 @@ const WidgetConnection = () => {
     theme: '${config.theme}',
     title: '${config.title}',
     welcomeMessage: '${config.welcomeMessage}',
-    apiUrl: 'https://xekxewtggioememydenu.supabase.co'
+    apiUrl: 'https://xekxewtggioememydenu.supabase.co/functions/v1/widget-webhook'
   };
 </script>
 <script>
   (function() {
-    var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/gh/convertaplus/widget@latest/dist/widget.js';
-    script.async = true;
-    script.onload = function() {
-      if (window.ConvertaPlusWidget) {
-        window.ConvertaPlusWidget.init(window.ConvertaPlus);
-      }
-    };
-    document.head.appendChild(script);
-    
     // Criar CSS do widget
     var style = document.createElement('style');
     style.textContent = \`
@@ -83,7 +72,7 @@ const WidgetConnection = () => {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         display: flex; align-items: center; justify-content: center;
-        transition: all 0.3s ease;
+        transition: all 0.3s ease; color: white; font-size: 24px;
       }
       .converta-widget-button:hover { transform: scale(1.1); }
       
@@ -117,6 +106,9 @@ const WidgetConnection = () => {
         border-radius: 50%; width: 36px; height: 36px;
         cursor: pointer; display: flex; align-items: center; justify-content: center;
       }
+      .converta-widget-input button:disabled {
+        background: #ccc; cursor: not-allowed;
+      }
       
       .message { margin-bottom: 12px; }
       .message.bot { text-align: left; }
@@ -127,6 +119,14 @@ const WidgetConnection = () => {
       }
       .message.bot .content { background: #e9ecef; color: #333; }
       .message.user .content { background: #667eea; color: white; }
+      
+      .typing-indicator {
+        display: none; text-align: left; margin-bottom: 12px;
+      }
+      .typing-indicator .content {
+        background: #e9ecef; color: #666; padding: 8px 12px;
+        border-radius: 12px; font-style: italic;
+      }
     \`;
     document.head.appendChild(style);
     
@@ -145,9 +145,12 @@ const WidgetConnection = () => {
               <div class="content">\${window.ConvertaPlus.welcomeMessage}</div>
             </div>
           </div>
+          <div class="typing-indicator" id="typing-indicator">
+            <div class="content">O agente está digitando...</div>
+          </div>
           <div class="converta-widget-input">
             <input type="text" placeholder="Digite sua mensagem..." id="converta-input">
-            <button onclick="sendMessage()">➤</button>
+            <button onclick="sendMessage()" id="send-button">➤</button>
           </div>
         </div>
         <button class="converta-widget-button" onclick="toggleChat()">
@@ -157,39 +160,102 @@ const WidgetConnection = () => {
       
       document.body.appendChild(container);
       
+      // Gerar session ID único
+      window.ConvertaPlus.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
       // Funções do widget
       window.toggleChat = function() {
         var chat = document.getElementById('converta-chat');
         chat.classList.toggle('open');
       };
       
-      window.sendMessage = function() {
+      window.sendMessage = async function() {
         var input = document.getElementById('converta-input');
+        var sendButton = document.getElementById('send-button');
         var message = input.value.trim();
         if (!message) return;
         
         var messages = document.getElementById('converta-messages');
+        var typingIndicator = document.getElementById('typing-indicator');
+        
+        // Adicionar mensagem do usuário
         var userMsg = document.createElement('div');
         userMsg.className = 'message user';
-        userMsg.innerHTML = '<div class="content">' + message + '</div>';
+        userMsg.innerHTML = '<div class="content">' + escapeHtml(message) + '</div>';
         messages.appendChild(userMsg);
         
         input.value = '';
+        input.disabled = true;
+        sendButton.disabled = true;
         messages.scrollTop = messages.scrollHeight;
         
-        // Simular resposta do bot (aqui você conectaria com sua API)
-        setTimeout(function() {
-          var botMsg = document.createElement('div');
-          botMsg.className = 'message bot';
-          botMsg.innerHTML = '<div class="content">Obrigado pela sua mensagem! Em breve um de nossos atendentes entrará em contato.</div>';
-          messages.appendChild(botMsg);
+        // Mostrar indicador de digitação
+        typingIndicator.style.display = 'block';
+        messages.scrollTop = messages.scrollHeight;
+        
+        try {
+          // Enviar para API
+          const response = await fetch(window.ConvertaPlus.apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: message,
+              userId: window.ConvertaPlus.userId,
+              sessionId: window.ConvertaPlus.sessionId
+            })
+          });
+          
+          const data = await response.json();
+          
+          // Esconder indicador de digitação
+          typingIndicator.style.display = 'none';
+          
+          if (data.success && data.reply) {
+            var botMsg = document.createElement('div');
+            botMsg.className = 'message bot';
+            botMsg.innerHTML = '<div class="content">' + escapeHtml(data.reply) + '</div>';
+            messages.appendChild(botMsg);
+          } else {
+            var errorMsg = document.createElement('div');
+            errorMsg.className = 'message bot';
+            errorMsg.innerHTML = '<div class="content">Desculpe, ocorreu um erro. Tente novamente.</div>';
+            messages.appendChild(errorMsg);
+          }
+        } catch (error) {
+          console.error('Error sending message:', error);
+          typingIndicator.style.display = 'none';
+          var errorMsg = document.createElement('div');
+          errorMsg.className = 'message bot';
+          errorMsg.innerHTML = '<div class="content">Erro de conexão. Verifique sua internet e tente novamente.</div>';
+          messages.appendChild(errorMsg);
+        } finally {
+          input.disabled = false;
+          sendButton.disabled = false;
           messages.scrollTop = messages.scrollHeight;
-        }, 1000);
+          input.focus();
+        }
       };
+      
+      // Função para escapar HTML
+      function escapeHtml(text) {
+        var map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+      }
       
       // Enter para enviar
       document.getElementById('converta-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
       });
     }
     
@@ -387,8 +453,9 @@ const WidgetConnection = () => {
                     <ol className="text-sm text-yellow-700 space-y-1">
                       <li>1. Copie o código acima</li>
                       <li>2. Cole antes da tag &lt;/body&gt; do seu site</li>
-                      <li>3. Publique as alterações</li>
-                      <li>4. O chat aparecerá na posição configurada</li>
+                      <li>3. Certifique-se de ter um agente ativo no canal "Widget do Site"</li>
+                      <li>4. Publique as alterações</li>
+                      <li>5. O chat aparecerá na posição configurada</li>
                     </ol>
                   </div>
                 </div>
