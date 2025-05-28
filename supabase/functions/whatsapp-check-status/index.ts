@@ -8,66 +8,50 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function checkInstanceStatus(validatedUrl: string, evolutionApiKey: string, sessionName: string) {
-  console.log(`Checking instance status for session: ${sessionName}`);
+async function checkEvolutionInstanceStatus(apiUrl: string, apiKey: string, sessionName: string) {
+  console.log(`Checking Evolution instance status: ${sessionName}`);
   
-  // First try to get instance info using fetchInstances (Evolution API Cloud method)
   try {
-    console.log('Trying to fetch instances from Evolution API Cloud');
-    const fetchUrl = `${validatedUrl}/instance/fetchInstances`;
+    // Check QR Code endpoint first
+    const qrUrl = `${apiUrl}/instance/qrcode/${sessionName}`;
+    console.log('Checking QR Code at:', qrUrl);
     
-    const fetchResponse = await fetch(fetchUrl, {
+    const qrResponse = await fetch(qrUrl, {
       method: 'GET',
       headers: {
-        'apikey': evolutionApiKey,
+        'apikey': apiKey,
         'Content-Type': 'application/json',
       }
     });
 
-    console.log('Fetch instances response status:', fetchResponse.status);
+    console.log('QR Code response status:', qrResponse.status);
 
-    if (fetchResponse.ok) {
-      const fetchData = await fetchResponse.json();
-      console.log('Fetch instances response:', JSON.stringify(fetchData, null, 2));
-
-      // Look for our instance in the response
-      if (Array.isArray(fetchData)) {
-        const ourInstance = fetchData.find(instance => 
-          instance.instance?.instanceName === sessionName || 
-          instance.instanceName === sessionName
-        );
-        
-        if (ourInstance) {
-          // Check if instance is connected
-          if (ourInstance.instance?.state === 'open' || ourInstance.state === 'open') {
-            console.log('Instance is connected via fetchInstances');
-            return { status: 'connected', qrCode: null };
-          }
-          
-          // Check for QR code
-          if (ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64) {
-            const qrCode = ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64;
-            if (qrCode && qrCode.length > 50) {
-              console.log('QR Code found via fetchInstances');
-              return { status: 'pending', qrCode: qrCode };
-            }
-          }
-        }
+    if (qrResponse.ok) {
+      const qrData = await qrResponse.json();
+      console.log('QR Code response:', JSON.stringify(qrData, null, 2));
+      
+      // Check if instance is connected
+      if (qrData.state === 'open' || qrData.status === 'connected') {
+        console.log('Instance is connected');
+        return { status: 'connected', qrCode: null };
+      }
+      
+      // Check for QR code
+      const qrCode = qrData.base64 || qrData.qrCode?.base64 || qrData.qrcode?.base64;
+      if (qrCode && qrCode.length > 50) {
+        console.log('QR Code found');
+        return { status: 'pending', qrCode: qrCode };
       }
     }
-  } catch (error) {
-    console.log('Fetch instances endpoint error:', error);
-  }
 
-  // Try to connect to generate QR code
-  try {
-    console.log('Trying to connect instance to generate QR code');
-    const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
+    // Try to connect if no QR code found
+    console.log('Attempting to connect instance...');
+    const connectUrl = `${apiUrl}/instance/connect/${sessionName}`;
     
     const connectResponse = await fetch(connectUrl, {
       method: 'GET',
       headers: {
-        'apikey': evolutionApiKey,
+        'apikey': apiKey,
         'Content-Type': 'application/json',
       }
     });
@@ -77,44 +61,17 @@ async function checkInstanceStatus(validatedUrl: string, evolutionApiKey: string
     if (connectResponse.ok) {
       const connectData = await connectResponse.json();
       console.log('Connect response:', JSON.stringify(connectData, null, 2));
-
-      // Check if we got QR code from connect
-      if (connectData.base64 && connectData.base64.length > 50) {
-        console.log('QR Code found via connect endpoint');
-        return { status: 'pending', qrCode: connectData.base64 };
+      
+      // Check for QR code in connect response
+      const qrCode = connectData.base64 || connectData.qrCode?.base64 || connectData.qrcode?.base64;
+      if (qrCode && qrCode.length > 50) {
+        console.log('QR Code found from connect');
+        return { status: 'pending', qrCode: qrCode };
       }
     }
+
   } catch (error) {
-    console.log('Connect endpoint error:', error);
-  }
-
-  // Then check connection state
-  try {
-    console.log('Checking connection state');
-    const statusUrl = `${validatedUrl}/instance/connectionState/${sessionName}`;
-    
-    const statusResponse = await fetch(statusUrl, {
-      method: 'GET',
-      headers: {
-        'apikey': evolutionApiKey,
-        'Content-Type': 'application/json',
-      }
-    });
-
-    console.log('Status response status:', statusResponse.status);
-
-    if (statusResponse.ok) {
-      const statusData = await statusResponse.json();
-      console.log('Status response:', JSON.stringify(statusData, null, 2));
-
-      // Check for connection status
-      if (statusData.instance && statusData.instance.state === 'open') {
-        console.log('Instance is connected via connectionState');
-        return { status: 'connected', qrCode: null };
-      }
-    }
-  } catch (error) {
-    console.log('Status endpoint error:', error);
+    console.log('Error checking instance status:', error);
   }
   
   console.log('Instance is connecting, no QR code available yet');
@@ -127,7 +84,6 @@ serve(async (req) => {
   }
 
   try {
-    // Create admin client for auth verification
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -138,7 +94,6 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Create user client for RLS-compliant operations
     const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -160,60 +115,37 @@ serve(async (req) => {
     }
 
     const { sessionName } = await req.json();
-
     console.log('Checking status for session:', sessionName);
 
     // Get Evolution API configuration
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     
-    console.log('=== DEBUGGING SECRETS IN CHECK STATUS ===');
-    console.log('EVOLUTION_API_KEY exists:', !!evolutionApiKey);
-    console.log('EVOLUTION_API_URL exists:', !!evolutionApiUrl);
-    console.log('EVOLUTION_API_URL value:', evolutionApiUrl);
-    console.log('=== END DEBUGGING ===');
-    
-    if (!evolutionApiKey) {
-      throw new Error('Evolution API key not configured. Please check your Supabase secrets.');
+    if (!evolutionApiKey || !evolutionApiUrl) {
+      throw new Error('Evolution API configuration missing');
     }
 
-    if (!evolutionApiUrl) {
-      throw new Error('Evolution API URL not configured. Please check your Supabase secrets.');
-    }
-
-    // URL validation
+    // Validate URL
     let validatedUrl: string;
     try {
       const cleanUrl = evolutionApiUrl.trim();
-      
-      if (cleanUrl === 'EVOLUTION_API_URL' || cleanUrl.includes('EVOLUTION_API_URL')) {
-        throw new Error('EVOLUTION_API_URL secret contains the variable name instead of the actual URL');
-      }
-      
       const urlObject = new URL(cleanUrl);
       validatedUrl = cleanUrl;
-      
-      console.log('URL validation successful:', validatedUrl);
     } catch (urlError) {
-      console.error('URL validation failed:', urlError);
-      console.error('Received URL value:', evolutionApiUrl);
-      throw new Error(`Evolution API URL is invalid: ${urlError.message}. Please check your EVOLUTION_API_URL secret in Supabase.`);
+      throw new Error(`Invalid Evolution API URL: ${urlError.message}`);
     }
 
-    console.log('Using validated Evolution API URL:', validatedUrl);
+    console.log('Using Evolution API URL:', validatedUrl);
 
-    // Check instance status using correct endpoints for Evolution API Cloud
-    const result = await checkInstanceStatus(validatedUrl, evolutionApiKey, sessionName);
+    // Check instance status using Evolution API Cloud endpoints
+    const result = await checkEvolutionInstanceStatus(validatedUrl, evolutionApiKey, sessionName);
     
-    let status = result.status;
-    let qrCode = result.qrCode;
+    console.log('Status check result:', result);
 
-    console.log('Final result:', { status, qrCodeLength: qrCode ? qrCode.length : 0 });
-
-    // Update database using user client (RLS compliant)
-    const updateData: any = { status: status };
-    if (qrCode) {
-      updateData.qr_code_url = qrCode;
+    // Update database
+    const updateData: any = { status: result.status };
+    if (result.qrCode) {
+      updateData.qr_code_url = result.qrCode;
     }
 
     const { error: updateError } = await supabaseUser
@@ -228,9 +160,9 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      status: status,
-      qr_code: qrCode,
-      connection_status: status
+      status: result.status,
+      qr_code: result.qrCode,
+      connection_status: result.status
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
