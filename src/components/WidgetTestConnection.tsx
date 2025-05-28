@@ -45,6 +45,7 @@ export const WidgetTestConnection = () => {
 
       if (userError || !userData) {
         updateResult('user', 'error', 'Usuário não encontrado na base de dados', userError);
+        setTesting(false);
         return;
       }
       
@@ -55,10 +56,17 @@ export const WidgetTestConnection = () => {
       
       if (!userData.openai_key) {
         updateResult('openai', 'error', 'Chave OpenAI não configurada no perfil');
+        setTesting(false);
+        return;
+      }
+
+      if (!userData.openai_key.startsWith('sk-')) {
+        updateResult('openai', 'error', 'Chave OpenAI com formato inválido (deve começar com sk-)');
+        setTesting(false);
         return;
       }
       
-      updateResult('openai', 'success', `Chave OpenAI configurada (${userData.openai_key.substring(0, 7)}...)`);
+      updateResult('openai', 'success', `Chave OpenAI configurada e válida (${userData.openai_key.substring(0, 7)}...)`);
 
       // Teste 3: Verificar agentes
       updateResult('agents', 'pending', 'Verificando agentes configurados...');
@@ -70,17 +78,20 @@ export const WidgetTestConnection = () => {
 
       if (agentsError) {
         updateResult('agents', 'error', 'Erro ao buscar agentes', agentsError);
+        setTesting(false);
         return;
       }
 
       if (!agents || agents.length === 0) {
         updateResult('agents', 'error', 'Nenhum agente encontrado');
+        setTesting(false);
         return;
       }
 
       const activeAgents = agents.filter(a => a.active);
       if (activeAgents.length === 0) {
         updateResult('agents', 'error', 'Nenhum agente ativo encontrado');
+        setTesting(false);
         return;
       }
 
@@ -88,7 +99,9 @@ export const WidgetTestConnection = () => {
         const channel = (agent.channel || '').toLowerCase().trim();
         return channel === 'widget do site' || 
                channel === 'widget' || 
-               channel.includes('widget');
+               channel.includes('widget') || 
+               channel.includes('site') || 
+               channel.includes('web');
       });
 
       if (widgetAgents.length === 0) {
@@ -97,6 +110,7 @@ export const WidgetTestConnection = () => {
           activeAgents: activeAgents.length,
           channels: activeAgents.map(a => a.channel)
         });
+        setTesting(false);
         return;
       }
 
@@ -108,6 +122,7 @@ export const WidgetTestConnection = () => {
       
       if (!widgetAgent.system_prompt || widgetAgent.system_prompt.trim().length === 0) {
         updateResult('prompt', 'error', 'System prompt não configurado no agente');
+        setTesting(false);
         return;
       }
       
@@ -117,6 +132,8 @@ export const WidgetTestConnection = () => {
       updateResult('openai_test', 'pending', 'Testando conexão com OpenAI...');
       
       try {
+        console.log('🧪 Iniciando teste OpenAI para usuário:', user.id);
+        
         const testResponse = await fetch('https://xekxewtggioememydenu.supabase.co/functions/v1/widget-webhook', {
           method: 'POST',
           headers: {
@@ -129,21 +146,30 @@ export const WidgetTestConnection = () => {
           })
         });
 
-        if (!testResponse.ok) {
-          updateResult('openai_test', 'error', `Erro HTTP ${testResponse.status}`, await testResponse.text());
-          return;
-        }
+        console.log('🧪 Status da resposta:', testResponse.status);
+        console.log('🧪 Headers da resposta:', Object.fromEntries(testResponse.headers.entries()));
 
         const testData = await testResponse.json();
+        console.log('🧪 Dados da resposta:', testData);
         
-        if (testData.success && testData.reply) {
-          updateResult('openai_test', 'success', 'Teste de conexão com OpenAI realizado com sucesso', testData);
+        if (testResponse.ok && testData.success && testData.reply) {
+          updateResult('openai_test', 'success', 'Teste de conexão com OpenAI realizado com sucesso', {
+            status: testResponse.status,
+            reply: testData.reply
+          });
         } else {
-          updateResult('openai_test', 'error', 'Resposta inválida do webhook', testData);
+          updateResult('openai_test', 'error', `Erro no teste: ${testData.error || 'Resposta inválida'}`, {
+            status: testResponse.status,
+            data: testData
+          });
         }
         
       } catch (testError) {
-        updateResult('openai_test', 'error', 'Erro ao testar conexão com OpenAI', testError);
+        console.error('🧪 Erro no teste OpenAI:', testError);
+        updateResult('openai_test', 'error', 'Erro ao testar conexão com OpenAI', {
+          error: testError.message,
+          name: testError.name
+        });
       }
 
     } catch (error) {
@@ -216,7 +242,13 @@ export const WidgetTestConnection = () => {
                 {getStatusIcon(result.status)}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium">{result.step}</span>
+                    <span className="font-medium capitalize">
+                      {result.step === 'user' ? 'Usuário' :
+                       result.step === 'openai' ? 'Chave OpenAI' :
+                       result.step === 'agents' ? 'Agentes' :
+                       result.step === 'prompt' ? 'System Prompt' :
+                       result.step === 'openai_test' ? 'Teste OpenAI' : result.step}
+                    </span>
                     <Badge className={getStatusColor(result.status)}>
                       {result.status === 'pending' ? 'Executando' : 
                        result.status === 'success' ? 'Sucesso' : 'Erro'}
@@ -226,7 +258,7 @@ export const WidgetTestConnection = () => {
                   {result.details && (
                     <details className="mt-2">
                       <summary className="text-xs text-gray-500 cursor-pointer">Ver detalhes</summary>
-                      <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-auto">
+                      <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-auto max-h-32">
                         {JSON.stringify(result.details, null, 2)}
                       </pre>
                     </details>
