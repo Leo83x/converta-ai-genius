@@ -11,25 +11,34 @@ max_rows = 1000
 [auth]
 enabled = true
 port = 54324
-site_url = "https://42518a9f-e8e2-4cca-991a-a9bcb7c1d66b.lovableproject.com"
-additional_redirect_urls = ["https://localhost:3000"]
-jwt_expiry = 3600
-jwt_secret = "super-secret-jwt-token-with-at-least-32-characters-long"
-anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhla3hld3RnZ2lvZW1lbXlkZW51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzMDAwODgsImV4cCI6MjA2Mzg3NjA4OH0.xOQGtjZVeFhYx3xuDXXtiI7sB4ksGLOqcIeiwMZFjBg"
-service_role_key = "your-service-role-key"
 
-[db]
-port = 54322
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
 
 [storage]
 enabled = true
-port = 54323
+port = 54325
 file_size_limit = "50MiB"
 
-[functions.whatsapp-create-session]
-verify_jwt = true
+[edge_runtime]
+enabled = true
+port = 54326
+
+[analytics]
+enabled = false
+
+[functions.widget-webhook]
+verify_jwt = false
+
+[functions.evolution-webhook]
+verify_jwt = false
 
 [functions.whatsapp-check-status]
+verify_jwt = true
+
+[functions.whatsapp-create-session]
 verify_jwt = true
 
 [functions.whatsapp-disconnect]
@@ -37,6 +46,3 @@ verify_jwt = true
 
 [functions.whatsapp-send-message]
 verify_jwt = true
-
-[functions.evolution-webhook]
-verify_jwt = false
