@@ -114,15 +114,63 @@ serve(async (req) => {
 
     console.log('✅ ETAPA 3 SUCESSO: Usuário encontrado:', userExists);
 
-    // ✅ ETAPA 4: Buscar agentes do usuário
-    console.log('🔍 ETAPA 4 - Buscando agentes para o usuário:', userId);
+    // ✅ ETAPA 4: Buscar chave OpenAI do usuário
+    console.log('🔑 ETAPA 4 - Buscando chave OpenAI para o usuário:', userId);
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('openai_key, name, email')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('❌ ERRO ETAPA 4: Erro ao buscar dados do usuário:', userError);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Erro ao acessar configurações da conta. Verifique sua conta.' 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('🔑 ETAPA 4 - Dados do usuário:', {
+      hasUserData: !!userData,
+      hasOpenAIKey: !!userData?.openai_key,
+      openAIKeyLength: userData?.openai_key?.length || 0,
+      keyPreview: userData?.openai_key ? `${userData.openai_key.substring(0, 7)}...` : 'null'
+    });
+
+    if (!userData?.openai_key) {
+      console.error('❌ ERRO ETAPA 4: Chave OpenAI não encontrada');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Chave OpenAI não configurada. Configure sua chave no perfil do usuário para usar o chat.' 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!userData.openai_key.startsWith('sk-')) {
+      console.error('❌ ERRO ETAPA 4: Formato da chave OpenAI inválido');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Chave OpenAI com formato inválido. Verifique se a chave está correta no perfil.' 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ✅ ETAPA 5: Buscar agentes do usuário
+    console.log('🔍 ETAPA 5 - Buscando agentes para o usuário:', userId);
     const { data: allAgents, error: agentsError } = await supabase
       .from('agents')
       .select('*')
       .eq('user_id', userId);
 
     if (agentsError) {
-      console.error('❌ ERRO ETAPA 4: Erro ao buscar agentes:', agentsError);
+      console.error('❌ ERRO ETAPA 5: Erro ao buscar agentes:', agentsError);
       return new Response(JSON.stringify({ 
         success: true, 
         reply: 'Erro ao buscar configurações de agentes. Tente novamente.' 
@@ -132,9 +180,9 @@ serve(async (req) => {
       });
     }
 
-    console.log('📊 ETAPA 4 - Total de agentes encontrados:', allAgents?.length || 0);
+    console.log('📊 ETAPA 5 - Total de agentes encontrados:', allAgents?.length || 0);
     if (allAgents && allAgents.length > 0) {
-      console.log('📊 ETAPA 4 - Detalhes dos agentes:');
+      console.log('📊 ETAPA 5 - Detalhes dos agentes:');
       allAgents.forEach((agent, index) => {
         console.log(`📊   Agente ${index + 1}:`, {
           id: agent.id,
@@ -146,15 +194,15 @@ serve(async (req) => {
         });
       });
     } else {
-      console.log('❌ ERRO ETAPA 4: Nenhum agente encontrado para o usuário');
+      console.log('❌ ERRO ETAPA 5: Nenhum agente encontrado para o usuário');
     }
 
-    // ✅ ETAPA 5: Filtrar agentes ativos
+    // ✅ ETAPA 6: Filtrar agentes ativos
     const activeAgents = allAgents?.filter(agent => agent.active === true) || [];
-    console.log('🎯 ETAPA 5 - Agentes ativos:', activeAgents.length);
+    console.log('🎯 ETAPA 6 - Agentes ativos:', activeAgents.length);
 
     if (activeAgents.length === 0) {
-      console.error('❌ ERRO ETAPA 5: Nenhum agente ativo encontrado');
+      console.error('❌ ERRO ETAPA 6: Nenhum agente ativo encontrado');
       return new Response(JSON.stringify({ 
         success: true, 
         reply: 'Nenhum agente ativo encontrado. Ative pelo menos um agente no painel de administração.' 
@@ -164,8 +212,8 @@ serve(async (req) => {
       });
     }
 
-    // ✅ ETAPA 6: Buscar agente de widget
-    console.log('🎯 ETAPA 6 - Buscando agente de widget...');
+    // ✅ ETAPA 7: Buscar agente de widget
+    console.log('🎯 ETAPA 7 - Buscando agente de widget...');
     const widgetAgents = activeAgents.filter(agent => {
       const channel = (agent.channel || '').toLowerCase().trim();
       console.log('🔍 Verificando agente:', agent.name, 'canal:', `"${channel}"`);
@@ -180,10 +228,10 @@ serve(async (req) => {
       return isWidgetAgent;
     });
 
-    console.log('🎯 ETAPA 6 - Agentes de widget encontrados:', widgetAgents.length);
+    console.log('🎯 ETAPA 7 - Agentes de widget encontrados:', widgetAgents.length);
 
     if (widgetAgents.length === 0) {
-      console.error('❌ ERRO ETAPA 6: Nenhum agente de widget encontrado');
+      console.error('❌ ERRO ETAPA 7: Nenhum agente de widget encontrado');
       console.error('❌ Canais disponíveis:', activeAgents.map(a => a.channel));
       return new Response(JSON.stringify({ 
         success: true, 
@@ -195,7 +243,7 @@ serve(async (req) => {
     }
 
     const agent = widgetAgents[0];
-    console.log('✅ ETAPA 6 SUCESSO: Usando agente:', {
+    console.log('✅ ETAPA 7 SUCESSO: Usando agente:', {
       id: agent.id,
       name: agent.name,
       channel: agent.channel,
@@ -203,43 +251,6 @@ serve(async (req) => {
       hasSystemPrompt: !!agent.system_prompt,
       systemPromptLength: agent.system_prompt?.length || 0
     });
-
-    // ✅ ETAPA 7: Buscar chave OpenAI do usuário
-    console.log('🔑 ETAPA 7 - Buscando chave OpenAI para o usuário:', userId);
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('openai_key, name, email')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (userError) {
-      console.error('❌ ERRO ETAPA 7: Erro ao buscar dados do usuário:', userError);
-      return new Response(JSON.stringify({ 
-        success: true, 
-        reply: 'Erro ao acessar configurações da conta. Verifique sua conta.' 
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log('🔑 ETAPA 7 - Dados do usuário:', {
-      hasUserData: !!userData,
-      hasOpenAIKey: !!userData?.openai_key,
-      openAIKeyLength: userData?.openai_key?.length || 0,
-      keyPreview: userData?.openai_key ? `${userData.openai_key.substring(0, 7)}...` : 'null'
-    });
-
-    if (!userData?.openai_key) {
-      console.error('❌ ERRO ETAPA 7: Chave OpenAI não encontrada');
-      return new Response(JSON.stringify({ 
-        success: true, 
-        reply: 'Chave OpenAI não configurada. Configure sua chave no perfil do usuário para usar o chat.' 
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
     // ✅ ETAPA 8: Preparar mensagens para OpenAI
     console.log('🤖 ETAPA 8 - Preparando chamada para OpenAI...');
@@ -261,6 +272,7 @@ serve(async (req) => {
     console.log('🤖 System prompt preview:', systemPrompt.substring(0, 100) + '...');
     console.log('🤖 User message:', message);
     console.log('🤖 Total messages:', messages.length);
+    console.log('🤖 OpenAI Key preview:', userData.openai_key.substring(0, 10) + '...');
 
     // ✅ ETAPA 9: Chamar OpenAI
     console.log('📡 ETAPA 9 - Fazendo requisição para OpenAI...');
@@ -277,7 +289,8 @@ serve(async (req) => {
         model: 'gpt-4o-mini',
         messagesCount: messages.length,
         maxTokens: 1000,
-        temperature: 0.7
+        temperature: 0.7,
+        authHeaderPresent: `Bearer ${userData.openai_key}`.length > 10
       });
 
       openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -304,6 +317,7 @@ serve(async (req) => {
         console.error('❌ ERRO ETAPA 9: Resposta HTTP não OK');
         console.error('❌ Status:', openaiResponse.status);
         console.error('❌ Erro OpenAI:', errorText);
+        console.error('❌ Chave usada:', userData.openai_key.substring(0, 10) + '...');
         
         if (openaiResponse.status === 401) {
           return new Response(JSON.stringify({ 
@@ -334,6 +348,8 @@ serve(async (req) => {
 
     } catch (fetchError) {
       console.error('❌ ERRO ETAPA 9: Erro na requisição para OpenAI:', fetchError);
+      console.error('❌ Error name:', fetchError.name);
+      console.error('❌ Error message:', fetchError.message);
       
       if (fetchError.name === 'AbortError') {
         return new Response(JSON.stringify({ 
