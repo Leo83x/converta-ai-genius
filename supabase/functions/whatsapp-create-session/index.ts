@@ -8,6 +8,154 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sessionName: string, maxAttempts = 10) {
+  console.log(`Starting QR code search for session: ${sessionName}`);
+  
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    console.log(`QR Code attempt ${attempt}/${maxAttempts}`);
+    
+    // Strategy 1: Try the connect endpoint which often returns QR immediately
+    try {
+      const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
+      console.log(`Attempt ${attempt}: Trying connect endpoint: ${connectUrl}`);
+      
+      const connectResponse = await fetch(connectUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (connectResponse.ok) {
+        const connectData = await connectResponse.json();
+        console.log(`Connect response (attempt ${attempt}):`, JSON.stringify(connectData, null, 2));
+        
+        if (connectData.qrcode && connectData.qrcode.length > 50) {
+          console.log(`QR Code found via connect endpoint on attempt ${attempt}`);
+          return connectData.qrcode;
+        }
+        if (connectData.base64 && connectData.base64.length > 50) {
+          console.log(`QR Code (base64) found via connect endpoint on attempt ${attempt}`);
+          return connectData.base64;
+        }
+      } else {
+        console.log(`Connect endpoint failed (attempt ${attempt}): ${connectResponse.status}`);
+      }
+    } catch (error) {
+      console.log(`Connect endpoint error (attempt ${attempt}):`, error);
+    }
+
+    // Strategy 2: Try the dedicated QR code endpoint
+    try {
+      const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
+      console.log(`Attempt ${attempt}: Trying QR endpoint: ${qrUrl}`);
+      
+      const qrResponse = await fetch(qrUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (qrResponse.ok) {
+        const qrData = await qrResponse.json();
+        console.log(`QR response (attempt ${attempt}):`, JSON.stringify(qrData, null, 2));
+        
+        if (qrData.qrcode && qrData.qrcode.length > 50) {
+          console.log(`QR Code found via QR endpoint on attempt ${attempt}`);
+          return qrData.qrcode;
+        }
+        if (qrData.base64 && qrData.base64.length > 50) {
+          console.log(`QR Code (base64) found via QR endpoint on attempt ${attempt}`);
+          return qrData.base64;
+        }
+      } else {
+        console.log(`QR endpoint failed (attempt ${attempt}): ${qrResponse.status}`);
+      }
+    } catch (error) {
+      console.log(`QR endpoint error (attempt ${attempt}):`, error);
+    }
+
+    // Strategy 3: Try to get instance info
+    try {
+      const instanceUrl = `${validatedUrl}/instance/fetchInstances/${sessionName}`;
+      console.log(`Attempt ${attempt}: Trying instance endpoint: ${instanceUrl}`);
+      
+      const instanceResponse = await fetch(instanceUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (instanceResponse.ok) {
+        const instanceData = await instanceResponse.json();
+        console.log(`Instance response (attempt ${attempt}):`, JSON.stringify(instanceData, null, 2));
+        
+        if (instanceData.qrcode && instanceData.qrcode.length > 50) {
+          console.log(`QR Code found via instance endpoint on attempt ${attempt}`);
+          return instanceData.qrcode;
+        }
+        if (instanceData.qr && instanceData.qr.length > 50) {
+          console.log(`QR Code (qr field) found via instance endpoint on attempt ${attempt}`);
+          return instanceData.qr;
+        }
+        
+        // Check if connected
+        if (instanceData.connectionStatus === 'open') {
+          console.log(`Instance already connected on attempt ${attempt}`);
+          return 'CONNECTED';
+        }
+      } else {
+        console.log(`Instance endpoint failed (attempt ${attempt}): ${instanceResponse.status}`);
+      }
+    } catch (error) {
+      console.log(`Instance endpoint error (attempt ${attempt}):`, error);
+    }
+
+    // Strategy 4: Try alternative instance endpoint
+    try {
+      const altInstanceUrl = `${validatedUrl}/instance/find/${sessionName}`;
+      console.log(`Attempt ${attempt}: Trying alternative instance endpoint: ${altInstanceUrl}`);
+      
+      const altResponse = await fetch(altInstanceUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (altResponse.ok) {
+        const altData = await altResponse.json();
+        console.log(`Alternative instance response (attempt ${attempt}):`, JSON.stringify(altData, null, 2));
+        
+        if (altData.qrcode && altData.qrcode.length > 50) {
+          console.log(`QR Code found via alternative endpoint on attempt ${attempt}`);
+          return altData.qrcode;
+        }
+      } else {
+        console.log(`Alternative instance endpoint failed (attempt ${attempt}): ${altResponse.status}`);
+      }
+    } catch (error) {
+      console.log(`Alternative instance endpoint error (attempt ${attempt}):`, error);
+    }
+
+    // Wait before next attempt (progressive backoff)
+    if (attempt < maxAttempts) {
+      const waitTime = Math.min(2000 * attempt, 8000); // 2s, 4s, 6s, 8s, 8s...
+      console.log(`Waiting ${waitTime}ms before attempt ${attempt + 1}`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  
+  console.log(`QR Code not found after ${maxAttempts} attempts`);
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -22,25 +170,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Create user client for RLS-compliant operations
     const authHeader = req.headers.get('Authorization');
     console.log('Auth header present:', !!authHeader);
     
     if (!authHeader) {
       throw new Error('No authorization header');
     }
-
-    const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: {
-            Authorization: authHeader,
-          },
-        },
-      }
-    );
 
     // Verify the user with admin client
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
@@ -69,8 +204,8 @@ serve(async (req) => {
 
     console.log('Creating WhatsApp session:', sessionName);
 
-    // Check for existing session using user client (RLS compliant)
-    const { data: existingSession, error: checkError } = await supabaseUser
+    // Check for existing session using admin client
+    const { data: existingSession, error: checkError } = await supabaseAdmin
       .from('evolution_tokens')
       .select('*')
       .eq('session_name', sessionName)
@@ -88,7 +223,7 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Get Evolution API configuration - debug the actual values
+    // Get Evolution API configuration
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     
@@ -110,18 +245,15 @@ serve(async (req) => {
       throw new Error('Evolution API URL not configured. Please check your Supabase secrets.');
     }
 
-    // More robust URL validation
+    // URL validation
     let validatedUrl: string;
     try {
-      // Remove any whitespace and ensure proper format
       const cleanUrl = evolutionApiUrl.trim();
       
-      // Check if it's not just the environment variable name
       if (cleanUrl === 'EVOLUTION_API_URL' || cleanUrl.includes('EVOLUTION_API_URL')) {
         throw new Error('EVOLUTION_API_URL secret contains the variable name instead of the actual URL');
       }
       
-      // Validate URL format
       const urlObject = new URL(cleanUrl);
       validatedUrl = cleanUrl;
       
@@ -162,85 +294,31 @@ serve(async (req) => {
     const evolutionData = await evolutionResponse.json();
     console.log('Evolution API success response:', JSON.stringify(evolutionData, null, 2));
 
-    // Connect the instance
-    try {
-      const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
-      console.log('Connecting instance at:', connectUrl);
-      
-      const connectResponse = await fetch(connectUrl, {
-        method: 'GET',
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      console.log('Evolution connect response status:', connectResponse.status);
-      
-      if (connectResponse.ok) {
-        const connectData = await connectResponse.json();
-        console.log('Evolution connect success:', connectData);
-      } else {
-        const connectError = await connectResponse.text();
-        console.warn('Evolution connect warning:', connectError);
-      }
-    } catch (connectError) {
-      console.warn('Evolution connect failed (non-critical):', connectError);
-    }
-
-    // Wait a moment and then try to get QR code
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    let qrCodeUrl = null;
+    // Now wait for QR code with robust retry strategy
+    const qrCodeResult = await waitForQRCode(validatedUrl, evolutionApiKey, sessionName);
     
-    // Try to get QR code from multiple endpoints
-    try {
-      const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
-      console.log('Getting QR code from:', qrUrl);
-      
-      const qrResponse = await fetch(qrUrl, {
-        method: 'GET',
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (qrResponse.ok) {
-        const qrData = await qrResponse.json();
-        console.log('QR response:', qrData);
-        
-        if (qrData.qrcode) {
-          qrCodeUrl = qrData.qrcode;
-        } else if (qrData.base64) {
-          qrCodeUrl = qrData.base64;
-        }
-      }
-    } catch (qrError) {
-      console.warn('Failed to get QR code:', qrError);
+    let qrCodeUrl = null;
+    let status = 'connecting';
+    
+    if (qrCodeResult === 'CONNECTED') {
+      status = 'connected';
+      console.log('Instance is already connected');
+    } else if (qrCodeResult && qrCodeResult.length > 50) {
+      qrCodeUrl = qrCodeResult;
+      status = 'pending';
+      console.log('QR Code found successfully, length:', qrCodeUrl.length);
+    } else {
+      console.log('QR Code not found, will keep status as connecting');
     }
 
-    // If no QR code from dedicated endpoint, check creation response
-    if (!qrCodeUrl) {
-      if (evolutionData.qrcode) {
-        qrCodeUrl = evolutionData.qrcode;
-      } else if (evolutionData.qr) {
-        qrCodeUrl = evolutionData.qr;
-      } else if (evolutionData.base64) {
-        qrCodeUrl = evolutionData.base64;
-      }
-    }
-
-    console.log('Final QR code URL length:', qrCodeUrl ? qrCodeUrl.length : 0);
-
-    // Store data using admin client to ensure it works
+    // Store data using admin client
     const insertData = {
       user_id: user.id,
       session_name: sessionName,
       instance_id: evolutionData.instance?.instanceName || sessionName,
       token: evolutionData.hash || 'temp_token',
       qr_code_url: qrCodeUrl,
-      status: qrCodeUrl ? 'pending' : 'connecting'
+      status: status
     };
 
     console.log('Inserting data into evolution_tokens:', insertData);
@@ -264,7 +342,7 @@ serve(async (req) => {
         instance_id: evolutionData.instance?.instanceName || sessionName,
         session_name: sessionName,
         token_id: tokenData.id,
-        status: qrCodeUrl ? 'pending' : 'connecting',
+        status: status,
         qr_code: qrCodeUrl
       }
     };

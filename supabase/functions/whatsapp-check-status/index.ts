@@ -8,6 +8,91 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function findQRCodeRobust(validatedUrl: string, evolutionApiKey: string, sessionName: string) {
+  console.log(`Starting robust QR code search for session: ${sessionName}`);
+  
+  const endpoints = [
+    { name: 'connect', url: `${validatedUrl}/instance/connect/${sessionName}`, method: 'GET' },
+    { name: 'qrcode', url: `${validatedUrl}/instance/qrcode/${sessionName}`, method: 'GET' },
+    { name: 'fetchInstances', url: `${validatedUrl}/instance/fetchInstances/${sessionName}`, method: 'GET' },
+    { name: 'find', url: `${validatedUrl}/instance/find/${sessionName}`, method: 'GET' },
+    { name: 'fetchInstances-all', url: `${validatedUrl}/instance/fetchInstances`, method: 'GET' }
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      console.log(`Trying ${endpoint.name} endpoint: ${endpoint.url}`);
+      
+      const response = await fetch(endpoint.url, {
+        method: endpoint.method,
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log(`${endpoint.name} response status:`, response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`${endpoint.name} response:`, JSON.stringify(data, null, 2));
+
+        // Handle array response for fetchInstances-all
+        if (endpoint.name === 'fetchInstances-all' && Array.isArray(data)) {
+          const sessionInstance = data.find(instance => 
+            instance.instance === sessionName || instance.instanceName === sessionName
+          );
+          if (sessionInstance) {
+            console.log(`Found session in fetchInstances-all:`, sessionInstance);
+            
+            if (sessionInstance.connectionStatus === 'open') {
+              return { status: 'connected', qrCode: null };
+            }
+            
+            const qrCode = sessionInstance.qrcode || sessionInstance.qr || sessionInstance.base64;
+            if (qrCode && qrCode.length > 50) {
+              return { status: 'pending', qrCode: qrCode };
+            }
+          }
+          continue;
+        }
+
+        // Check for connection status first
+        if (data.connectionStatus === 'open' || data.state === 'open') {
+          console.log(`Instance connected via ${endpoint.name}`);
+          return { status: 'connected', qrCode: null };
+        }
+
+        // Look for QR code in various fields
+        const qrCode = data.qrcode || data.qr || data.base64;
+        if (qrCode && typeof qrCode === 'string' && qrCode.length > 50) {
+          console.log(`QR Code found via ${endpoint.name}, length:`, qrCode.length);
+          return { status: 'pending', qrCode: qrCode };
+        }
+
+        // Check nested data
+        if (data.instance) {
+          const nestedQrCode = data.instance.qrcode || data.instance.qr || data.instance.base64;
+          if (nestedQrCode && typeof nestedQrCode === 'string' && nestedQrCode.length > 50) {
+            console.log(`QR Code found in nested data via ${endpoint.name}`);
+            return { status: 'pending', qrCode: nestedQrCode };
+          }
+        }
+
+      } else {
+        console.log(`${endpoint.name} endpoint failed with status:`, response.status);
+        const errorText = await response.text();
+        console.log(`${endpoint.name} error response:`, errorText);
+      }
+    } catch (error) {
+      console.log(`${endpoint.name} endpoint error:`, error);
+    }
+  }
+  
+  console.log('No QR code found in any endpoint');
+  return { status: 'connecting', qrCode: null };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -50,7 +135,7 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Get Evolution API configuration with detailed debugging
+    // Get Evolution API configuration
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     
@@ -68,12 +153,11 @@ serve(async (req) => {
       throw new Error('Evolution API URL not configured. Please check your Supabase secrets.');
     }
 
-    // Robust URL validation
+    // URL validation
     let validatedUrl: string;
     try {
       const cleanUrl = evolutionApiUrl.trim();
       
-      // Check if it's not just the environment variable name
       if (cleanUrl === 'EVOLUTION_API_URL' || cleanUrl.includes('EVOLUTION_API_URL')) {
         throw new Error('EVOLUTION_API_URL secret contains the variable name instead of the actual URL');
       }
@@ -90,94 +174,23 @@ serve(async (req) => {
 
     console.log('Using validated Evolution API URL:', validatedUrl);
 
-    // Check status in Evolution API
-    const statusUrl = `${validatedUrl}/instance/fetchInstances/${sessionName}`;
-    console.log('Checking status at:', statusUrl);
+    // Use robust QR code finding strategy
+    const result = await findQRCodeRobust(validatedUrl, evolutionApiKey, sessionName);
     
-    const statusResponse = await fetch(statusUrl, {
-      method: 'GET',
-      headers: {
-        'apikey': evolutionApiKey,
-        'Content-Type': 'application/json',
-      }
-    });
+    let status = result.status;
+    let qrCode = result.qrCode;
 
-    console.log('Status response status:', statusResponse.status);
-
-    if (!statusResponse.ok) {
-      console.error('Evolution API status error:', statusResponse.status);
-      
-      // Try to get QR code directly if status check fails
-      const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
-      console.log('Trying QR code endpoint:', qrUrl);
-      
-      const qrResponse = await fetch(qrUrl, {
-        method: 'GET',
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      let qrCode = null;
-      if (qrResponse.ok) {
-        const qrData = await qrResponse.json();
-        qrCode = qrData.qrcode || qrData.base64 || null;
-        console.log('QR Code found via direct endpoint:', !!qrCode);
-      }
-
-      return new Response(JSON.stringify({
-        success: true,
-        status: 'pending',
-        qr_code: qrCode,
-        connection_status: 'connecting'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const statusData = await statusResponse.json();
-    console.log('Status response:', statusData);
-
-    // Determine status based on response
-    let status = 'pending';
-    let qrCode = null;
-
-    if (statusData.connectionStatus === 'open') {
-      status = 'connected';
-    } else if (statusData.connectionStatus === 'connecting' || statusData.connectionStatus === 'close') {
-      status = 'pending';
-      // Get QR code
-      qrCode = statusData.qrcode || statusData.qr || null;
-      
-      // If no QR code in response, try to fetch directly
-      if (!qrCode) {
-        const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
-        console.log('Fetching QR code from:', qrUrl);
-        
-        const qrResponse = await fetch(qrUrl, {
-          method: 'GET',
-          headers: {
-            'apikey': evolutionApiKey,
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (qrResponse.ok) {
-          const qrData = await qrResponse.json();
-          qrCode = qrData.qrcode || qrData.base64 || null;
-          console.log('QR Code from direct endpoint:', !!qrCode);
-        }
-      }
-    }
+    console.log('Final result:', { status, qrCodeLength: qrCode ? qrCode.length : 0 });
 
     // Update database using user client (RLS compliant)
+    const updateData: any = { status: status };
+    if (qrCode) {
+      updateData.qr_code_url = qrCode;
+    }
+
     const { error: updateError } = await supabaseUser
       .from('evolution_tokens')
-      .update({ 
-        status: status,
-        qr_code_url: qrCode || undefined
-      })
+      .update(updateData)
       .eq('session_name', sessionName)
       .eq('user_id', user.id);
 
@@ -189,7 +202,7 @@ serve(async (req) => {
       success: true,
       status: status,
       qr_code: qrCode,
-      connection_status: statusData.connectionStatus || 'unknown'
+      connection_status: status
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
