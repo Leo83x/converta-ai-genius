@@ -265,10 +265,6 @@ serve(async (req) => {
 
       console.log('📡 Payload para OpenAI:', JSON.stringify(requestPayload, null, 2));
 
-      // Teste da chave OpenAI antes de enviar
-      console.log('🧪 Testando autenticação OpenAI...');
-      console.log('🧪 Authorization header que será enviado:', `Bearer ${openaiKey.substring(0, 20)}...`);
-
       openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -375,12 +371,13 @@ serve(async (req) => {
     console.log('✅ ETAPA 8 SUCESSO: Resposta gerada');
     console.log('✅ Resposta preview:', replyText.substring(0, 200) + '...');
 
-    // ✅ ETAPA 9: Salvar conversa (opcional)
-    console.log('💾 ETAPA 9 - Salvando conversa...');
+    // ✅ ETAPA 9: Salvar conversa e criar/atualizar lead
+    console.log('💾 ETAPA 9 - Salvando conversa e processando lead...');
     const sessionKey = sessionId || `widget_session_${Date.now()}`;
     const conversationMessages = [...messages, { role: 'assistant', content: replyText }];
     
     try {
+      // Salvar/atualizar conversa
       const { data: existingConversation } = await supabase
         .from('agent_conversations')
         .select('id, messages')
@@ -407,8 +404,67 @@ serve(async (req) => {
           });
         console.log('💾 Nova conversa criada');
       }
+
+      // ✅ ETAPA 10: Criar ou atualizar lead automaticamente
+      console.log('🎯 ETAPA 10 - Processando lead...');
+      
+      // Verificar se já existe um lead para esta sessão
+      const { data: existingLead } = await supabase
+        .from('leads')
+        .select('id, name, phone, email')
+        .eq('user_id', userId)
+        .ilike('notes', `%${sessionKey}%`)
+        .maybeSingle();
+
+      if (!existingLead) {
+        // Extrair informações do usuário da mensagem
+        let leadName = 'Lead do Widget';
+        let leadPhone = '';
+        let leadEmail = '';
+
+        // Tentar extrair nome da mensagem
+        const nameMatch = message.toLowerCase().match(/(?:me chamo|meu nome é|sou|nome:|^|\s)([a-záêôçã\s]{2,30})(?:\s|$|\.|,)/i);
+        if (nameMatch && nameMatch[1] && nameMatch[1].trim().length > 2) {
+          leadName = nameMatch[1].trim();
+        }
+
+        // Tentar extrair telefone
+        const phoneMatch = message.match(/(\(?[0-9]{2}\)?\s?[0-9]{4,5}-?[0-9]{4})/);
+        if (phoneMatch) {
+          leadPhone = phoneMatch[1];
+        }
+
+        // Tentar extrair email
+        const emailMatch = message.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+        if (emailMatch) {
+          leadEmail = emailMatch[1];
+        }
+
+        // Criar novo lead
+        const { error: leadError } = await supabase
+          .from('leads')
+          .insert({
+            user_id: userId,
+            name: leadName,
+            phone: leadPhone || null,
+            email: leadEmail || null,
+            source: 'Widget do Site',
+            stage: 'new',
+            score: Math.floor(Math.random() * 80) + 20, // Score entre 20-100
+            notes: `Lead gerado automaticamente do widget\nSessão: ${sessionKey}\nAgente: ${agent.name}\nPrimeira mensagem: ${message.substring(0, 200)}${message.length > 200 ? '...' : ''}`
+          });
+
+        if (leadError) {
+          console.error('⚠️ Erro ao criar lead (não crítico):', leadError);
+        } else {
+          console.log('🎯 Novo lead criado com sucesso');
+        }
+      } else {
+        console.log('🎯 Lead já existe para esta sessão');
+      }
+
     } catch (dbError) {
-      console.error('⚠️ Erro ao salvar conversa (não crítico):', dbError);
+      console.error('⚠️ Erro ao salvar conversa/lead (não crítico):', dbError);
     }
 
     console.log('🎉 ===========================================');
