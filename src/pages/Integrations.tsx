@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Settings, Link as LinkIcon, Smartphone, Instagram, MessageCircle, Globe
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import WhatsAppConnectionDialog from '@/components/WhatsAppConnectionDialog';
 import InstagramConnectionDialog from '@/components/InstagramConnectionDialog';
 
@@ -51,6 +53,7 @@ const Integrations = () => {
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -113,7 +116,27 @@ const Integrations = () => {
         connectFacebookMessenger();
         break;
       case 'Widget do Site':
-        configureWidget();
+        navigate('/channels/widget');
+        break;
+    }
+  };
+
+  const handleConfigure = (integrationName: string) => {
+    switch (integrationName) {
+      case 'WhatsApp Business':
+        navigate('/channels/whatsapp');
+        break;
+      case 'Instagram Direct':
+        navigate('/channels/instagram');
+        break;
+      case 'Facebook Messenger':
+        toast({
+          title: "Em desenvolvimento",
+          description: "Configuração do Facebook Messenger em breve.",
+        });
+        break;
+      case 'Widget do Site':
+        navigate('/channels/widget');
         break;
     }
   };
@@ -142,6 +165,20 @@ const Integrations = () => {
           .delete()
           .eq('user_id', user?.id)
           .eq('channel_type', channelType);
+      } else if (integrationName === 'Widget do Site') {
+        // Para o widget do site, apenas mostrar uma mensagem informativa
+        toast({
+          title: "Widget desabilitado",
+          description: "O widget do site foi desabilitado. Você pode reativá-lo a qualquer momento.",
+        });
+        
+        // Atualizar o status local do widget para desconectado
+        setIntegrations(prev => prev.map(integration => 
+          integration.name === 'Widget do Site' 
+            ? { ...integration, status: 'disconnected' }
+            : integration
+        ));
+        return;
       }
 
       toast({
@@ -166,13 +203,6 @@ const Integrations = () => {
       description: "Redirecionando para autenticação do Facebook...",
     });
     // Implementar OAuth do Facebook
-  };
-
-  const configureWidget = () => {
-    toast({
-      title: "Widget configurado",
-      description: "Widget do site já está ativo e funcionando.",
-    });
   };
 
   const getStatusColor = (status: string) => {
@@ -228,7 +258,12 @@ const Integrations = () => {
                   <div className="flex space-x-3">
                     {integration.status === 'connected' ? (
                       <>
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleConfigure(integration.name)}
+                        >
                           <Settings className="mr-2 h-4 w-4" />
                           Configurar
                         </Button>

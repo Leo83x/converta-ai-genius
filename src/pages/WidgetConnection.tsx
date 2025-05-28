@@ -1,36 +1,232 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const WidgetConnection = () => {
   const [widgetCode, setWidgetCode] = useState('');
   const [isGenerated, setIsGenerated] = useState(false);
+  const [widgetConfig, setWidgetConfig] = useState({
+    welcomeMessage: 'Olá! Como posso ajudar você hoje?',
+    position: 'bottom-right',
+    theme: 'blue',
+    title: 'Chat Converta+',
+    enabled: true
+  });
+  
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const generateWidget = () => {
+  useEffect(() => {
+    // Verificar se já existe um widget gerado
+    const savedConfig = localStorage.getItem(`widget_config_${user?.id}`);
+    if (savedConfig) {
+      const config = JSON.parse(savedConfig);
+      setWidgetConfig(config);
+      if (config.enabled) {
+        generateWidgetCode(config);
+      }
+    }
+  }, [user]);
+
+  const generateWidgetCode = (config = widgetConfig) => {
+    const widgetId = `converta_${user?.id || 'demo'}_${Date.now()}`;
+    
     const code = `<!-- Converta+ Chat Widget -->
 <script>
   window.ConvertaPlus = {
-    widgetId: 'widget_${Date.now()}',
-    position: 'bottom-right',
-    theme: 'blue',
-    welcomeMessage: 'Olá! Como posso ajudar você hoje?'
+    widgetId: '${widgetId}',
+    userId: '${user?.id || 'demo'}',
+    position: '${config.position}',
+    theme: '${config.theme}',
+    title: '${config.title}',
+    welcomeMessage: '${config.welcomeMessage}',
+    apiUrl: 'https://xekxewtggioememydenu.supabase.co'
   };
 </script>
-<script src="https://widget.convertaplus.com.br/embed.js" async></script>`;
+<script>
+  (function() {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/gh/convertaplus/widget@latest/dist/widget.js';
+    script.async = true;
+    script.onload = function() {
+      if (window.ConvertaPlusWidget) {
+        window.ConvertaPlusWidget.init(window.ConvertaPlus);
+      }
+    };
+    document.head.appendChild(script);
+    
+    // Criar CSS do widget
+    var style = document.createElement('style');
+    style.textContent = \`
+      .converta-widget-container {
+        position: fixed;
+        z-index: 9999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .converta-widget-container.bottom-right { bottom: 20px; right: 20px; }
+      .converta-widget-container.bottom-left { bottom: 20px; left: 20px; }
+      .converta-widget-container.top-right { top: 20px; right: 20px; }
+      .converta-widget-container.top-left { top: 20px; left: 20px; }
+      
+      .converta-widget-button {
+        width: 60px; height: 60px; border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.3s ease;
+      }
+      .converta-widget-button:hover { transform: scale(1.1); }
+      
+      .converta-widget-chat {
+        position: absolute; bottom: 70px; right: 0;
+        width: 350px; height: 500px; background: white;
+        border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        display: none; flex-direction: column; overflow: hidden;
+      }
+      .converta-widget-chat.open { display: flex; }
+      
+      .converta-widget-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; padding: 16px; font-weight: 600;
+      }
+      
+      .converta-widget-messages {
+        flex: 1; padding: 16px; overflow-y: auto; background: #f8f9fa;
+      }
+      
+      .converta-widget-input {
+        padding: 16px; border-top: 1px solid #e9ecef;
+        display: flex; gap: 8px;
+      }
+      .converta-widget-input input {
+        flex: 1; border: 1px solid #ddd; border-radius: 20px;
+        padding: 8px 16px; outline: none;
+      }
+      .converta-widget-input button {
+        background: #667eea; color: white; border: none;
+        border-radius: 50%; width: 36px; height: 36px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+      }
+      
+      .message { margin-bottom: 12px; }
+      .message.bot { text-align: left; }
+      .message.user { text-align: right; }
+      .message .content {
+        display: inline-block; padding: 8px 12px; border-radius: 12px;
+        max-width: 80%; font-size: 14px; line-height: 1.4;
+      }
+      .message.bot .content { background: #e9ecef; color: #333; }
+      .message.user .content { background: #667eea; color: white; }
+    \`;
+    document.head.appendChild(style);
+    
+    // Inicializar widget
+    function initWidget() {
+      var container = document.createElement('div');
+      container.className = 'converta-widget-container ' + window.ConvertaPlus.position;
+      
+      container.innerHTML = \`
+        <div class="converta-widget-chat" id="converta-chat">
+          <div class="converta-widget-header">
+            <div>\${window.ConvertaPlus.title}</div>
+          </div>
+          <div class="converta-widget-messages" id="converta-messages">
+            <div class="message bot">
+              <div class="content">\${window.ConvertaPlus.welcomeMessage}</div>
+            </div>
+          </div>
+          <div class="converta-widget-input">
+            <input type="text" placeholder="Digite sua mensagem..." id="converta-input">
+            <button onclick="sendMessage()">➤</button>
+          </div>
+        </div>
+        <button class="converta-widget-button" onclick="toggleChat()">
+          💬
+        </button>
+      \`;
+      
+      document.body.appendChild(container);
+      
+      // Funções do widget
+      window.toggleChat = function() {
+        var chat = document.getElementById('converta-chat');
+        chat.classList.toggle('open');
+      };
+      
+      window.sendMessage = function() {
+        var input = document.getElementById('converta-input');
+        var message = input.value.trim();
+        if (!message) return;
+        
+        var messages = document.getElementById('converta-messages');
+        var userMsg = document.createElement('div');
+        userMsg.className = 'message user';
+        userMsg.innerHTML = '<div class="content">' + message + '</div>';
+        messages.appendChild(userMsg);
+        
+        input.value = '';
+        messages.scrollTop = messages.scrollHeight;
+        
+        // Simular resposta do bot (aqui você conectaria com sua API)
+        setTimeout(function() {
+          var botMsg = document.createElement('div');
+          botMsg.className = 'message bot';
+          botMsg.innerHTML = '<div class="content">Obrigado pela sua mensagem! Em breve um de nossos atendentes entrará em contato.</div>';
+          messages.appendChild(botMsg);
+          messages.scrollTop = messages.scrollHeight;
+        }, 1000);
+      };
+      
+      // Enter para enviar
+      document.getElementById('converta-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+    }
+    
+    // Inicializar quando a página carregar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initWidget);
+    } else {
+      initWidget();
+    }
+  })();
+</script>`;
 
     setWidgetCode(code);
     setIsGenerated(true);
+    
+    // Salvar configuração
+    localStorage.setItem(`widget_config_${user?.id}`, JSON.stringify(config));
+  };
+
+  const generateWidget = () => {
+    const updatedConfig = { ...widgetConfig, enabled: true };
+    setWidgetConfig(updatedConfig);
+    generateWidgetCode(updatedConfig);
+    
     toast({
       title: "Widget gerado!",
       description: "Copie o código e cole no seu site",
     });
+  };
+
+  const updateConfig = (key: string, value: string | boolean) => {
+    const newConfig = { ...widgetConfig, [key]: value };
+    setWidgetConfig(newConfig);
+    
+    if (isGenerated && newConfig.enabled) {
+      generateWidgetCode(newConfig);
+    }
   };
 
   const copyToClipboard = () => {
@@ -38,6 +234,19 @@ const WidgetConnection = () => {
     toast({
       title: "Código copiado!",
       description: "Cole no <head> ou antes do </body> do seu site",
+    });
+  };
+
+  const disableWidget = () => {
+    const newConfig = { ...widgetConfig, enabled: false };
+    setWidgetConfig(newConfig);
+    setIsGenerated(false);
+    setWidgetCode('');
+    localStorage.setItem(`widget_config_${user?.id}`, JSON.stringify(newConfig));
+    
+    toast({
+      title: "Widget desabilitado",
+      description: "O widget foi desabilitado com sucesso.",
     });
   };
 
@@ -49,8 +258,8 @@ const WidgetConnection = () => {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
               Converta+
             </h1>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              Voltar ao Dashboard
+            <Button variant="outline" onClick={() => navigate('/integrations')}>
+              Voltar às Integrações
             </Button>
           </div>
         </div>
@@ -59,53 +268,99 @@ const WidgetConnection = () => {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Widget do Site</h2>
-          <p className="text-gray-600">Adicione um chat inteligente ao seu website</p>
+          <p className="text-gray-600">Configure e adicione um chat inteligente ao seu website</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Widget Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <span className="text-2xl">💬</span>
-                <span>Configuração do Widget</span>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">💬</span>
+                  <span>Configuração do Widget</span>
+                </div>
+                {isGenerated && (
+                  <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                )}
               </CardTitle>
               <CardDescription>
-                Gere o código de incorporação para seu site
+                Personalize a aparência e comportamento do seu widget
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 mb-2">🎨 Recursos do Widget</h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Chat responsivo e customizável</li>
-                    <li>• Integração com seus agentes de IA</li>
-                    <li>• Coleta automática de leads</li>
-                    <li>• Histórico de conversas</li>
-                    <li>• Notificações em tempo real</li>
-                  </ul>
+                <div>
+                  <Label htmlFor="title">Título do Chat</Label>
+                  <Input
+                    id="title"
+                    value={widgetConfig.title}
+                    onChange={(e) => updateConfig('title', e.target.value)}
+                    placeholder="Chat Converta+"
+                  />
                 </div>
 
-                {!isGenerated ? (
-                  <Button
-                    onClick={generateWidget}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                <div>
+                  <Label htmlFor="welcomeMessage">Mensagem de Boas-vindas</Label>
+                  <Textarea
+                    id="welcomeMessage"
+                    value={widgetConfig.welcomeMessage}
+                    onChange={(e) => updateConfig('welcomeMessage', e.target.value)}
+                    placeholder="Olá! Como posso ajudar você hoje?"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="position">Posição na Tela</Label>
+                  <select
+                    id="position"
+                    value={widgetConfig.position}
+                    onChange={(e) => updateConfig('position', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
                   >
-                    Gerar Código do Widget
-                  </Button>
-                ) : (
-                  <div className="space-y-4">
-                    <Badge className="bg-green-100 text-green-800">Widget Ativo</Badge>
+                    <option value="bottom-right">Canto Inferior Direito</option>
+                    <option value="bottom-left">Canto Inferior Esquerdo</option>
+                    <option value="top-right">Canto Superior Direito</option>
+                    <option value="top-left">Canto Superior Esquerdo</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={widgetConfig.enabled}
+                    onCheckedChange={(checked) => updateConfig('enabled', checked)}
+                  />
+                  <Label>Widget Habilitado</Label>
+                </div>
+
+                <div className="space-y-3">
+                  {!isGenerated ? (
                     <Button
-                      onClick={copyToClipboard}
-                      variant="outline"
-                      className="w-full"
+                      onClick={generateWidget}
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      disabled={!widgetConfig.enabled}
                     >
-                      Copiar Código
+                      Gerar Código do Widget
                     </Button>
-                  </div>
-                )}
+                  ) : (
+                    <div className="space-y-2">
+                      <Button
+                        onClick={copyToClipboard}
+                        className="w-full"
+                      >
+                        Copiar Código
+                      </Button>
+                      <Button
+                        onClick={disableWidget}
+                        variant="destructive"
+                        className="w-full"
+                      >
+                        Desabilitar Widget
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -124,7 +379,7 @@ const WidgetConnection = () => {
                   <Textarea
                     value={widgetCode}
                     readOnly
-                    rows={10}
+                    rows={12}
                     className="font-mono text-sm"
                   />
                   <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -133,7 +388,7 @@ const WidgetConnection = () => {
                       <li>1. Copie o código acima</li>
                       <li>2. Cole antes da tag &lt;/body&gt; do seu site</li>
                       <li>3. Publique as alterações</li>
-                      <li>4. O chat aparecerá no canto inferior direito</li>
+                      <li>4. O chat aparecerá na posição configurada</li>
                     </ol>
                   </div>
                 </div>
@@ -143,7 +398,7 @@ const WidgetConnection = () => {
                     <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
                       📄
                     </div>
-                    <p>Gere o widget para ver o código</p>
+                    <p>Configure e gere o widget para ver o código</p>
                   </div>
                 </div>
               )}
@@ -157,7 +412,7 @@ const WidgetConnection = () => {
             <CardHeader>
               <CardTitle>Preview do Widget</CardTitle>
               <CardDescription>
-                Assim será a aparência do chat no seu site
+                Visualização de como o chat aparecerá no seu site
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -174,17 +429,25 @@ const WidgetConnection = () => {
                 </div>
 
                 {/* Widget preview */}
-                <div className="absolute bottom-4 right-4">
+                <div className={`absolute ${
+                  widgetConfig.position === 'bottom-right' ? 'bottom-4 right-4' :
+                  widgetConfig.position === 'bottom-left' ? 'bottom-4 left-4' :
+                  widgetConfig.position === 'top-right' ? 'top-4 right-4' :
+                  'top-4 left-4'
+                }`}>
                   <div className="bg-white rounded-lg shadow-lg border w-80 h-96">
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-lg">
-                      <h3 className="font-semibold">Chat Converta+</h3>
+                      <h3 className="font-semibold">{widgetConfig.title}</h3>
                     </div>
-                    <div className="p-4 space-y-3">
+                    <div className="p-4 space-y-3 h-64 overflow-y-auto">
                       <div className="bg-gray-100 p-3 rounded-lg">
-                        <p className="text-sm">Olá! Como posso ajudar você hoje?</p>
+                        <p className="text-sm">{widgetConfig.welcomeMessage}</p>
                       </div>
                       <div className="bg-blue-100 p-3 rounded-lg ml-8">
-                        <p className="text-sm">Gostaria de saber mais sobre seus produtos</p>
+                        <p className="text-sm">Olá! Gostaria de mais informações.</p>
+                      </div>
+                      <div className="bg-gray-100 p-3 rounded-lg mr-8">
+                        <p className="text-sm">Claro! Como posso ajudar você?</p>
                       </div>
                     </div>
                     <div className="absolute bottom-4 left-4 right-4">
