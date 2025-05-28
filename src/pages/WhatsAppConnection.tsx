@@ -68,42 +68,30 @@ const WhatsAppConnection = () => {
     try {
       console.log('Checking status for session:', sessionNameToCheck);
       
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session?.access_token) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          sessionName: sessionNameToCheck
-        })
+      const { data, error } = await supabase.functions.invoke('whatsapp-check-status', {
+        body: { sessionName: sessionNameToCheck }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+      if (error) {
+        console.error('Error checking status:', error);
+        throw new Error(error.message || 'Erro ao verificar status');
       }
 
-      const data = await response.json();
       console.log('Status check response:', data);
 
-      if (data.success) {
-        if (data.status === 'open') {
+      if (data && data.success) {
+        if (data.status === 'connected') {
           setConnectionStatus('connected');
           setQrCode('');
-        } else if (data.status === 'close' && data.qr_code) {
+        } else if (data.qr_code) {
           setConnectionStatus('qr_code');
           setQrCode(data.qr_code);
         } else {
           setConnectionStatus('disconnected');
           setQrCode('');
         }
+        
+        setSessionStatus(data.connection_status || data.status);
       } else {
         setConnectionStatus('disconnected');
         setQrCode('');
@@ -213,51 +201,17 @@ const WhatsAppConnection = () => {
     try {
       console.log('Refreshing QR code for session:', currentSession);
       
-      // Obtenha o token JWT do usuário autenticado
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      // Use a função de verificar status que também busca QR code
+      await checkSessionStatus(currentSession);
       
-      if (!token) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // Requisição GET para atualizar QR Code
-      const response = await fetch(`https://api.evolution-api.com/instance/connect/${currentSession}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+      toast({
+        title: "Status atualizado",
+        description: "Verificação de status realizada com sucesso.",
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('QR refresh response:', data);
-
-      if (data.qr_code || data.qrcode) {
-        const newQrCode = data.qr_code || data.qrcode;
-        setQrCode(newQrCode);
-        setConnectionStatus('qr_code');
-        toast({
-          title: "QR Code atualizado",
-          description: "Novo QR Code gerado com sucesso.",
-        });
-      } else if (data.status === 'open') {
-        setConnectionStatus('connected');
-        setQrCode('');
-        toast({
-          title: "WhatsApp já conectado",
-          description: "Sua sessão está ativa.",
-        });
-      }
     } catch (error) {
       console.error('Error refreshing QR code:', error);
       toast({
-        title: "Erro ao atualizar QR Code",
+        title: "Erro ao atualizar status",
         description: error instanceof Error ? error.message : "Erro desconhecido",
         variant: "destructive"
       });
@@ -382,18 +336,18 @@ const WhatsAppConnection = () => {
                     <Button
                       variant="outline"
                       onClick={refreshQrCode}
-                      disabled={isRefreshingQR}
+                      disabled={isRefreshingQR || checkingStatus}
                       className="flex-1"
                     >
-                      {isRefreshingQR ? (
+                      {(isRefreshingQR || checkingStatus) ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Atualizando...
+                          Verificando...
                         </>
                       ) : (
                         <>
                           <RefreshCw className="w-4 h-4 mr-2" />
-                          Atualizar QR Code
+                          Verificar Status
                         </>
                       )}
                     </Button>
@@ -443,7 +397,7 @@ const WhatsAppConnection = () => {
                 <div className="text-center space-y-4">
                   <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
                     <img
-                      src={`data:image/png;base64,${qrCode}`}
+                      src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
                       alt="QR Code WhatsApp"
                       className="w-48 h-48 md:w-64 md:h-64 mx-auto"
                     />
