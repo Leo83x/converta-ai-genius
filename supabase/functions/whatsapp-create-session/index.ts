@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sessionName: string, maxAttempts = 15) {
+async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sessionName: string, maxAttempts = 20) {
   console.log(`Starting QR code search for session: ${sessionName}`);
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -45,16 +45,20 @@ async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sess
               return 'CONNECTED';
             }
             
-            // Check for QR code
-            if (ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64) {
-              const qrCode = ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64;
-              if (qrCode && qrCode.length > 50) {
-                console.log(`QR Code found in fetchInstances on attempt ${attempt}`);
-                return qrCode;
-              }
+            // Check for QR code in multiple possible locations
+            const qrCode = ourInstance.instance?.qrcode?.base64 || 
+                          ourInstance.qrcode?.base64 || 
+                          ourInstance.instance?.qrCode?.base64 ||
+                          ourInstance.qrCode?.base64;
+            
+            if (qrCode && qrCode.length > 50) {
+              console.log(`QR Code found in fetchInstances on attempt ${attempt}`);
+              return qrCode;
             }
           }
         }
+      } else {
+        console.log(`Fetch instances failed with status: ${fetchResponse.status}`);
       }
     } catch (error) {
       console.log(`Fetch instances error (attempt ${attempt}):`, error);
@@ -78,10 +82,13 @@ async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sess
         console.log(`Connect response (attempt ${attempt}):`, JSON.stringify(connectData, null, 2));
         
         // Check if we got QR code directly from connect
-        if (connectData.base64 && connectData.base64.length > 50) {
+        const qrCode = connectData.base64 || connectData.qrCode?.base64 || connectData.qrcode?.base64;
+        if (qrCode && qrCode.length > 50) {
           console.log(`QR Code found in connect response on attempt ${attempt}`);
-          return connectData.base64;
+          return qrCode;
         }
+      } else {
+        console.log(`Connect failed with status: ${connectResponse.status}`);
       }
     } catch (error) {
       console.log(`Connect error (attempt ${attempt}):`, error);
@@ -89,7 +96,7 @@ async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sess
 
     // Wait before next attempt with progressive delay
     if (attempt < maxAttempts) {
-      const waitTime = Math.min(3000 * attempt, 10000); // 3s, 6s, 9s, max 10s
+      const waitTime = Math.min(2000 * attempt, 15000); // 2s, 4s, 6s, max 15s
       console.log(`Waiting ${waitTime}ms before attempt ${attempt + 1}`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -209,9 +216,18 @@ serve(async (req) => {
 
     console.log('Using validated Evolution API URL:', validatedUrl);
 
-    // Create session in Evolution API Cloud with correct payload
+    // Create session in Evolution API Cloud with simplified payload for cloud version
     const createUrl = `${validatedUrl}/instance/create`;
     console.log('Creating instance at:', createUrl);
+
+    // Simplified payload for Evolution API Cloud
+    const createPayload = {
+      instanceName: sessionName,
+      qrcode: true,
+      integration: "WHATSAPP-BAILEYS"
+    };
+
+    console.log('Create payload:', JSON.stringify(createPayload, null, 2));
 
     const evolutionResponse = await fetch(createUrl, {
       method: 'POST',
@@ -219,25 +235,7 @@ serve(async (req) => {
         'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        instanceName: sessionName,
-        qrcode: true,
-        number: "",
-        integration: "WHATSAPP-BAILEYS",
-        webhook_wa_business: "",
-        webhook: "",
-        webhookByEvents: false,
-        events: [],
-        reject_call: false,
-        msg_call: "",
-        groups_ignore: true,
-        always_online: false,
-        read_messages: false,
-        read_status: false,
-        sync_full_history: false,
-        websocket_enabled: false,
-        websocket_events: []
-      })
+      body: JSON.stringify(createPayload)
     });
 
     console.log('Evolution API response status:', evolutionResponse.status);
@@ -245,7 +243,41 @@ serve(async (req) => {
     if (!evolutionResponse.ok) {
       const errorText = await evolutionResponse.text();
       console.error('Evolution API error response:', errorText);
-      throw new Error(`Evolution API error: ${evolutionResponse.status} - ${errorText}`);
+      
+      // Try alternative payload structure if first one fails
+      if (evolutionResponse.status === 400) {
+        console.log('Trying alternative payload structure...');
+        
+        const alternativePayload = {
+          instanceName: sessionName,
+          token: sessionName,
+          qrcode: true
+        };
+        
+        console.log('Alternative payload:', JSON.stringify(alternativePayload, null, 2));
+        
+        const alternativeResponse = await fetch(createUrl, {
+          method: 'POST',
+          headers: {
+            'apikey': evolutionApiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(alternativePayload)
+        });
+        
+        console.log('Alternative response status:', alternativeResponse.status);
+        
+        if (!alternativeResponse.ok) {
+          const altErrorText = await alternativeResponse.text();
+          console.error('Alternative request also failed:', altErrorText);
+          throw new Error(`Evolution API error: ${alternativeResponse.status} - ${altErrorText}`);
+        }
+        
+        const alternativeData = await alternativeResponse.json();
+        console.log('Alternative Evolution API success response:', JSON.stringify(alternativeData, null, 2));
+      } else {
+        throw new Error(`Evolution API error: ${evolutionResponse.status} - ${errorText}`);
+      }
     }
 
     const evolutionData = await evolutionResponse.json();
@@ -273,7 +305,7 @@ serve(async (req) => {
       user_id: user.id,
       session_name: sessionName,
       instance_id: evolutionData.instance?.instanceName || sessionName,
-      token: evolutionData.hash || 'temp_token',
+      token: evolutionData.hash || evolutionData.token || 'temp_token',
       qr_code_url: qrCodeUrl,
       status: status
     };
