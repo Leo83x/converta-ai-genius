@@ -131,8 +131,11 @@ serve(async (req) => {
       });
     }
 
-    if (!userData.openai_key.startsWith('sk-')) {
+    // Validação aprimorada da chave OpenAI
+    const openaiKey = userData.openai_key.trim();
+    if (!openaiKey.startsWith('sk-') || openaiKey.length < 20) {
       console.error('❌ ERRO ETAPA 4: Formato da chave OpenAI inválido');
+      console.error('❌ Chave recebida:', openaiKey.substring(0, 10) + '...');
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Chave OpenAI com formato inválido' 
@@ -142,7 +145,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('✅ ETAPA 4 SUCESSO: Chave OpenAI válida:', userData.openai_key.substring(0, 10) + '...');
+    console.log('✅ ETAPA 4 SUCESSO: Chave OpenAI válida:', openaiKey.substring(0, 10) + '...');
 
     // ✅ ETAPA 5: Buscar agentes do usuário
     console.log('🔍 ETAPA 5 - Buscando agentes para o usuário:', userId);
@@ -231,7 +234,7 @@ serve(async (req) => {
     console.log('🤖 Configuração OpenAI:');
     console.log('🤖 System prompt length:', systemPrompt.length);
     console.log('🤖 User message:', message);
-    console.log('🤖 OpenAI Key (preview):', userData.openai_key.substring(0, 10) + '...');
+    console.log('🤖 OpenAI Key (preview):', openaiKey.substring(0, 10) + '...');
 
     let openaiResponse;
     
@@ -244,18 +247,22 @@ serve(async (req) => {
 
       console.log('📡 Enviando para OpenAI...');
 
+      const requestPayload = {
+        model: 'gpt-4o-mini',
+        messages: messages,
+        max_tokens: 1000,
+        temperature: 0.7
+      };
+
+      console.log('📡 Payload para OpenAI:', JSON.stringify(requestPayload, null, 2));
+
       openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${userData.openai_key}`,
+          'Authorization': `Bearer ${openaiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: messages,
-          max_tokens: 1000,
-          temperature: 0.7
-        }),
+        body: JSON.stringify(requestPayload),
         signal: controller.signal
       });
 
@@ -268,6 +275,7 @@ serve(async (req) => {
         const errorText = await openaiResponse.text();
         console.error('❌ ERRO ETAPA 7: Resposta HTTP não OK');
         console.error('❌ Status:', openaiResponse.status);
+        console.error('❌ Status Text:', openaiResponse.statusText);
         console.error('❌ Erro OpenAI:', errorText);
         
         let errorMessage = 'Erro na comunicação com OpenAI';
@@ -283,7 +291,11 @@ serve(async (req) => {
         return new Response(JSON.stringify({ 
           success: false, 
           error: errorMessage,
-          details: errorText
+          details: {
+            status: openaiResponse.status,
+            statusText: openaiResponse.statusText,
+            error: errorText
+          }
         }), {
           status: openaiResponse.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -301,7 +313,11 @@ serve(async (req) => {
       
       return new Response(JSON.stringify({ 
         success: false, 
-        error: errorMessage 
+        error: errorMessage,
+        details: {
+          name: fetchError.name,
+          message: fetchError.message
+        }
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -314,12 +330,7 @@ serve(async (req) => {
     let aiResponse;
     try {
       aiResponse = await openaiResponse.json();
-      console.log('📖 Resposta OpenAI:', {
-        hasChoices: !!aiResponse.choices,
-        choicesLength: aiResponse.choices?.length || 0,
-        hasContent: !!aiResponse.choices?.[0]?.message?.content,
-        usage: aiResponse.usage
-      });
+      console.log('📖 Resposta OpenAI completa:', JSON.stringify(aiResponse, null, 2));
     } catch (parseError) {
       console.error('❌ ERRO ETAPA 8: Erro ao parsear resposta OpenAI:', parseError);
       return new Response(JSON.stringify({ 
@@ -335,6 +346,7 @@ serve(async (req) => {
 
     if (!replyText) {
       console.error('❌ ERRO ETAPA 8: Nenhum conteúdo na resposta da OpenAI');
+      console.error('❌ Estrutura da resposta:', JSON.stringify(aiResponse, null, 2));
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Resposta vazia da OpenAI' 
