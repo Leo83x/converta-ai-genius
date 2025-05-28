@@ -50,33 +50,48 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Get Evolution API configuration with validation
+    // Get Evolution API configuration with detailed debugging
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     
-    console.log('Evolution API Key exists:', !!evolutionApiKey);
-    console.log('Evolution API URL from env:', evolutionApiUrl);
+    console.log('=== DEBUGGING SECRETS IN CHECK STATUS ===');
+    console.log('EVOLUTION_API_KEY exists:', !!evolutionApiKey);
+    console.log('EVOLUTION_API_URL exists:', !!evolutionApiUrl);
+    console.log('EVOLUTION_API_URL value:', evolutionApiUrl);
+    console.log('=== END DEBUGGING ===');
     
     if (!evolutionApiKey) {
-      throw new Error('Evolution API key not configured');
+      throw new Error('Evolution API key not configured. Please check your Supabase secrets.');
     }
 
     if (!evolutionApiUrl) {
-      throw new Error('Evolution API URL not configured');
+      throw new Error('Evolution API URL not configured. Please check your Supabase secrets.');
     }
 
-    // Validate URL format
+    // Robust URL validation
+    let validatedUrl: string;
     try {
-      new URL(evolutionApiUrl);
+      const cleanUrl = evolutionApiUrl.trim();
+      
+      // Check if it's not just the environment variable name
+      if (cleanUrl === 'EVOLUTION_API_URL' || cleanUrl.includes('EVOLUTION_API_URL')) {
+        throw new Error('EVOLUTION_API_URL secret contains the variable name instead of the actual URL');
+      }
+      
+      const urlObject = new URL(cleanUrl);
+      validatedUrl = cleanUrl;
+      
+      console.log('URL validation successful:', validatedUrl);
     } catch (urlError) {
-      console.error('Invalid Evolution API URL format:', evolutionApiUrl);
-      throw new Error('Evolution API URL has invalid format');
+      console.error('URL validation failed:', urlError);
+      console.error('Received URL value:', evolutionApiUrl);
+      throw new Error(`Evolution API URL is invalid: ${urlError.message}. Please check your EVOLUTION_API_URL secret in Supabase.`);
     }
 
-    console.log('Using Evolution API URL:', evolutionApiUrl);
+    console.log('Using validated Evolution API URL:', validatedUrl);
 
     // Check status in Evolution API
-    const statusUrl = `${evolutionApiUrl}/instance/fetchInstances/${sessionName}`;
+    const statusUrl = `${validatedUrl}/instance/fetchInstances/${sessionName}`;
     console.log('Checking status at:', statusUrl);
     
     const statusResponse = await fetch(statusUrl, {
@@ -93,7 +108,7 @@ serve(async (req) => {
       console.error('Evolution API status error:', statusResponse.status);
       
       // Try to get QR code directly if status check fails
-      const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+      const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
       console.log('Trying QR code endpoint:', qrUrl);
       
       const qrResponse = await fetch(qrUrl, {
@@ -137,7 +152,7 @@ serve(async (req) => {
       
       // If no QR code in response, try to fetch directly
       if (!qrCode) {
-        const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+        const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
         console.log('Fetching QR code from:', qrUrl);
         
         const qrResponse = await fetch(qrUrl, {

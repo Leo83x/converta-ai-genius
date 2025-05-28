@@ -88,36 +88,54 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Get Evolution API configuration with proper validation
+    // Get Evolution API configuration - debug the actual values
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     
-    console.log('Evolution API Key exists:', !!evolutionApiKey);
-    console.log('Evolution API URL from env:', evolutionApiUrl);
+    console.log('=== DEBUGGING SECRETS ===');
+    console.log('EVOLUTION_API_KEY exists:', !!evolutionApiKey);
+    console.log('EVOLUTION_API_KEY length:', evolutionApiKey?.length || 0);
+    console.log('EVOLUTION_API_URL exists:', !!evolutionApiUrl);
+    console.log('EVOLUTION_API_URL value:', evolutionApiUrl);
+    console.log('EVOLUTION_API_URL length:', evolutionApiUrl?.length || 0);
+    console.log('=== END DEBUGGING ===');
     
     if (!evolutionApiKey) {
       console.error('Evolution API key not found in environment variables');
-      throw new Error('Evolution API key not configured');
+      throw new Error('Evolution API key not configured. Please check your Supabase secrets.');
     }
 
     if (!evolutionApiUrl) {
       console.error('Evolution API URL not found in environment variables');
-      throw new Error('Evolution API URL not configured');
+      throw new Error('Evolution API URL not configured. Please check your Supabase secrets.');
     }
 
-    // Validate URL format
+    // More robust URL validation
+    let validatedUrl: string;
     try {
-      new URL(evolutionApiUrl);
+      // Remove any whitespace and ensure proper format
+      const cleanUrl = evolutionApiUrl.trim();
+      
+      // Check if it's not just the environment variable name
+      if (cleanUrl === 'EVOLUTION_API_URL' || cleanUrl.includes('EVOLUTION_API_URL')) {
+        throw new Error('EVOLUTION_API_URL secret contains the variable name instead of the actual URL');
+      }
+      
+      // Validate URL format
+      const urlObject = new URL(cleanUrl);
+      validatedUrl = cleanUrl;
+      
+      console.log('URL validation successful:', validatedUrl);
     } catch (urlError) {
-      console.error('Invalid Evolution API URL format:', evolutionApiUrl);
-      throw new Error('Evolution API URL has invalid format');
+      console.error('URL validation failed:', urlError);
+      console.error('Received URL value:', evolutionApiUrl);
+      throw new Error(`Evolution API URL is invalid: ${urlError.message}. Please check your EVOLUTION_API_URL secret in Supabase.`);
     }
 
-    console.log('Evolution API URL validated:', evolutionApiUrl);
-    console.log('Evolution API key found, making request to Evolution API');
+    console.log('Using validated Evolution API URL:', validatedUrl);
 
     // Create session in Evolution API
-    const createUrl = `${evolutionApiUrl}/instance/create`;
+    const createUrl = `${validatedUrl}/instance/create`;
     console.log('Creating instance at:', createUrl);
 
     const evolutionResponse = await fetch(createUrl, {
@@ -146,7 +164,7 @@ serve(async (req) => {
 
     // Connect the instance
     try {
-      const connectUrl = `${evolutionApiUrl}/instance/connect/${sessionName}`;
+      const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
       console.log('Connecting instance at:', connectUrl);
       
       const connectResponse = await fetch(connectUrl, {
@@ -177,7 +195,7 @@ serve(async (req) => {
     
     // Try to get QR code from multiple endpoints
     try {
-      const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+      const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
       console.log('Getting QR code from:', qrUrl);
       
       const qrResponse = await fetch(qrUrl, {
