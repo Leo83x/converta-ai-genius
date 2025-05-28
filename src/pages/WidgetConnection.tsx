@@ -127,6 +127,10 @@ const WidgetConnection = () => {
         background: #e9ecef; color: #666; padding: 8px 12px;
         border-radius: 12px; font-style: italic;
       }
+      
+      .error-message .content {
+        background: #fee; color: #d33; border: 1px solid #fdd;
+      }
     \`;
     document.head.appendChild(style);
     
@@ -194,14 +198,17 @@ const WidgetConnection = () => {
         messages.scrollTop = messages.scrollHeight;
         
         try {
-          console.log('Sending message to:', window.ConvertaPlus.apiUrl);
-          console.log('Message data:', {
+          console.log('🚀 Enviando mensagem para:', window.ConvertaPlus.apiUrl);
+          console.log('📝 Dados da mensagem:', {
             message: message,
             userId: window.ConvertaPlus.userId,
             sessionId: window.ConvertaPlus.sessionId
           });
           
-          // Enviar para API
+          // Timeout para a requisição
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+          
           const response = await fetch(window.ConvertaPlus.apiUrl, {
             method: 'POST',
             headers: {
@@ -211,17 +218,19 @@ const WidgetConnection = () => {
               message: message,
               userId: window.ConvertaPlus.userId,
               sessionId: window.ConvertaPlus.sessionId
-            })
+            }),
+            signal: controller.signal
           });
           
-          console.log('Response status:', response.status);
+          clearTimeout(timeoutId);
+          console.log('📡 Status da resposta:', response.status);
           
           if (!response.ok) {
-            throw new Error('HTTP error! status: ' + response.status);
+            throw new Error(\`Erro HTTP: \${response.status}\`);
           }
           
           const data = await response.json();
-          console.log('Response data:', data);
+          console.log('✅ Dados recebidos:', data);
           
           // Esconder indicador de digitação
           typingIndicator.style.display = 'none';
@@ -232,18 +241,25 @@ const WidgetConnection = () => {
             botMsg.innerHTML = '<div class="content">' + escapeHtml(data.reply) + '</div>';
             messages.appendChild(botMsg);
           } else {
-            var errorMsg = document.createElement('div');
-            errorMsg.className = 'message bot';
-            errorMsg.innerHTML = '<div class="content">Desculpe, ocorreu um erro. Tente novamente.</div>';
-            messages.appendChild(errorMsg);
+            throw new Error('Resposta inválida do servidor');
           }
+          
         } catch (error) {
-          console.error('Error sending message:', error);
+          console.error('❌ Erro ao enviar mensagem:', error);
           typingIndicator.style.display = 'none';
+          
           var errorMsg = document.createElement('div');
-          errorMsg.className = 'message bot';
-          errorMsg.innerHTML = '<div class="content">Erro de conexão. Verifique sua internet e tente novamente.</div>';
+          errorMsg.className = 'message bot error-message';
+          
+          let errorText = 'Erro de conexão. ';
+          if (error.name === 'AbortError') {
+            errorText += 'Tempo limite excedido. ';
+          }
+          errorText += 'Verifique sua conexão e tente novamente.';
+          
+          errorMsg.innerHTML = '<div class="content">' + errorText + '</div>';
           messages.appendChild(errorMsg);
+          
         } finally {
           input.disabled = false;
           sendButton.disabled = false;

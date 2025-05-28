@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/Layout';
@@ -51,18 +50,30 @@ const Conversations = () => {
       }
 
       return (data || []).map(conv => {
-        // Ensure messages is always an array
+        // Parse messages correctly from Json type to array
         let messages: Array<{ role: string; content: string }> = [];
         
-        if (Array.isArray(conv.messages)) {
-          messages = conv.messages.filter(msg => 
-            typeof msg === 'object' && 
-            msg !== null && 
-            'role' in msg && 
-            'content' in msg &&
-            typeof msg.role === 'string' &&
-            typeof msg.content === 'string'
-          );
+        try {
+          if (conv.messages) {
+            // Handle both array and string JSON cases
+            const parsedMessages = typeof conv.messages === 'string' 
+              ? JSON.parse(conv.messages) 
+              : conv.messages;
+            
+            if (Array.isArray(parsedMessages)) {
+              messages = parsedMessages.filter(msg => 
+                typeof msg === 'object' && 
+                msg !== null && 
+                'role' in msg && 
+                'content' in msg &&
+                typeof msg.role === 'string' &&
+                typeof msg.content === 'string'
+              );
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing messages:', parseError);
+          messages = [];
         }
 
         return {
