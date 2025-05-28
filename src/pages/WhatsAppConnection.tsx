@@ -20,6 +20,7 @@ const WhatsAppConnection = () => {
   const [currentSession, setCurrentSession] = useState<string>('');
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [sessionStatus, setSessionStatus] = useState<string>('');
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,15 +52,14 @@ const WhatsAppConnection = () => {
         setCurrentSession(latestSession.session_name);
         setSessionName(latestSession.session_name);
         
+        // Só verificar status se não estiver explicitamente desconectado
         if (latestSession.status === 'connected') {
           setConnectionStatus('connected');
           setSessionStatus('connected');
-        } else {
-          setConnectionStatus('connecting');
-          // Aguardar um pouco antes de verificar o status
-          setTimeout(() => {
-            checkSessionStatus(latestSession.session_name);
-          }, 2000);
+        } else if (latestSession.status !== 'disconnected') {
+          // Não conectar automaticamente - apenas mostrar que existe uma sessão
+          setConnectionStatus('disconnected');
+          setSessionStatus(latestSession.status || 'disconnected');
         }
       }
     } catch (error) {
@@ -93,7 +93,9 @@ const WhatsAppConnection = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.status}`);
+        console.error('Status check failed:', response.status);
+        setConnectionStatus('disconnected');
+        return;
       }
 
       const data = await response.json();
@@ -109,38 +111,28 @@ const WhatsAppConnection = () => {
             description: "WhatsApp conectado com sucesso!",
           });
         } else if (data.qr_code && typeof data.qr_code === 'string' && data.qr_code.trim().length > 20) {
-          // Validação mais rigorosa do QR code
           const qrCodeData = data.qr_code.trim();
           if (qrCodeData.startsWith('data:image') || qrCodeData.length > 100) {
             setConnectionStatus('qr_code');
             setQrCode(qrCodeData);
             setSessionStatus(data.connection_status || 'pending');
-            console.log('QR Code válido encontrado, tamanho:', qrCodeData.length);
+            console.log('QR Code válido encontrado');
           } else {
-            console.log('QR Code inválido ou muito pequeno:', qrCodeData.substring(0, 50));
-            retryStatusCheck(sessionNameToCheck);
+            console.log('QR Code inválido, tentando novamente...');
+            setTimeout(() => checkSessionStatus(sessionNameToCheck), 3000);
           }
         } else {
-          console.log('Sem QR code válido na resposta, tentando novamente...');
-          retryStatusCheck(sessionNameToCheck);
+          console.log('Sem QR code válido, tentando novamente...');
+          setTimeout(() => checkSessionStatus(sessionNameToCheck), 3000);
         }
       } else {
-        console.log('Resposta sem sucesso:', data);
-        retryStatusCheck(sessionNameToCheck);
+        setConnectionStatus('disconnected');
       }
     } catch (error) {
       console.error('Error checking session status:', error);
-      retryStatusCheck(sessionNameToCheck);
+      setConnectionStatus('disconnected');
     } finally {
       setCheckingStatus(false);
-    }
-  };
-
-  const retryStatusCheck = (sessionNameToCheck: string) => {
-    if (connectionStatus !== 'connected') {
-      setTimeout(() => {
-        checkSessionStatus(sessionNameToCheck);
-      }, 3000);
     }
   };
 
@@ -195,7 +187,6 @@ const WhatsAppConnection = () => {
           setSessionStatus(data.data.status);
         }
         
-        // Verificar se há QR code válido na resposta
         if (data.data && data.data.qr_code && typeof data.data.qr_code === 'string') {
           const qrCodeData = data.data.qr_code.trim();
           if (qrCodeData.length > 20 && (qrCodeData.startsWith('data:image') || qrCodeData.length > 100)) {
@@ -206,10 +197,7 @@ const WhatsAppConnection = () => {
               description: "Escaneie o QR Code com seu WhatsApp para conectar.",
             });
           } else {
-            console.log('QR code recebido mas inválido, verificando status...');
-            setTimeout(() => {
-              checkSessionStatus(sessionName.trim());
-            }, 2000);
+            setTimeout(() => checkSessionStatus(sessionName.trim()), 2000);
           }
         } else if (data.data && data.data.status === 'open') {
           setConnectionStatus('connected');
@@ -218,10 +206,7 @@ const WhatsAppConnection = () => {
             description: "Sua sessão WhatsApp está ativa.",
           });
         } else {
-          console.log('Aguardando QR code, verificando status...');
-          setTimeout(() => {
-            checkSessionStatus(sessionName.trim());
-          }, 3000);
+          setTimeout(() => checkSessionStatus(sessionName.trim()), 3000);
         }
       } else {
         throw new Error(data.error || 'Falha ao criar sessão');
@@ -269,6 +254,7 @@ const WhatsAppConnection = () => {
   const disconnectSession = async () => {
     if (!currentSession) return;
 
+    setIsDisconnecting(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
@@ -287,11 +273,10 @@ const WhatsAppConnection = () => {
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
-      }
+      const data = await response.json();
+      console.log('Disconnect response:', data);
 
+      // Sempre resetar o estado local, independente da resposta da API
       setConnectionStatus('disconnected');
       setQrCode('');
       setCurrentSession('');
@@ -304,11 +289,20 @@ const WhatsAppConnection = () => {
       });
     } catch (error) {
       console.error('Error disconnecting:', error);
+      
+      // Mesmo com erro, resetar o estado local
+      setConnectionStatus('disconnected');
+      setQrCode('');
+      setCurrentSession('');
+      setSessionName('');
+      setSessionStatus('');
+      
       toast({
-        title: "Erro ao desconectar",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive"
+        title: "Sessão resetada",
+        description: "Estado da sessão foi resetado localmente.",
       });
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -401,9 +395,17 @@ const WhatsAppConnection = () => {
                     <Button
                       variant="destructive"
                       onClick={disconnectSession}
+                      disabled={isDisconnecting}
                       className="flex-1"
                     >
-                      Desconectar
+                      {isDisconnecting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Desconectando...
+                        </>
+                      ) : (
+                        'Desconectar'
+                      )}
                     </Button>
                   </div>
                 )}
@@ -447,7 +449,7 @@ const WhatsAppConnection = () => {
                       src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
                       alt="QR Code WhatsApp"
                       className="w-48 h-48 md:w-64 md:h-64 mx-auto"
-                      onError={(e) => {
+                      onError={() => {
                         console.error('Error loading QR Code image');
                         setTimeout(() => {
                           if (currentSession) {
