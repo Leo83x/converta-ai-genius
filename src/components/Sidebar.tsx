@@ -71,10 +71,15 @@ const Sidebar = () => {
   const isMobile = useIsMobile();
   const [profileExpanded, setProfileExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleSignOut = async () => {
+    if (isLoggingOut) return; // Previne múltiplos cliques
+    
     try {
       console.log('Botão sair clicado');
+      setIsLoggingOut(true);
+      
       await signOut();
       
       toast({
@@ -82,8 +87,8 @@ const Sidebar = () => {
         description: "Você foi desconectado com sucesso.",
       });
       
-      // Redireciona para a página de login
-      navigate('/login', { replace: true });
+      // Força a navegação para login
+      window.location.href = '/login';
       
     } catch (error) {
       console.error('Erro no logout:', error);
@@ -92,6 +97,8 @@ const Sidebar = () => {
         description: "Ocorreu um erro ao fazer logout. Tente novamente.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -204,9 +211,10 @@ const Sidebar = () => {
           variant="ghost"
           className="w-full justify-start space-x-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
           onClick={handleSignOut}
+          disabled={isLoggingOut}
         >
           <LogOut className="h-5 w-5" />
-          <span>Sair</span>
+          <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
         </Button>
       </div>
     </>

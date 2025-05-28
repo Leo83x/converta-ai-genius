@@ -104,6 +104,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       console.log('Iniciando logout...');
+      
+      // Limpa os estados localmente primeiro
+      setLoading(true);
+      setSession(null);
+      setUser(null);
+      
+      // Então faz o logout no Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -113,13 +120,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log('Logout realizado com sucesso');
       
-      // Força a limpeza dos estados localmente
-      setSession(null);
-      setUser(null);
-      
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
+      // Se houver erro, ainda força a limpeza local
+      setSession(null);
+      setUser(null);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
