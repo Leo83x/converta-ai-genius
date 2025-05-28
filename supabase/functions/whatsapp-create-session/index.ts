@@ -8,6 +8,47 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function ensureCustomerExists(apiUrl: string, apiKey: string, userEmail: string, userId: string) {
+  console.log('Ensuring customer exists for user:', userEmail);
+  
+  // Try to create customer (Evolution API will return error if already exists, which is fine)
+  const createCustomerUrl = `${apiUrl}/customer/create`;
+  const customerPayload = {
+    name: userEmail || `user-${userId}`,
+    email: userEmail || `${userId}@placeholder.com`,
+    phone: '+5511999999999',
+    createUser: false,
+    modules: ['chatbot'],
+    channels: {
+      'WHATSAPP-BAILEYS': { limit: 10 }
+    }
+  };
+
+  console.log('Creating customer with payload:', JSON.stringify(customerPayload, null, 2));
+
+  const customerResponse = await fetch(createCustomerUrl, {
+    method: 'POST',
+    headers: {
+      'apikey': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(customerPayload)
+  });
+
+  console.log('Customer creation response status:', customerResponse.status);
+  const customerData = await customerResponse.text();
+  console.log('Customer creation response:', customerData);
+
+  // Status 400 usually means customer already exists, which is fine
+  if (customerResponse.ok || customerResponse.status === 400) {
+    console.log('Customer exists or was created successfully');
+    return true;
+  } else {
+    console.warn('Customer creation failed, but continuing with instance creation');
+    return false;
+  }
+}
+
 async function createEvolutionInstance(apiUrl: string, apiKey: string, sessionName: string) {
   console.log(`Creating Evolution instance: ${sessionName}`);
   
@@ -190,7 +231,11 @@ serve(async (req) => {
       throw new Error(`Invalid Evolution API URL: ${urlError.message}`);
     }
 
-    // Create Evolution instance following official documentation
+    // Step 1: Ensure customer exists before creating instance
+    console.log('Ensuring customer exists before creating instance...');
+    await ensureCustomerExists(validatedUrl, evolutionApiKey, user.email || '', user.id);
+
+    // Step 2: Create Evolution instance following official documentation
     const result = await createEvolutionInstance(validatedUrl, evolutionApiKey, sessionName);
     
     console.log('Evolution instance creation result:', result);
