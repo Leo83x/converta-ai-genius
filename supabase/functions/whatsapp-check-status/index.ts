@@ -50,12 +50,27 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Get Evolution API configuration
+    // Get Evolution API configuration with validation
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
-    const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://2969-186-205-11-178.ngrok-free.app';
+    const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
+    
+    console.log('Evolution API Key exists:', !!evolutionApiKey);
+    console.log('Evolution API URL from env:', evolutionApiUrl);
     
     if (!evolutionApiKey) {
       throw new Error('Evolution API key not configured');
+    }
+
+    if (!evolutionApiUrl) {
+      throw new Error('Evolution API URL not configured');
+    }
+
+    // Validate URL format
+    try {
+      new URL(evolutionApiUrl);
+    } catch (urlError) {
+      console.error('Invalid Evolution API URL format:', evolutionApiUrl);
+      throw new Error('Evolution API URL has invalid format');
     }
 
     console.log('Using Evolution API URL:', evolutionApiUrl);
