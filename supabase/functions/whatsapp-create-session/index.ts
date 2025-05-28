@@ -160,9 +160,9 @@ serve(async (req) => {
       console.log('No QR code found in response');
     }
 
-    // Store data using user client (RLS compliant)
+    // Store data using user client (RLS compliant) - CORREÇÃO AQUI
     const insertData = {
-      user_id: user.id,
+      user_id: user.id, // Garantindo que o user_id está definido
       session_name: sessionName,
       instance_id: evolutionData.instance?.instanceName || sessionName,
       token: evolutionData.hash || 'temp_token',
@@ -172,7 +172,8 @@ serve(async (req) => {
 
     console.log('Inserting data into evolution_tokens:', insertData);
 
-    const { data: tokenData, error: tokenError } = await supabaseUser
+    // Usar o admin client para inserir, passando explicitamente o user_id
+    const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from('evolution_tokens')
       .insert(insertData)
       .select()
