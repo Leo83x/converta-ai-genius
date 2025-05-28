@@ -33,6 +33,7 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
 
     setIsConnecting(true);
     setConnectionStatus('connecting');
+    setQrCode(''); // Limpar QR code anterior
     
     try {
       console.log('Creating session with name:', sessionName.trim());
@@ -54,81 +55,56 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
         })
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP Error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Erro na criação da sessão: ${response.status}`);
       }
 
       const data = await response.json();
       console.log('Session creation response:', data);
 
       if (data.success) {
-        setConnectionStatus('pending');
-        
-        if (data.data && data.data.qr_code && typeof data.data.qr_code === 'string') {
-          const qrCodeData = data.data.qr_code.trim();
-          if (qrCodeData.length > 20 && (qrCodeData.startsWith('data:image') || qrCodeData.length > 100)) {
-            setQrCode(qrCodeData);
-            toast({
-              title: "Sessão criada!",
-              description: "Escaneie o QR Code com seu WhatsApp",
-            });
-
-            // Verificar status periodicamente
-            const checkStatus = setInterval(async () => {
-              try {
-                const statusResponse = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                  },
-                  body: JSON.stringify({
-                    sessionName: sessionName.trim()
-                  })
-                });
-
-                if (statusResponse.ok) {
-                  const statusData = await statusResponse.json();
-                  
-                  if (statusData?.status === 'connected') {
-                    setConnectionStatus('connected');
-                    clearInterval(checkStatus);
-                    toast({
-                      title: "WhatsApp conectado!",
-                      description: "Seu agente já pode receber mensagens",
-                    });
-                    onSuccess();
-                    handleClose();
-                  }
-                }
-              } catch (error) {
-                console.error('Error checking status:', error);
-              }
-            }, 5000);
-
-            // Parar de verificar após 5 minutos
-            setTimeout(() => clearInterval(checkStatus), 300000);
-          } else {
-            console.log('QR Code inválido, tentando novamente...');
-            // Tentar verificar status após um tempo
-            setTimeout(() => {
-              checkSessionStatus(sessionName.trim(), session.access_token);
-            }, 3000);
-          }
-        } else if (data.data && data.data.status === 'open') {
+        // Verificar se já veio conectado
+        if (data.data && data.data.status === 'connected') {
           setConnectionStatus('connected');
           toast({
-            title: "Conectado com sucesso",
-            description: "Sua sessão WhatsApp está ativa.",
+            title: "Conectado!",
+            description: "WhatsApp já estava conectado",
           });
           onSuccess();
           handleClose();
+          return;
+        }
+
+        // Verificar se tem QR code
+        if (data.data && data.data.qr_code) {
+          const qrCodeData = data.data.qr_code;
+          console.log('QR Code received:', qrCodeData ? 'Yes' : 'No');
+          
+          if (qrCodeData && qrCodeData.length > 50) {
+            setQrCode(qrCodeData);
+            setConnectionStatus('pending');
+            toast({
+              title: "QR Code gerado!",
+              description: "Escaneie o código com seu WhatsApp",
+            });
+
+            // Iniciar verificação de status
+            startStatusChecking(sessionName.trim(), session.access_token);
+          } else {
+            // Se não tem QR code válido, tentar buscar
+            setTimeout(() => {
+              checkSessionStatus(sessionName.trim(), session.access_token);
+            }, 2000);
+          }
         } else {
-          // Tentar verificar status
+          // Tentar buscar QR code
           setTimeout(() => {
             checkSessionStatus(sessionName.trim(), session.access_token);
-          }, 3000);
+          }, 2000);
         }
       } else {
         throw new Error(data.error || 'Falha ao criar sessão');
@@ -149,6 +125,8 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
 
   const checkSessionStatus = async (sessionNameToCheck: string, token: string) => {
     try {
+      console.log('Checking status for:', sessionNameToCheck);
+      
       const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
         method: 'POST',
         headers: {
@@ -169,24 +147,60 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
             setConnectionStatus('connected');
             setQrCode('');
             toast({
-              title: "Conectado",
+              title: "Conectado!",
               description: "WhatsApp conectado com sucesso!",
             });
             onSuccess();
             handleClose();
-          } else if (data.qr_code && typeof data.qr_code === 'string' && data.qr_code.trim().length > 20) {
-            const qrCodeData = data.qr_code.trim();
-            if (qrCodeData.startsWith('data:image') || qrCodeData.length > 100) {
-              setConnectionStatus('pending');
-              setQrCode(qrCodeData);
-              console.log('QR Code válido encontrado');
-            }
+          } else if (data.qr_code && data.qr_code.length > 50) {
+            setConnectionStatus('pending');
+            setQrCode(data.qr_code);
+            console.log('QR Code atualizado do status check');
           }
         }
+      } else {
+        console.error('Status check failed:', response.status);
       }
     } catch (error) {
       console.error('Error checking session status:', error);
     }
+  };
+
+  const startStatusChecking = (sessionNameToCheck: string, token: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            sessionName: sessionNameToCheck
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data?.status === 'connected') {
+            setConnectionStatus('connected');
+            clearInterval(interval);
+            toast({
+              title: "WhatsApp conectado!",
+              description: "Seu agente já pode receber mensagens",
+            });
+            onSuccess();
+            handleClose();
+          }
+        }
+      } catch (error) {
+        console.error('Error in status check interval:', error);
+      }
+    }, 5000);
+
+    // Parar de verificar após 5 minutos
+    setTimeout(() => clearInterval(interval), 300000);
   };
 
   const handleClose = () => {
@@ -242,8 +256,9 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
                     src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
                     alt="QR Code WhatsApp"
                     className="w-48 h-48 border rounded"
-                    onError={() => {
+                    onError={(e) => {
                       console.error('Error loading QR Code image');
+                      e.currentTarget.style.display = 'none';
                     }}
                     onLoad={() => {
                       console.log('QR Code image loaded successfully');
