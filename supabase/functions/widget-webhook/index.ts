@@ -9,24 +9,59 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Widget webhook iniciado - método:', req.method);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const { message, userId, sessionId } = await req.json();
-    console.log('Widget message received:', { message, userId, sessionId });
-
-    if (!message || !userId) {
-      throw new Error('Message and userId are required');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Variáveis de ambiente do Supabase não configuradas');
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Erro de configuração do servidor. Tente novamente mais tarde.' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Buscar agentes ativos do usuário que tenham canal widget
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const requestBody = await req.text();
+    console.log('Corpo da requisição recebido:', requestBody);
+    
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(requestBody);
+    } catch (parseError) {
+      console.error('Erro ao fazer parse do JSON:', parseError);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Erro no formato da mensagem. Tente novamente.' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { message, userId, sessionId } = parsedBody;
+    console.log('Dados extraídos:', { message, userId, sessionId });
+
+    if (!message || !userId) {
+      console.error('Parâmetros obrigatórios ausentes:', { message: !!message, userId: !!userId });
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Parâmetros inválidos na mensagem.' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Buscar agentes ativos do usuário
+    console.log('Buscando agentes para o usuário:', userId);
     const { data: agents, error: agentsError } = await supabase
       .from('agents')
       .select('*')
@@ -34,60 +69,84 @@ serve(async (req) => {
       .eq('active', true);
 
     if (agentsError) {
-      console.error('Error fetching agents:', agentsError);
-      return new Response(JSON.stringify({ success: false, error: 'Error fetching agents' }), {
-        status: 500,
+      console.error('Erro ao buscar agentes:', agentsError);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Erro interno. Tente novamente em alguns minutos.' 
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Verificar se há agentes com canal widget
-    const widgetAgents = agents?.filter(agent => 
-      agent.channel === 'widget' || agent.channel === 'Widget do Site'
-    ) || [];
+    console.log('Agentes encontrados:', agents?.length || 0);
+
+    // Verificar agentes compatíveis com widget
+    const widgetAgents = agents?.filter(agent => {
+      const channel = agent.channel?.toLowerCase();
+      return channel === 'widget' || 
+             channel === 'widget do site' || 
+             channel?.includes('widget');
+    }) || [];
+
+    console.log('Agentes de widget encontrados:', widgetAgents.length);
 
     if (widgetAgents.length === 0) {
-      console.log('No widget agents found for user:', userId);
+      console.log('Nenhum agente de widget encontrado para o usuário:', userId);
       return new Response(JSON.stringify({ 
         success: true, 
-        reply: 'Desculpe, não há agentes disponíveis no momento. Por favor, configure um agente para o canal "Widget do Site".' 
+        reply: 'Não há agentes configurados para o widget no momento. Configure um agente com canal "Widget do Site" no painel.' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const agent = widgetAgents[0];
-    console.log('Using agent:', agent.name, 'with channel:', agent.channel);
+    console.log('Usando agente:', agent.name, 'ID:', agent.id);
 
     // Buscar chave OpenAI do usuário
+    console.log('Buscando chave OpenAI para o usuário:', userId);
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('openai_key')
       .eq('id', userId)
       .single();
 
-    if (userError || !userData?.openai_key) {
-      console.error('OpenAI key not found for user:', userId, userError);
+    if (userError) {
+      console.error('Erro ao buscar dados do usuário:', userError);
       return new Response(JSON.stringify({ 
         success: true, 
-        reply: 'Desculpe, configuração de IA não encontrada. Por favor, configure sua chave OpenAI no perfil.' 
+        reply: 'Erro ao acessar configurações do usuário. Verifique se sua conta está configurada corretamente.' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Found OpenAI key for user');
+    if (!userData?.openai_key) {
+      console.error('Chave OpenAI não encontrada para o usuário:', userId);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Chave OpenAI não configurada. Configure sua chave OpenAI no perfil do usuário para usar o chat.' 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Buscar histórico da conversa para contexto
+    console.log('Chave OpenAI encontrada para o usuário');
+
+    // Buscar histórico da conversa
+    const sessionKey = sessionId || 'widget_session_default';
     const { data: conversationData } = await supabase
       .from('agent_conversations')
       .select('messages')
       .eq('agent_id', agent.id)
-      .eq('user_session_id', sessionId || 'widget_session')
+      .eq('user_session_id', sessionKey)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
+    console.log('Histórico de conversa encontrado:', !!conversationData);
+
+    // Preparar mensagens para OpenAI
     let messages = [
       {
         role: 'system',
@@ -107,9 +166,9 @@ serve(async (req) => {
       content: message
     });
 
-    console.log('Sending request to OpenAI with', messages.length, 'messages');
+    console.log('Enviando para OpenAI com', messages.length, 'mensagens');
 
-    // Processar com OpenAI
+    // Chamar OpenAI
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -124,55 +183,80 @@ serve(async (req) => {
       }),
     });
 
+    console.log('Status da resposta OpenAI:', openaiResponse.status);
+
     if (!openaiResponse.ok) {
       const errorText = await openaiResponse.text();
-      console.error('OpenAI API error:', openaiResponse.status, errorText);
+      console.error('Erro da API OpenAI:', openaiResponse.status, errorText);
+      
+      if (openaiResponse.status === 401) {
+        return new Response(JSON.stringify({ 
+          success: true, 
+          reply: 'Chave OpenAI inválida ou expirada. Verifique suas configurações no perfil.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       return new Response(JSON.stringify({ 
         success: true, 
-        reply: 'Desculpe, ocorreu um erro ao processar sua mensagem. Verifique se sua chave OpenAI está válida.' 
+        reply: 'Erro temporário na API de IA. Tente novamente em alguns momentos.' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const aiResponse = await openaiResponse.json();
-    console.log('OpenAI response received');
+    console.log('Resposta OpenAI recebida');
     
     const replyText = aiResponse.choices?.[0]?.message?.content;
 
     if (!replyText) {
-      console.error('No response content from OpenAI');
+      console.error('Nenhum conteúdo na resposta da OpenAI:', aiResponse);
       return new Response(JSON.stringify({ 
         success: true, 
-        reply: 'Desculpe, não consegui gerar uma resposta. Tente novamente.' 
+        reply: 'Não consegui gerar uma resposta no momento. Tente reformular sua pergunta.' 
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Atualizar ou criar conversa
+    // Salvar/atualizar conversa
     const updatedMessages = [...messages, { role: 'assistant', content: replyText }];
     
-    if (conversationData) {
-      await supabase
-        .from('agent_conversations')
-        .update({ 
-          messages: updatedMessages,
-          updated_at: new Date().toISOString()
-        })
-        .eq('agent_id', agent.id)
-        .eq('user_session_id', sessionId || 'widget_session');
-    } else {
-      await supabase
-        .from('agent_conversations')
-        .insert({
-          agent_id: agent.id,
-          user_session_id: sessionId || 'widget_session',
-          messages: updatedMessages
-        });
+    try {
+      if (conversationData) {
+        const { error: updateError } = await supabase
+          .from('agent_conversations')
+          .update({ 
+            messages: updatedMessages,
+            updated_at: new Date().toISOString()
+          })
+          .eq('agent_id', agent.id)
+          .eq('user_session_id', sessionKey);
+          
+        if (updateError) {
+          console.error('Erro ao atualizar conversa:', updateError);
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from('agent_conversations')
+          .insert({
+            agent_id: agent.id,
+            user_session_id: sessionKey,
+            messages: updatedMessages
+          });
+          
+        if (insertError) {
+          console.error('Erro ao criar conversa:', insertError);
+        }
+      }
+    } catch (dbError) {
+      console.error('Erro ao salvar no banco:', dbError);
+      // Não falhar a resposta por causa de erro de salvamento
     }
 
-    console.log('Widget response generated successfully');
+    console.log('Resposta do widget gerada com sucesso');
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -182,12 +266,12 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in widget-webhook:', error);
+    console.error('Erro geral no widget-webhook:', error);
     return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
+      success: true, 
+      reply: 'Erro interno do servidor. Nossa equipe foi notificada.' 
     }), {
-      status: 500,
+      status: 200, // Retornar 200 para não quebrar o widget
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

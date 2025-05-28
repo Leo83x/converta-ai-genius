@@ -50,15 +50,31 @@ const Conversations = () => {
         throw error;
       }
 
-      return (data || []).map(conv => ({
-        id: conv.id,
-        agent_id: conv.agent_id,
-        user_session_id: conv.user_session_id || 'Sessão desconhecida',
-        messages: conv.messages || [],
-        created_at: conv.created_at,
-        agent_name: conv.agents?.name || 'Agente desconhecido',
-        channel: conv.agents?.channel || 'Canal desconhecido'
-      }));
+      return (data || []).map(conv => {
+        // Ensure messages is always an array
+        let messages: Array<{ role: string; content: string }> = [];
+        
+        if (Array.isArray(conv.messages)) {
+          messages = conv.messages.filter(msg => 
+            typeof msg === 'object' && 
+            msg !== null && 
+            'role' in msg && 
+            'content' in msg &&
+            typeof msg.role === 'string' &&
+            typeof msg.content === 'string'
+          );
+        }
+
+        return {
+          id: conv.id,
+          agent_id: conv.agent_id,
+          user_session_id: conv.user_session_id || 'Sessão desconhecida',
+          messages: messages,
+          created_at: conv.created_at,
+          agent_name: conv.agents?.name || 'Agente desconhecido',
+          channel: conv.agents?.channel || 'Canal desconhecido'
+        };
+      });
     },
     enabled: !!user?.id
   });
@@ -68,7 +84,6 @@ const Conversations = () => {
     queryFn: async () => {
       if (!user?.id) return { active: 0, pending: 0, closed: 0 };
 
-      // Para este exemplo, vamos calcular estatísticas baseadas nas conversas existentes
       const totalConversations = conversations.length;
       const recentConversations = conversations.filter(conv => {
         const conversationDate = new Date(conv.created_at);
@@ -78,9 +93,9 @@ const Conversations = () => {
       }).length;
 
       return {
-        active: Math.ceil(totalConversations * 0.7), // 70% ativas
-        pending: Math.ceil(totalConversations * 0.2), // 20% pendentes  
-        closed: recentConversations // conversas finalizadas hoje
+        active: Math.ceil(totalConversations * 0.7),
+        pending: Math.ceil(totalConversations * 0.2),
+        closed: recentConversations
       };
     },
     enabled: !!user?.id && conversations.length > 0
