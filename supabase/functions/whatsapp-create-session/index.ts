@@ -14,6 +14,8 @@ async function ensureCustomerExists(apiUrl: string, apiKey: string, userEmail: s
   // Try to create customer (Evolution API will return error if already exists, which is fine)
   const createCustomerUrl = `${apiUrl}/customer/create`;
   const customerPayload = {
+    firstName: userEmail ? userEmail.split('@')[0] : `user-${userId.substring(0, 8)}`,
+    lastName: "Cliente",
     name: userEmail || `user-${userId}`,
     email: userEmail || `${userId}@placeholder.com`,
     phone: '+5511999999999',
