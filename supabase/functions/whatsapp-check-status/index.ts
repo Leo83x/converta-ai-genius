@@ -11,107 +11,65 @@ const corsHeaders = {
 async function checkInstanceStatus(validatedUrl: string, evolutionApiKey: string, sessionName: string) {
   console.log(`Checking instance status for session: ${sessionName}`);
   
-  const endpoints = [
-    { 
-      name: 'connectionState', 
-      url: `${validatedUrl}/instance/connectionState/${sessionName}`, 
-      method: 'GET' 
-    },
-    { 
-      name: 'instanceInfo', 
-      url: `${validatedUrl}/instance/instanceInfo/${sessionName}`, 
-      method: 'GET' 
-    }
-  ];
-
-  for (const endpoint of endpoints) {
-    try {
-      console.log(`Trying ${endpoint.name} endpoint: ${endpoint.url}`);
-      
-      const response = await fetch(endpoint.url, {
-        method: endpoint.method,
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      console.log(`${endpoint.name} response status:`, response.status);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`${endpoint.name} response:`, JSON.stringify(data, null, 2));
-
-        // Check for connection status first
-        if (data.state === 'open' || data.connectionStatus === 'open') {
-          console.log(`Instance connected via ${endpoint.name}`);
-          return { status: 'connected', qrCode: null };
-        }
-
-        // Look for QR code in response
-        const qrCode = data.qrcode || data.qr || data.base64;
-        if (qrCode && typeof qrCode === 'string' && qrCode.length > 50) {
-          console.log(`QR Code found via ${endpoint.name}, length:`, qrCode.length);
-          return { status: 'pending', qrCode: qrCode };
-        }
-
-      } else {
-        console.log(`${endpoint.name} endpoint failed with status:`, response.status);
-        const errorText = await response.text();
-        console.log(`${endpoint.name} error response:`, errorText);
-      }
-    } catch (error) {
-      console.log(`${endpoint.name} endpoint error:`, error);
-    }
-  }
-  
-  // If no QR code found, try to restart the instance to force QR generation
+  // First try to connect to generate QR code
   try {
-    console.log('Attempting to restart instance to force QR generation');
-    const restartUrl = `${validatedUrl}/instance/restart/${sessionName}`;
+    console.log('Trying to connect instance to generate QR code');
+    const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
     
-    const restartResponse = await fetch(restartUrl, {
-      method: 'PUT',
+    const connectResponse = await fetch(connectUrl, {
+      method: 'GET',
       headers: {
         'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       }
     });
 
-    if (restartResponse.ok) {
-      console.log('Instance restarted successfully');
-      
-      // Wait a moment and check status again
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const statusResponse = await fetch(`${validatedUrl}/instance/connectionState/${sessionName}`, {
-        method: 'GET',
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
+    console.log('Connect response status:', connectResponse.status);
 
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        console.log('Status after restart:', JSON.stringify(statusData, null, 2));
-        
-        if (statusData.state === 'open') {
-          return { status: 'connected', qrCode: null };
-        }
-        
-        const qrCode = statusData.qrcode || statusData.qr || statusData.base64;
-        if (qrCode && typeof qrCode === 'string' && qrCode.length > 50) {
-          console.log('QR Code found after restart');
-          return { status: 'pending', qrCode: qrCode };
-        }
+    if (connectResponse.ok) {
+      const connectData = await connectResponse.json();
+      console.log('Connect response:', JSON.stringify(connectData, null, 2));
+
+      // Check if we got QR code from connect
+      if (connectData.base64 && connectData.base64.length > 50) {
+        console.log('QR Code found via connect endpoint');
+        return { status: 'pending', qrCode: connectData.base64 };
       }
     }
   } catch (error) {
-    console.log('Restart attempt failed:', error);
+    console.log('Connect endpoint error:', error);
+  }
+
+  // Then check connection state
+  try {
+    console.log('Checking connection state');
+    const statusUrl = `${validatedUrl}/instance/connectionState/${sessionName}`;
+    
+    const statusResponse = await fetch(statusUrl, {
+      method: 'GET',
+      headers: {
+        'apikey': evolutionApiKey,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log('Status response status:', statusResponse.status);
+
+    if (statusResponse.ok) {
+      const statusData = await statusResponse.json();
+      console.log('Status response:', JSON.stringify(statusData, null, 2));
+
+      // Check for connection status
+      if (statusData.instance && statusData.instance.state === 'open') {
+        console.log('Instance is connected');
+        return { status: 'connected', qrCode: null };
+      }
+    }
+  } catch (error) {
+    console.log('Status endpoint error:', error);
   }
   
-  console.log('No QR code found and unable to restart instance');
+  console.log('Instance is connecting, no QR code available yet');
   return { status: 'connecting', qrCode: null };
 }
 
