@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,7 +84,7 @@ const WhatsAppConnection = () => {
         if (data.status === 'connected') {
           setConnectionStatus('connected');
           setQrCode('');
-        } else if (data.qr_code) {
+        } else if (data.qr_code && typeof data.qr_code === 'string') {
           setConnectionStatus('qr_code');
           setQrCode(data.qr_code);
         } else {
@@ -161,8 +162,8 @@ const WhatsAppConnection = () => {
           setSessionStatus(data.data.status);
         }
         
-        // Se success: true, exiba a imagem base64 retornada em data.qr_code
-        if (data.data && data.data.qr_code) {
+        // Verifique se qr_code é uma string válida
+        if (data.data && data.data.qr_code && typeof data.data.qr_code === 'string') {
           setQrCode(data.data.qr_code);
           setConnectionStatus('qr_code');
           toast({
@@ -175,6 +176,11 @@ const WhatsAppConnection = () => {
             title: "Conectado com sucesso",
             description: "Sua sessão WhatsApp está ativa.",
           });
+        } else {
+          // Se não há QR code válido, vamos tentar buscar o status novamente
+          setTimeout(() => {
+            checkSessionStatus(sessionName.trim());
+          }, 2000);
         }
       } else {
         // Se success: false, exiba o conteúdo da propriedade error como mensagem de erro
@@ -393,7 +399,7 @@ const WhatsAppConnection = () => {
                     Aguarde enquanto criamos seu QR Code de conexão.
                   </p>
                 </div>
-              ) : connectionStatus === 'qr_code' && qrCode ? (
+              ) : connectionStatus === 'qr_code' && qrCode && typeof qrCode === 'string' ? (
                 <div className="text-center space-y-4">
                   <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
                     <img
