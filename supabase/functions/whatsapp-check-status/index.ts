@@ -50,14 +50,21 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Get Evolution API key
+    // Get Evolution API configuration
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
+    const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://2969-186-205-11-178.ngrok-free.app';
+    
     if (!evolutionApiKey) {
       throw new Error('Evolution API key not configured');
     }
 
+    console.log('Using Evolution API URL:', evolutionApiUrl);
+
     // Check status in Evolution API
-    const statusResponse = await fetch(`https://api.evolution-api.com/instance/fetchInstances/${sessionName}`, {
+    const statusUrl = `${evolutionApiUrl}/instance/fetchInstances/${sessionName}`;
+    console.log('Checking status at:', statusUrl);
+    
+    const statusResponse = await fetch(statusUrl, {
       method: 'GET',
       headers: {
         'apikey': evolutionApiKey,
@@ -65,11 +72,16 @@ serve(async (req) => {
       }
     });
 
+    console.log('Status response status:', statusResponse.status);
+
     if (!statusResponse.ok) {
       console.error('Evolution API status error:', statusResponse.status);
       
-      // Try to get QR code directly
-      const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
+      // Try to get QR code directly if status check fails
+      const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+      console.log('Trying QR code endpoint:', qrUrl);
+      
+      const qrResponse = await fetch(qrUrl, {
         method: 'GET',
         headers: {
           'apikey': evolutionApiKey,
@@ -81,7 +93,7 @@ serve(async (req) => {
       if (qrResponse.ok) {
         const qrData = await qrResponse.json();
         qrCode = qrData.qrcode || qrData.base64 || null;
-        console.log('QR Code found:', !!qrCode);
+        console.log('QR Code found via direct endpoint:', !!qrCode);
       }
 
       return new Response(JSON.stringify({
@@ -110,7 +122,10 @@ serve(async (req) => {
       
       // If no QR code in response, try to fetch directly
       if (!qrCode) {
-        const qrResponse = await fetch(`https://api.evolution-api.com/instance/qrcode/${sessionName}`, {
+        const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+        console.log('Fetching QR code from:', qrUrl);
+        
+        const qrResponse = await fetch(qrUrl, {
           method: 'GET',
           headers: {
             'apikey': evolutionApiKey,

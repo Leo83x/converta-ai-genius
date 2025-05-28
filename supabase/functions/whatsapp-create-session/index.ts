@@ -88,17 +88,23 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Get Evolution API key
+    // Get Evolution API configuration
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
+    const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://2969-186-205-11-178.ngrok-free.app';
+    
     if (!evolutionApiKey) {
       console.error('Evolution API key not found in environment variables');
       throw new Error('Evolution API key not configured');
     }
 
+    console.log('Evolution API URL:', evolutionApiUrl);
     console.log('Evolution API key found, making request to Evolution API');
 
     // Create session in Evolution API
-    const evolutionResponse = await fetch('https://api.evolution-api.com/instance/create', {
+    const createUrl = `${evolutionApiUrl}/instance/create`;
+    console.log('Creating instance at:', createUrl);
+
+    const evolutionResponse = await fetch(createUrl, {
       method: 'POST',
       headers: {
         'apikey': evolutionApiKey,
@@ -124,7 +130,10 @@ serve(async (req) => {
 
     // Connect the instance
     try {
-      const connectResponse = await fetch(`https://api.evolution-api.com/instance/connect/${sessionName}`, {
+      const connectUrl = `${evolutionApiUrl}/instance/connect/${sessionName}`;
+      console.log('Connecting instance at:', connectUrl);
+      
+      const connectResponse = await fetch(connectUrl, {
         method: 'GET',
         headers: {
           'apikey': evolutionApiKey,
@@ -145,34 +154,63 @@ serve(async (req) => {
       console.warn('Evolution connect failed (non-critical):', connectError);
     }
 
-    // Extract QR code if available
+    // Wait a moment and then try to get QR code
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     let qrCodeUrl = null;
-    if (evolutionData.qrcode) {
-      qrCodeUrl = evolutionData.qrcode;
-      console.log('QR code found in qrcode field');
-    } else if (evolutionData.qr) {
-      qrCodeUrl = evolutionData.qr;
-      console.log('QR code found in qr field');
-    } else if (evolutionData.base64) {
-      qrCodeUrl = evolutionData.base64;
-      console.log('QR code found in base64 field');
-    } else {
-      console.log('No QR code found in response');
+    
+    // Try to get QR code from multiple endpoints
+    try {
+      const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+      console.log('Getting QR code from:', qrUrl);
+      
+      const qrResponse = await fetch(qrUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (qrResponse.ok) {
+        const qrData = await qrResponse.json();
+        console.log('QR response:', qrData);
+        
+        if (qrData.qrcode) {
+          qrCodeUrl = qrData.qrcode;
+        } else if (qrData.base64) {
+          qrCodeUrl = qrData.base64;
+        }
+      }
+    } catch (qrError) {
+      console.warn('Failed to get QR code:', qrError);
     }
 
-    // Store data using user client (RLS compliant) - CORREÇÃO AQUI
+    // If no QR code from dedicated endpoint, check creation response
+    if (!qrCodeUrl) {
+      if (evolutionData.qrcode) {
+        qrCodeUrl = evolutionData.qrcode;
+      } else if (evolutionData.qr) {
+        qrCodeUrl = evolutionData.qr;
+      } else if (evolutionData.base64) {
+        qrCodeUrl = evolutionData.base64;
+      }
+    }
+
+    console.log('Final QR code URL length:', qrCodeUrl ? qrCodeUrl.length : 0);
+
+    // Store data using admin client to ensure it works
     const insertData = {
-      user_id: user.id, // Garantindo que o user_id está definido
+      user_id: user.id,
       session_name: sessionName,
       instance_id: evolutionData.instance?.instanceName || sessionName,
       token: evolutionData.hash || 'temp_token',
       qr_code_url: qrCodeUrl,
-      status: 'pending'
+      status: qrCodeUrl ? 'pending' : 'connecting'
     };
 
     console.log('Inserting data into evolution_tokens:', insertData);
 
-    // Usar o admin client para inserir, passando explicitamente o user_id
     const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from('evolution_tokens')
       .insert(insertData)
@@ -192,7 +230,7 @@ serve(async (req) => {
         instance_id: evolutionData.instance?.instanceName || sessionName,
         session_name: sessionName,
         token_id: tokenData.id,
-        status: 'pending',
+        status: qrCodeUrl ? 'pending' : 'connecting',
         qr_code: qrCodeUrl
       }
     };
