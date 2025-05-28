@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +55,11 @@ const WhatsAppConnection = () => {
         if (latestSession.status === 'connected') {
           setConnectionStatus('connected');
         } else {
-          checkSessionStatus(latestSession.session_name);
+          // Tentar buscar QR Code imediatamente para sessões pendentes
+          setConnectionStatus('connecting');
+          setTimeout(() => {
+            checkSessionStatus(latestSession.session_name);
+          }, 1000);
         }
       }
     } catch (error) {
@@ -73,37 +78,61 @@ const WhatsAppConnection = () => {
         body: { sessionName: sessionNameToCheck }
       });
 
+      console.log('Status check response:', data);
+
       if (error) {
         console.error('Error checking status:', error);
-        throw new Error(error.message || 'Erro ao verificar status');
+        // Em caso de erro, tentar novamente em 3 segundos
+        setTimeout(() => {
+          if (connectionStatus !== 'connected') {
+            checkSessionStatus(sessionNameToCheck);
+          }
+        }, 3000);
+        return;
       }
-
-      console.log('Status check response:', data);
 
       if (data && data.success) {
         if (data.status === 'connected') {
           setConnectionStatus('connected');
           setQrCode('');
-        } else if (data.qr_code && typeof data.qr_code === 'string') {
+          setSessionStatus('connected');
+          toast({
+            title: "Conectado",
+            description: "WhatsApp conectado com sucesso!",
+          });
+        } else if (data.qr_code && typeof data.qr_code === 'string' && data.qr_code.length > 10) {
           setConnectionStatus('qr_code');
           setQrCode(data.qr_code);
+          setSessionStatus(data.connection_status || 'pending');
         } else {
-          setConnectionStatus('disconnected');
-          setQrCode('');
+          // Se não tem QR code mas também não está conectado, continuar tentando
+          setConnectionStatus('connecting');
+          setSessionStatus(data.connection_status || 'connecting');
+          
+          // Tentar novamente em 2 segundos
+          setTimeout(() => {
+            if (connectionStatus !== 'connected') {
+              checkSessionStatus(sessionNameToCheck);
+            }
+          }, 2000);
         }
-        
-        setSessionStatus(data.connection_status || data.status);
       } else {
-        setConnectionStatus('disconnected');
-        setQrCode('');
+        setConnectionStatus('connecting');
+        // Tentar novamente em 3 segundos se não conseguiu resposta válida
+        setTimeout(() => {
+          if (connectionStatus !== 'connected') {
+            checkSessionStatus(sessionNameToCheck);
+          }
+        }, 3000);
       }
     } catch (error) {
       console.error('Error checking session status:', error);
-      toast({
-        title: "Erro ao verificar status",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive"
-      });
+      // Em caso de erro de rede ou outro, tentar novamente
+      setTimeout(() => {
+        if (connectionStatus !== 'connected') {
+          checkSessionStatus(sessionNameToCheck);
+        }
+      }, 5000);
     } finally {
       setCheckingStatus(false);
     }
@@ -207,7 +236,6 @@ const WhatsAppConnection = () => {
     try {
       console.log('Refreshing QR code for session:', currentSession);
       
-      // Use a função de verificar status que também busca QR code
       await checkSessionStatus(currentSession);
       
       toast({
@@ -337,7 +365,7 @@ const WhatsAppConnection = () => {
                   </Button>
                 )}
 
-                {(connectionStatus === 'connected' || connectionStatus === 'qr_code') && (
+                {(connectionStatus === 'connected' || connectionStatus === 'qr_code' || connectionStatus === 'connecting') && (
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       variant="outline"
@@ -353,7 +381,7 @@ const WhatsAppConnection = () => {
                       ) : (
                         <>
                           <RefreshCw className="w-4 h-4 mr-2" />
-                          Verificar Status
+                          Atualizar Status
                         </>
                       )}
                     </Button>
@@ -399,13 +427,18 @@ const WhatsAppConnection = () => {
                     Aguarde enquanto criamos seu QR Code de conexão.
                   </p>
                 </div>
-              ) : connectionStatus === 'qr_code' && qrCode && typeof qrCode === 'string' ? (
+              ) : connectionStatus === 'qr_code' && qrCode && typeof qrCode === 'string' && qrCode.length > 10 ? (
                 <div className="text-center space-y-4">
                   <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
                     <img
                       src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
                       alt="QR Code WhatsApp"
                       className="w-48 h-48 md:w-64 md:h-64 mx-auto"
+                      onError={(e) => {
+                        console.error('Error loading QR Code image');
+                        // Tentar atualizar o QR code se a imagem falhar
+                        setTimeout(() => checkSessionStatus(currentSession), 2000);
+                      }}
                     />
                   </div>
                   <div className="space-y-2">
@@ -433,14 +466,14 @@ const WhatsAppConnection = () => {
                     Sua sessão está ativa e pronta para uso.
                   </p>
                 </div>
-              ) : connectionStatus === 'connecting' ? (
+              ) : connectionStatus === 'connecting' || checkingStatus ? (
                 <div className="text-center py-8 md:py-12">
                   <Loader2 className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-4 animate-spin text-blue-600" />
                   <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                    Conectando...
+                    Buscando QR Code...
                   </h3>
                   <p className="text-sm md:text-base text-gray-600">
-                    Aguarde enquanto criamos sua sessão.
+                    Aguarde enquanto verificamos o status da conexão.
                   </p>
                 </div>
               ) : (
