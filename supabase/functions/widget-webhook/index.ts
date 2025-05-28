@@ -131,11 +131,20 @@ serve(async (req) => {
       });
     }
 
-    // Validação aprimorada da chave OpenAI
-    const openaiKey = userData.openai_key.trim();
-    if (!openaiKey.startsWith('sk-') || openaiKey.length < 20) {
+    // Validação e limpeza da chave OpenAI
+    let openaiKey = userData.openai_key;
+    if (typeof openaiKey === 'string') {
+      openaiKey = openaiKey.trim();
+    }
+    
+    console.log('🔍 Validando chave OpenAI...');
+    console.log('🔍 Tipo da chave:', typeof openaiKey);
+    console.log('🔍 Chave preview:', openaiKey ? openaiKey.substring(0, 10) + '...' : 'undefined');
+    console.log('🔍 Comprimento da chave:', openaiKey ? openaiKey.length : 0);
+    
+    if (!openaiKey || typeof openaiKey !== 'string' || !openaiKey.startsWith('sk-') || openaiKey.length < 20) {
       console.error('❌ ERRO ETAPA 4: Formato da chave OpenAI inválido');
-      console.error('❌ Chave recebida:', openaiKey.substring(0, 10) + '...');
+      console.error('❌ Chave recebida:', openaiKey ? openaiKey.substring(0, 10) + '...' : 'undefined');
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Chave OpenAI com formato inválido' 
@@ -256,11 +265,16 @@ serve(async (req) => {
 
       console.log('📡 Payload para OpenAI:', JSON.stringify(requestPayload, null, 2));
 
+      // Teste da chave OpenAI antes de enviar
+      console.log('🧪 Testando autenticação OpenAI...');
+      console.log('🧪 Authorization header que será enviado:', `Bearer ${openaiKey.substring(0, 20)}...`);
+
       openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${openaiKey}`,
           'Content-Type': 'application/json',
+          'User-Agent': 'Converta-Widget/1.0',
         },
         body: JSON.stringify(requestPayload),
         signal: controller.signal
@@ -277,11 +291,12 @@ serve(async (req) => {
         console.error('❌ Status:', openaiResponse.status);
         console.error('❌ Status Text:', openaiResponse.statusText);
         console.error('❌ Erro OpenAI:', errorText);
+        console.error('❌ Chave usada:', openaiKey.substring(0, 15) + '...');
         
         let errorMessage = 'Erro na comunicação com OpenAI';
         
         if (openaiResponse.status === 401) {
-          errorMessage = 'Chave OpenAI inválida ou expirada';
+          errorMessage = 'Chave OpenAI inválida ou expirada - verifique se a chave está correta no seu perfil';
         } else if (openaiResponse.status === 429) {
           errorMessage = 'Limite de uso da OpenAI atingido';
         } else if (openaiResponse.status === 400) {
@@ -294,7 +309,8 @@ serve(async (req) => {
           details: {
             status: openaiResponse.status,
             statusText: openaiResponse.statusText,
-            error: errorText
+            error: errorText,
+            keyPreview: openaiKey.substring(0, 15) + '...'
           }
         }), {
           status: openaiResponse.status,
