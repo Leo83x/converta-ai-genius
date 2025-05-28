@@ -6,15 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Crown, User, Mail, Phone, Key, CreditCard } from 'lucide-react';
+import { Crown, User, Mail, Phone, Key, CreditCard, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [userData, setUserData] = useState({
     name: '',
     email: '',
@@ -23,27 +24,40 @@ const Profile = () => {
   });
 
   useEffect(() => {
+    console.log('Profile useEffect - user:', user?.id);
     if (user) {
       fetchUserData();
     }
   }, [user]);
 
   const fetchUserData = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('Nenhum usuário logado para buscar dados');
+      return;
+    }
+    
+    console.log('Buscando dados do usuário:', user.id);
+    setRefreshing(true);
     
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar dados do usuário:', error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar suas informações.",
+          variant: "destructive"
+        });
         return;
       }
 
       if (data) {
+        console.log('Dados do usuário encontrados:', data);
         setUserData({
           name: data.name || '',
           email: data.email || user.email || '',
@@ -51,6 +65,7 @@ const Profile = () => {
           openai_key: data.openai_key || ''
         });
       } else {
+        console.log('Usando dados do auth para usuário:', user.id);
         // Se não há dados na tabela users, usa dados do auth
         setUserData({
           name: user.user_metadata?.name || user.email?.split('@')[0] || '',
@@ -58,10 +73,43 @@ const Profile = () => {
           phone: user.user_metadata?.phone || '',
           openai_key: ''
         });
+        
+        // Cria o perfil automaticamente se não existir
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            name: user.user_metadata?.name || user.email?.split('@')[0] || '',
+            email: user.email || '',
+            phone: user.user_metadata?.phone || null
+          });
+          
+        if (insertError) {
+          console.error('Erro ao criar perfil automaticamente:', insertError);
+        } else {
+          console.log('Perfil criado automaticamente');
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar dados do usuário:', error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Ocorreu um erro inesperado ao carregar suas informações.",
+        variant: "destructive"
+      });
+    } finally {
+      setRefreshing(false);
     }
+  };
+
+  const handleRefreshData = async () => {
+    console.log('Atualizando dados manualmente...');
+    await refreshUserData();
+    await fetchUserData();
+    toast({
+      title: "Dados atualizados",
+      description: "Suas informações foram recarregadas.",
+    });
   };
 
   const handleSaveProfile = async () => {
@@ -149,12 +197,36 @@ const Profile = () => {
     }));
   };
 
+  if (!user) {
+    return (
+      <Layout>
+        <div className="p-8 max-w-4xl">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900">Acesso Negado</h1>
+            <p className="text-gray-600 mt-2">Você precisa estar logado para acessar esta página.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="p-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Perfil</h1>
-          <p className="text-gray-600 mt-2">Gerencie suas informações pessoais e assinatura</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Perfil</h1>
+            <p className="text-gray-600 mt-2">Gerencie suas informações pessoais e assinatura</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleRefreshData}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Atualizando...' : 'Atualizar Dados'}
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -168,6 +240,9 @@ const Profile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="text-sm text-gray-500 mb-4">
+                  <strong>ID do Usuário:</strong> {user.id}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Nome Completo</Label>

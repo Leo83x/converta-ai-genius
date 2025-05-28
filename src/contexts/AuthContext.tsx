@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,6 +28,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const createUserProfile = async (user: User) => {
     try {
+      console.log('Criando/verificando perfil do usuário:', user.id);
+      
       // Verifica se o usuário já existe na tabela users
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
@@ -55,29 +58,60 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else {
           console.log('Perfil do usuário criado com sucesso');
         }
+      } else {
+        console.log('Perfil do usuário já existe');
       }
     } catch (error) {
       console.error('Erro ao processar perfil do usuário:', error);
     }
   };
 
+  const refreshUserData = async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Erro ao buscar sessão:', error);
+        return;
+      }
+      
+      if (session) {
+        console.log('Atualizando dados do usuário:', session.user.id);
+        setSession(session);
+        setUser(session.user);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados do usuário:', error);
+    }
+  };
+
   useEffect(() => {
+    console.log('Inicializando AuthProvider...');
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state changed:', event, session?.user?.id);
         
-        // Criar perfil do usuário quando ele fizer login
         if (event === 'SIGNED_IN' && session?.user) {
-          await createUserProfile(session.user);
-        }
-        
-        // Limpar estados quando o usuário fizer logout
-        if (event === 'SIGNED_OUT') {
+          console.log('Usuário logado:', session.user.email);
+          setSession(session);
+          setUser(session.user);
+          
+          // Criar perfil do usuário quando ele fizer login
+          setTimeout(async () => {
+            await createUserProfile(session.user);
+          }, 0);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('Usuário deslogado');
           setSession(null);
           setUser(null);
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          console.log('Token renovado para:', session.user.email);
+          setSession(session);
+          setUser(session.user);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
         }
         
         setLoading(false);
@@ -85,38 +119,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('Initial session:', session);
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      console.log('Sessão inicial:', session?.user?.email || 'Nenhuma sessão');
+      
+      if (error) {
+        console.error('Erro ao obter sessão inicial:', error);
+        setLoading(false);
+        return;
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       // Se já tem uma sessão ativa, garante que o perfil existe
       if (session?.user) {
-        await createUserProfile(session.user);
+        setTimeout(async () => {
+          await createUserProfile(session.user);
+        }, 0);
       }
       
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Cleanup AuthProvider');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
     try {
       console.log('Iniciando logout...');
-      
-      // Limpa os estados localmente primeiro
       setLoading(true);
-      setSession(null);
-      setUser(null);
       
-      // Então faz o logout no Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('Erro no logout:', error);
         throw error;
       }
+      
+      // Limpa os estados após o logout bem-sucedido
+      setSession(null);
+      setUser(null);
       
       console.log('Logout realizado com sucesso');
       
@@ -136,6 +181,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     session,
     loading,
     signOut,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
