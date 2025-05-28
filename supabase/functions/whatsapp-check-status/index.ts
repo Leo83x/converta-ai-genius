@@ -11,7 +11,55 @@ const corsHeaders = {
 async function checkInstanceStatus(validatedUrl: string, evolutionApiKey: string, sessionName: string) {
   console.log(`Checking instance status for session: ${sessionName}`);
   
-  // First try to connect to generate QR code
+  // First try to get instance info using fetchInstances (Evolution API Cloud method)
+  try {
+    console.log('Trying to fetch instances from Evolution API Cloud');
+    const fetchUrl = `${validatedUrl}/instance/fetchInstances`;
+    
+    const fetchResponse = await fetch(fetchUrl, {
+      method: 'GET',
+      headers: {
+        'apikey': evolutionApiKey,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log('Fetch instances response status:', fetchResponse.status);
+
+    if (fetchResponse.ok) {
+      const fetchData = await fetchResponse.json();
+      console.log('Fetch instances response:', JSON.stringify(fetchData, null, 2));
+
+      // Look for our instance in the response
+      if (Array.isArray(fetchData)) {
+        const ourInstance = fetchData.find(instance => 
+          instance.instance?.instanceName === sessionName || 
+          instance.instanceName === sessionName
+        );
+        
+        if (ourInstance) {
+          // Check if instance is connected
+          if (ourInstance.instance?.state === 'open' || ourInstance.state === 'open') {
+            console.log('Instance is connected via fetchInstances');
+            return { status: 'connected', qrCode: null };
+          }
+          
+          // Check for QR code
+          if (ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64) {
+            const qrCode = ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64;
+            if (qrCode && qrCode.length > 50) {
+              console.log('QR Code found via fetchInstances');
+              return { status: 'pending', qrCode: qrCode };
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.log('Fetch instances endpoint error:', error);
+  }
+
+  // Try to connect to generate QR code
   try {
     console.log('Trying to connect instance to generate QR code');
     const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
@@ -61,7 +109,7 @@ async function checkInstanceStatus(validatedUrl: string, evolutionApiKey: string
 
       // Check for connection status
       if (statusData.instance && statusData.instance.state === 'open') {
-        console.log('Instance is connected');
+        console.log('Instance is connected via connectionState');
         return { status: 'connected', qrCode: null };
       }
     }
@@ -154,7 +202,7 @@ serve(async (req) => {
 
     console.log('Using validated Evolution API URL:', validatedUrl);
 
-    // Check instance status using correct endpoints
+    // Check instance status using correct endpoints for Evolution API Cloud
     const result = await checkInstanceStatus(validatedUrl, evolutionApiKey, sessionName);
     
     let status = result.status;

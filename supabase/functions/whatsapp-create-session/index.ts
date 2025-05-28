@@ -8,14 +8,60 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sessionName: string, maxAttempts = 10) {
+async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sessionName: string, maxAttempts = 15) {
   console.log(`Starting QR code search for session: ${sessionName}`);
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     console.log(`QR Code attempt ${attempt}/${maxAttempts}`);
     
     try {
-      // Try to connect first to generate QR code
+      // For Evolution API Cloud, use the fetchInstances endpoint to get QR code
+      const fetchUrl = `${validatedUrl}/instance/fetchInstances`;
+      console.log(`Attempt ${attempt}: Fetching instances: ${fetchUrl}`);
+      
+      const fetchResponse = await fetch(fetchUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (fetchResponse.ok) {
+        const fetchData = await fetchResponse.json();
+        console.log(`Fetch instances response (attempt ${attempt}):`, JSON.stringify(fetchData, null, 2));
+        
+        // Look for our instance in the response
+        if (Array.isArray(fetchData)) {
+          const ourInstance = fetchData.find(instance => 
+            instance.instance?.instanceName === sessionName || 
+            instance.instanceName === sessionName
+          );
+          
+          if (ourInstance) {
+            // Check if instance is already connected
+            if (ourInstance.instance?.state === 'open' || ourInstance.state === 'open') {
+              console.log(`Instance already connected on attempt ${attempt}`);
+              return 'CONNECTED';
+            }
+            
+            // Check for QR code
+            if (ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64) {
+              const qrCode = ourInstance.instance?.qrcode?.base64 || ourInstance.qrcode?.base64;
+              if (qrCode && qrCode.length > 50) {
+                console.log(`QR Code found in fetchInstances on attempt ${attempt}`);
+                return qrCode;
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log(`Fetch instances error (attempt ${attempt}):`, error);
+    }
+
+    // Try to connect to generate QR code
+    try {
       const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
       console.log(`Attempt ${attempt}: Connecting instance: ${connectUrl}`);
       
@@ -41,36 +87,9 @@ async function waitForQRCode(validatedUrl: string, evolutionApiKey: string, sess
       console.log(`Connect error (attempt ${attempt}):`, error);
     }
 
-    // Try to get instance status
-    try {
-      const statusUrl = `${validatedUrl}/instance/connectionState/${sessionName}`;
-      console.log(`Attempt ${attempt}: Checking connection state: ${statusUrl}`);
-      
-      const statusResponse = await fetch(statusUrl, {
-        method: 'GET',
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        console.log(`Status response (attempt ${attempt}):`, JSON.stringify(statusData, null, 2));
-        
-        // Check if already connected
-        if (statusData.instance && statusData.instance.state === 'open') {
-          console.log(`Instance already connected on attempt ${attempt}`);
-          return 'CONNECTED';
-        }
-      }
-    } catch (error) {
-      console.log(`Status check error (attempt ${attempt}):`, error);
-    }
-
-    // Wait before next attempt
+    // Wait before next attempt with progressive delay
     if (attempt < maxAttempts) {
-      const waitTime = 2000 * attempt; // 2s, 4s, 6s, etc.
+      const waitTime = Math.min(3000 * attempt, 10000); // 3s, 6s, 9s, max 10s
       console.log(`Waiting ${waitTime}ms before attempt ${attempt + 1}`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -190,7 +209,7 @@ serve(async (req) => {
 
     console.log('Using validated Evolution API URL:', validatedUrl);
 
-    // Create session in Evolution API
+    // Create session in Evolution API Cloud with correct payload
     const createUrl = `${validatedUrl}/instance/create`;
     console.log('Creating instance at:', createUrl);
 
@@ -203,7 +222,21 @@ serve(async (req) => {
       body: JSON.stringify({
         instanceName: sessionName,
         qrcode: true,
-        integration: "WHATSAPP-BAILEYS"
+        number: "",
+        integration: "WHATSAPP-BAILEYS",
+        webhook_wa_business: "",
+        webhook: "",
+        webhookByEvents: false,
+        events: [],
+        reject_call: false,
+        msg_call: "",
+        groups_ignore: true,
+        always_online: false,
+        read_messages: false,
+        read_status: false,
+        sync_full_history: false,
+        websocket_enabled: false,
+        websocket_events: []
       })
     });
 
