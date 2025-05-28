@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { WidgetTestConnection } from '@/components/WidgetTestConnection';
 
 const WidgetConnection = () => {
   const [widgetCode, setWidgetCode] = useState('');
@@ -253,7 +254,7 @@ const WidgetConnection = () => {
           var errorMsg = document.createElement('div');
           errorMsg.className = 'message bot error-message';
           
-          let errorText = 'Erro de comunicação com o servidor. Tente novamente.';
+          let errorText = 'Erro de comunicação com o servidor. Verifique sua configuração e tente novamente.';
           
           errorMsg.innerHTML = '<div class="content">' + errorText + '</div>';
           messages.appendChild(errorMsg);
@@ -359,10 +360,15 @@ const WidgetConnection = () => {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Widget do Site</h2>
           <p className="text-gray-600">Configure e adicione um chat inteligente ao seu website</p>
+        </div>
+
+        {/* Componente de Diagnóstico */}
+        <div className="mb-8">
+          <WidgetTestConnection />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -479,11 +485,11 @@ const WidgetConnection = () => {
                   <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <h4 className="font-semibold text-yellow-800 mb-2">📋 Instruções de Instalação</h4>
                     <ol className="text-sm text-yellow-700 space-y-1">
-                      <li>1. Copie o código acima</li>
-                      <li>2. Cole antes da tag &lt;/body&gt; do seu site</li>
-                      <li>3. Certifique-se de ter um agente ativo no canal "Widget do Site"</li>
-                      <li>4. Publique as alterações</li>
-                      <li>5. O chat aparecerá na posição configurada</li>
+                      <li>1. Execute o diagnóstico acima para validar as configurações</li>
+                      <li>2. Copie o código do widget</li>
+                      <li>3. Cole antes da tag &lt;/body&gt; do seu site</li>
+                      <li>4. Certifique-se de ter um agente ativo no canal "Widget do Site"</li>
+                      <li>5. Publique as alterações</li>
                     </ol>
                   </div>
                 </div>
