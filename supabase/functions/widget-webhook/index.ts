@@ -19,6 +19,11 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
+    console.log('🔧 Verificando variáveis:', { 
+      supabaseUrl: !!supabaseUrl, 
+      supabaseServiceKey: !!supabaseServiceKey 
+    });
+    
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('❌ Variáveis de ambiente do Supabase não configuradas');
       return new Response(JSON.stringify({ 
@@ -33,11 +38,12 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestBody = await req.text();
-    console.log('📝 Corpo da requisição recebido:', requestBody);
+    console.log('📝 Corpo da requisição recebido (raw):', requestBody);
     
     let parsedBody;
     try {
       parsedBody = JSON.parse(requestBody);
+      console.log('📋 Dados parseados:', parsedBody);
     } catch (parseError) {
       console.error('❌ Erro ao fazer parse do JSON:', parseError);
       return new Response(JSON.stringify({ 
@@ -50,10 +56,19 @@ serve(async (req) => {
     }
 
     const { message, userId, sessionId } = parsedBody;
-    console.log('📋 Dados extraídos:', { message: !!message, userId, sessionId });
+    console.log('📊 Dados extraídos:', { 
+      message: message?.substring(0, 50), 
+      userId, 
+      sessionId,
+      hasMessage: !!message,
+      messageLength: message?.length 
+    });
 
     if (!message || !userId) {
-      console.error('❌ Parâmetros obrigatórios ausentes:', { message: !!message, userId: !!userId });
+      console.error('❌ Parâmetros obrigatórios ausentes:', { 
+        hasMessage: !!message, 
+        hasUserId: !!userId 
+      });
       return new Response(JSON.stringify({ 
         success: true, 
         reply: 'Parâmetros inválidos. Por favor, recarregue a página e tente novamente.' 
@@ -63,7 +78,7 @@ serve(async (req) => {
       });
     }
 
-    // Buscar agentes ativos do usuário com mais detalhes de log
+    // Buscar agentes ativos do usuário
     console.log('🔍 Buscando agentes para o usuário:', userId);
     const { data: agents, error: agentsError } = await supabase
       .from('agents')
@@ -82,30 +97,33 @@ serve(async (req) => {
       });
     }
 
-    console.log('📊 Total de agentes encontrados:', agents?.length || 0);
-    console.log('🔍 Agentes disponíveis:', agents?.map(a => ({ id: a.id, name: a.name, channel: a.channel })));
+    console.log('📊 Agentes encontrados:', agents?.length || 0);
+    if (agents && agents.length > 0) {
+      console.log('🎯 Detalhes dos agentes:', agents.map(a => ({ 
+        id: a.id, 
+        name: a.name, 
+        channel: a.channel,
+        active: a.active
+      })));
+    }
 
-    // Verificar agentes compatíveis com widget (busca mais flexível)
+    // Buscar agente de widget de forma mais flexível
     const widgetAgents = agents?.filter(agent => {
-      const channel = agent.channel?.toLowerCase();
-      console.log('🔍 Verificando canal do agente:', agent.name, 'canal:', channel);
-      return channel === 'widget' || 
-             channel === 'widget do site' || 
-             channel?.includes('widget') ||
-             channel === 'site' ||
-             channel?.includes('web');
+      const channel = agent.channel?.toLowerCase?.() || '';
+      const isWidgetAgent = channel.includes('widget') || 
+                           channel.includes('site') || 
+                           channel.includes('web') ||
+                           channel === 'widget do site';
+      
+      console.log('🔍 Verificando agente:', agent.name, 'canal:', channel, 'é widget?', isWidgetAgent);
+      return isWidgetAgent;
     }) || [];
 
     console.log('🎯 Agentes de widget encontrados:', widgetAgents.length);
-    console.log('🎯 Detalhes dos agentes widget:', widgetAgents.map(a => ({ 
-      id: a.id, 
-      name: a.name, 
-      channel: a.channel,
-      systemPrompt: a.system_prompt?.substring(0, 100) + '...'
-    })));
 
     if (widgetAgents.length === 0) {
-      console.log('⚠️ Nenhum agente de widget encontrado para o usuário:', userId);
+      console.log('⚠️ Nenhum agente de widget encontrado. Todos os agentes:', 
+        agents?.map(a => `${a.name} (${a.channel})`) || []);
       return new Response(JSON.stringify({ 
         success: true, 
         reply: 'Não há agentes configurados para o widget. Configure um agente com canal "Widget do Site" no painel de administração.' 
@@ -116,7 +134,7 @@ serve(async (req) => {
     }
 
     const agent = widgetAgents[0];
-    console.log('✅ Usando agente:', agent.name, 'ID:', agent.id, 'Canal:', agent.channel);
+    console.log('✅ Usando agente:', agent.name, 'ID:', agent.id);
 
     // Buscar chave OpenAI do usuário
     console.log('🔑 Buscando chave OpenAI para o usuário:', userId);
@@ -137,6 +155,9 @@ serve(async (req) => {
       });
     }
 
+    console.log('🔑 Dados do usuário encontrados:', !!userData);
+    console.log('🔑 Chave OpenAI presente:', !!userData?.openai_key);
+
     if (!userData?.openai_key) {
       console.error('❌ Chave OpenAI não encontrada para o usuário:', userId);
       return new Response(JSON.stringify({ 
@@ -148,79 +169,58 @@ serve(async (req) => {
       });
     }
 
-    console.log('✅ Chave OpenAI encontrada e configurada');
-
-    // Buscar histórico da conversa
-    const sessionKey = sessionId || 'widget_session_default';
-    console.log('📚 Buscando histórico para sessão:', sessionKey);
-    
-    const { data: conversationData } = await supabase
-      .from('agent_conversations')
-      .select('messages')
-      .eq('agent_id', agent.id)
-      .eq('user_session_id', sessionKey)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    console.log('📚 Histórico de conversa:', conversationData ? 'Encontrado' : 'Não encontrado');
-
     // Preparar mensagens para OpenAI
-    let messages = [
+    const systemPrompt = agent.system_prompt || 'Você é um assistente virtual útil e prestativo que responde em português brasileiro.';
+    
+    const messages = [
       {
         role: 'system',
-        content: agent.system_prompt || 'Você é um assistente virtual útil e prestativo que responde em português brasileiro.'
+        content: systemPrompt
+      },
+      {
+        role: 'user',
+        content: message
       }
     ];
 
-    // Adicionar histórico se existir
-    if (conversationData?.messages && Array.isArray(conversationData.messages)) {
-      const historyMessages = conversationData.messages.slice(-8); // Últimas 8 mensagens para contexto
-      messages = [...messages, ...historyMessages];
-      console.log('📚 Adicionado histórico de', historyMessages.length, 'mensagens');
-    }
+    console.log('🤖 Preparando chamada para OpenAI...');
+    console.log('🤖 System prompt:', systemPrompt.substring(0, 100) + '...');
+    console.log('🤖 Mensagem do usuário:', message.substring(0, 100) + '...');
 
-    // Adicionar mensagem atual
-    messages.push({
-      role: 'user',
-      content: message
-    });
-
-    console.log('🤖 Enviando para OpenAI com', messages.length, 'mensagens');
-    console.log('🤖 Sistema prompt:', agent.system_prompt?.substring(0, 100) + '...');
-
-    // Chamar OpenAI com timeout e retry
+    // Chamar OpenAI
     let openaiResponse;
-    let attempts = 0;
-    const maxAttempts = 2;
-
-    while (attempts < maxAttempts) {
-      attempts++;
-      console.log(`🔄 Tentativa ${attempts} de chamada para OpenAI`);
+    try {
+      console.log('📡 Fazendo requisição para OpenAI...');
       
-      try {
-        openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${userData.openai_key}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: messages,
-            max_tokens: 1000,
-            temperature: 0.7
-          }),
-        });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ Timeout da requisição OpenAI');
+        controller.abort();
+      }, 30000);
 
-        console.log('📡 Status da resposta OpenAI (tentativa', attempts + '):', openaiResponse.status);
-        
-        if (openaiResponse.ok) {
-          break; // Sucesso, sair do loop
-        }
+      openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${userData.openai_key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: messages,
+          max_tokens: 1000,
+          temperature: 0.7
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      console.log('📡 Status da resposta OpenAI:', openaiResponse.status);
+      
+      if (!openaiResponse.ok) {
+        const errorText = await openaiResponse.text();
+        console.error('❌ Erro HTTP da OpenAI:', openaiResponse.status, errorText);
         
         if (openaiResponse.status === 401) {
-          console.error('❌ Chave OpenAI inválida ou expirada');
           return new Response(JSON.stringify({ 
             success: true, 
             reply: 'Chave OpenAI inválida ou expirada. Verifique suas configurações no perfil.' 
@@ -229,31 +229,34 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-
-        if (attempts === maxAttempts) {
-          throw new Error(`HTTP ${openaiResponse.status}: ${await openaiResponse.text()}`);
-        }
-
-        // Aguardar antes da próxima tentativa
-        await new Promise(resolve => setTimeout(resolve, 1000));
         
-      } catch (fetchError) {
-        console.error(`❌ Erro na tentativa ${attempts} para OpenAI:`, fetchError);
-        
-        if (attempts === maxAttempts) {
-          return new Response(JSON.stringify({ 
-            success: true, 
-            reply: 'Serviço temporariamente indisponível. Tente novamente em alguns instantes.' 
-          }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
+        throw new Error(`HTTP ${openaiResponse.status}: ${errorText}`);
       }
+
+    } catch (fetchError) {
+      console.error('❌ Erro na requisição para OpenAI:', fetchError);
+      
+      if (fetchError.name === 'AbortError') {
+        return new Response(JSON.stringify({ 
+          success: true, 
+          reply: 'Tempo limite excedido. Tente novamente em alguns instantes.' 
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        reply: 'Serviço temporariamente indisponível. Tente novamente em alguns instantes.' 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const aiResponse = await openaiResponse.json();
-    console.log('✅ Resposta OpenAI recebida com sucesso');
+    console.log('✅ Resposta OpenAI recebida:', !!aiResponse.choices?.[0]?.message?.content);
     
     const replyText = aiResponse.choices?.[0]?.message?.content;
 
@@ -268,50 +271,46 @@ serve(async (req) => {
       });
     }
 
-    console.log('💬 Resposta gerada:', replyText.substring(0, 100) + '...');
+    console.log('💬 Resposta gerada com sucesso:', replyText.substring(0, 100) + '...');
 
-    // Salvar/atualizar conversa
+    // Salvar conversa (opcional, não impede o funcionamento)
+    const sessionKey = sessionId || `widget_session_${Date.now()}`;
     const updatedMessages = [...messages, { role: 'assistant', content: replyText }];
     
     try {
-      if (conversationData) {
-        console.log('📝 Atualizando conversa existente');
-        const { error: updateError } = await supabase
+      console.log('💾 Tentando salvar conversa...');
+      
+      const { data: existingConversation } = await supabase
+        .from('agent_conversations')
+        .select('id, messages')
+        .eq('agent_id', agent.id)
+        .eq('user_session_id', sessionKey)
+        .maybeSingle();
+
+      if (existingConversation) {
+        await supabase
           .from('agent_conversations')
           .update({ 
             messages: updatedMessages,
             updated_at: new Date().toISOString()
           })
-          .eq('agent_id', agent.id)
-          .eq('user_session_id', sessionKey);
-          
-        if (updateError) {
-          console.error('⚠️ Erro ao atualizar conversa:', updateError);
-        } else {
-          console.log('✅ Conversa atualizada com sucesso');
-        }
+          .eq('id', existingConversation.id);
+        console.log('💾 Conversa atualizada');
       } else {
-        console.log('📝 Criando nova conversa');
-        const { error: insertError } = await supabase
+        await supabase
           .from('agent_conversations')
           .insert({
             agent_id: agent.id,
             user_session_id: sessionKey,
             messages: updatedMessages
           });
-          
-        if (insertError) {
-          console.error('⚠️ Erro ao criar conversa:', insertError);
-        } else {
-          console.log('✅ Nova conversa criada com sucesso');
-        }
+        console.log('💾 Nova conversa criada');
       }
     } catch (dbError) {
-      console.error('⚠️ Erro ao salvar no banco:', dbError);
-      // Não falhar a resposta por causa de erro de salvamento
+      console.error('⚠️ Erro ao salvar conversa (não crítico):', dbError);
     }
 
-    console.log('🎉 Resposta do widget gerada com sucesso');
+    console.log('🎉 Resposta do widget enviada com sucesso');
 
     return new Response(JSON.stringify({ 
       success: true, 

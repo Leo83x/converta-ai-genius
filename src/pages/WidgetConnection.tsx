@@ -205,28 +205,29 @@ const WidgetConnection = () => {
             sessionId: window.ConvertaPlus.sessionId
           });
           
-          // Timeout para a requisição
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
+          const requestData = {
+            message: message,
+            userId: window.ConvertaPlus.userId,
+            sessionId: window.ConvertaPlus.sessionId
+          };
+          
+          console.log('📦 Enviando dados:', JSON.stringify(requestData));
           
           const response = await fetch(window.ConvertaPlus.apiUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              message: message,
-              userId: window.ConvertaPlus.userId,
-              sessionId: window.ConvertaPlus.sessionId
-            }),
-            signal: controller.signal
+            body: JSON.stringify(requestData)
           });
           
-          clearTimeout(timeoutId);
           console.log('📡 Status da resposta:', response.status);
+          console.log('📡 Headers da resposta:', Object.fromEntries(response.headers.entries()));
           
           if (!response.ok) {
-            throw new Error(\`Erro HTTP: \${response.status}\`);
+            const errorText = await response.text();
+            console.error('❌ Erro HTTP:', response.status, errorText);
+            throw new Error(\`Erro HTTP: \${response.status} - \${errorText}\`);
           }
           
           const data = await response.json();
@@ -241,6 +242,7 @@ const WidgetConnection = () => {
             botMsg.innerHTML = '<div class="content">' + escapeHtml(data.reply) + '</div>';
             messages.appendChild(botMsg);
           } else {
+            console.error('❌ Resposta inválida:', data);
             throw new Error('Resposta inválida do servidor');
           }
           
@@ -251,11 +253,7 @@ const WidgetConnection = () => {
           var errorMsg = document.createElement('div');
           errorMsg.className = 'message bot error-message';
           
-          let errorText = 'Erro de conexão. ';
-          if (error.name === 'AbortError') {
-            errorText += 'Tempo limite excedido. ';
-          }
-          errorText += 'Verifique sua conexão e tente novamente.';
+          let errorText = 'Erro de comunicação com o servidor. Tente novamente.';
           
           errorMsg.innerHTML = '<div class="content">' + errorText + '</div>';
           messages.appendChild(errorMsg);
