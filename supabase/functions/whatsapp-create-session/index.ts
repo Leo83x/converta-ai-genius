@@ -8,136 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function ensureCustomerExists(apiUrl: string, apiKey: string, userEmail: string, userId: string) {
-  console.log('Ensuring customer exists for user:', userEmail);
-  
-  // Try to create customer (Evolution API will return error if already exists, which is fine)
-  const createCustomerUrl = `${apiUrl}/customer/create`;
-  const customerPayload = {
-    firstName: userEmail ? userEmail.split('@')[0] : `user-${userId.substring(0, 8)}`,
-    lastName: "Cliente",
-    name: userEmail || `user-${userId}`,
-    email: userEmail || `${userId}@placeholder.com`,
-    phone: '+5511999999999',
-    createUser: false,
-    modules: ['chatbot'],
-    channels: {
-      'WHATSAPP-BAILEYS': { limit: 10 }
-    }
-  };
-
-  console.log('Creating customer with payload:', JSON.stringify(customerPayload, null, 2));
-
-  const customerResponse = await fetch(createCustomerUrl, {
-    method: 'POST',
-    headers: {
-      'apikey': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(customerPayload)
-  });
-
-  console.log('Customer creation response status:', customerResponse.status);
-  const customerData = await customerResponse.text();
-  console.log('Customer creation response:', customerData);
-
-  // Status 400 usually means customer already exists, which is fine
-  if (customerResponse.ok || customerResponse.status === 400) {
-    console.log('Customer exists or was created successfully');
-    return true;
-  } else {
-    console.warn('Customer creation failed, but continuing with instance creation');
-    return false;
-  }
-}
-
-async function createEvolutionInstance(apiUrl: string, apiKey: string, sessionName: string) {
-  console.log(`Creating Evolution instance: ${sessionName}`);
-  
-  // Step 1: Create instance following official documentation
-  const createUrl = `${apiUrl}/instance/create`;
-  const createPayload = {
-    instanceName: sessionName,
-    qrcode: true,
-    integration: "WHATSAPP-BAILEYS"
-  };
-
-  console.log('Creating instance with payload:', JSON.stringify(createPayload, null, 2));
-
-  const createResponse = await fetch(createUrl, {
-    method: 'POST',
-    headers: {
-      'apikey': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(createPayload)
-  });
-
-  console.log('Create instance response status:', createResponse.status);
-  const createData = await createResponse.text();
-  console.log('Create instance response:', createData);
-
-  if (!createResponse.ok) {
-    throw new Error(`Failed to create instance: ${createResponse.status} - ${createData}`);
-  }
-
-  // Step 2: Connect instance
-  console.log('Connecting instance...');
-  const connectUrl = `${apiUrl}/instance/connect/${sessionName}`;
-  
-  const connectResponse = await fetch(connectUrl, {
-    method: 'GET',
-    headers: {
-      'apikey': apiKey,
-      'Content-Type': 'application/json',
-    }
-  });
-
-  console.log('Connect response status:', connectResponse.status);
-  const connectData = await connectResponse.text();
-  console.log('Connect response:', connectData);
-
-  // Step 3: Get QR Code
-  console.log('Fetching QR Code...');
-  const qrUrl = `${apiUrl}/instance/qrcode/${sessionName}`;
-  
-  const qrResponse = await fetch(qrUrl, {
-    method: 'GET',
-    headers: {
-      'apikey': apiKey,
-      'Content-Type': 'application/json',
-    }
-  });
-
-  console.log('QR Code response status:', qrResponse.status);
-  
-  if (qrResponse.ok) {
-    const qrData = await qrResponse.json();
-    console.log('QR Code response:', JSON.stringify(qrData, null, 2));
-    
-    // Extract QR code from various possible locations
-    const qrCode = qrData.base64 || qrData.qrCode?.base64 || qrData.qrcode?.base64;
-    
-    if (qrCode && qrCode.length > 50) {
-      console.log('QR Code found successfully');
-      return {
-        success: true,
-        qrCode: qrCode,
-        status: 'pending',
-        instanceData: qrData
-      };
-    }
-  }
-
-  // If no QR code yet, return connecting status
-  return {
-    success: true,
-    qrCode: null,
-    status: 'connecting',
-    instanceData: null
-  };
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -146,11 +16,13 @@ serve(async (req) => {
   try {
     console.log('Starting whatsapp-create-session function');
     
+    // Create admin client for auth verification
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Create user client for RLS-compliant operations
     const authHeader = req.headers.get('Authorization');
     console.log('Auth header present:', !!authHeader);
     
@@ -158,6 +30,19 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
+    const supabaseUser = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    // Verify the user with admin client
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
@@ -184,8 +69,8 @@ serve(async (req) => {
 
     console.log('Creating WhatsApp session:', sessionName);
 
-    // Check for existing session
-    const { data: existingSession, error: checkError } = await supabaseAdmin
+    // Check for existing session using user client (RLS compliant)
+    const { data: existingSession, error: checkError } = await supabaseUser
       .from('evolution_tokens')
       .select('*')
       .eq('session_name', sessionName)
@@ -203,56 +88,162 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Get Evolution API configuration
+    // Get Evolution API configuration - debug the actual values
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     
-    console.log('=== EVOLUTION API CONFIG ===');
-    console.log('API Key exists:', !!evolutionApiKey);
-    console.log('API URL exists:', !!evolutionApiUrl);
-    console.log('API URL value:', evolutionApiUrl);
-    console.log('=== END CONFIG ===');
+    console.log('=== DEBUGGING SECRETS ===');
+    console.log('EVOLUTION_API_KEY exists:', !!evolutionApiKey);
+    console.log('EVOLUTION_API_KEY length:', evolutionApiKey?.length || 0);
+    console.log('EVOLUTION_API_URL exists:', !!evolutionApiUrl);
+    console.log('EVOLUTION_API_URL value:', evolutionApiUrl);
+    console.log('EVOLUTION_API_URL length:', evolutionApiUrl?.length || 0);
+    console.log('=== END DEBUGGING ===');
     
     if (!evolutionApiKey) {
-      throw new Error('EVOLUTION_API_KEY not configured in Supabase secrets');
+      console.error('Evolution API key not found in environment variables');
+      throw new Error('Evolution API key not configured. Please check your Supabase secrets.');
     }
 
     if (!evolutionApiUrl) {
-      throw new Error('EVOLUTION_API_URL not configured in Supabase secrets');
+      console.error('Evolution API URL not found in environment variables');
+      throw new Error('Evolution API URL not configured. Please check your Supabase secrets.');
     }
 
-    // Validate URL
+    // More robust URL validation
     let validatedUrl: string;
     try {
+      // Remove any whitespace and ensure proper format
       const cleanUrl = evolutionApiUrl.trim();
+      
+      // Check if it's not just the environment variable name
+      if (cleanUrl === 'EVOLUTION_API_URL' || cleanUrl.includes('EVOLUTION_API_URL')) {
+        throw new Error('EVOLUTION_API_URL secret contains the variable name instead of the actual URL');
+      }
+      
+      // Validate URL format
       const urlObject = new URL(cleanUrl);
       validatedUrl = cleanUrl;
-      console.log('Using Evolution API URL:', validatedUrl);
+      
+      console.log('URL validation successful:', validatedUrl);
     } catch (urlError) {
       console.error('URL validation failed:', urlError);
-      throw new Error(`Invalid Evolution API URL: ${urlError.message}`);
+      console.error('Received URL value:', evolutionApiUrl);
+      throw new Error(`Evolution API URL is invalid: ${urlError.message}. Please check your EVOLUTION_API_URL secret in Supabase.`);
     }
 
-    // Step 1: Ensure customer exists before creating instance
-    console.log('Ensuring customer exists before creating instance...');
-    await ensureCustomerExists(validatedUrl, evolutionApiKey, user.email || '', user.id);
+    console.log('Using validated Evolution API URL:', validatedUrl);
 
-    // Step 2: Create Evolution instance following official documentation
-    const result = await createEvolutionInstance(validatedUrl, evolutionApiKey, sessionName);
+    // Create session in Evolution API
+    const createUrl = `${validatedUrl}/instance/create`;
+    console.log('Creating instance at:', createUrl);
+
+    const evolutionResponse = await fetch(createUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': evolutionApiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        instanceName: sessionName,
+        qrcode: true,
+        integration: "WHATSAPP-BAILEYS"
+      })
+    });
+
+    console.log('Evolution API response status:', evolutionResponse.status);
+
+    if (!evolutionResponse.ok) {
+      const errorText = await evolutionResponse.text();
+      console.error('Evolution API error response:', errorText);
+      throw new Error(`Evolution API error: ${evolutionResponse.status} - ${errorText}`);
+    }
+
+    const evolutionData = await evolutionResponse.json();
+    console.log('Evolution API success response:', JSON.stringify(evolutionData, null, 2));
+
+    // Connect the instance
+    try {
+      const connectUrl = `${validatedUrl}/instance/connect/${sessionName}`;
+      console.log('Connecting instance at:', connectUrl);
+      
+      const connectResponse = await fetch(connectUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log('Evolution connect response status:', connectResponse.status);
+      
+      if (connectResponse.ok) {
+        const connectData = await connectResponse.json();
+        console.log('Evolution connect success:', connectData);
+      } else {
+        const connectError = await connectResponse.text();
+        console.warn('Evolution connect warning:', connectError);
+      }
+    } catch (connectError) {
+      console.warn('Evolution connect failed (non-critical):', connectError);
+    }
+
+    // Wait a moment and then try to get QR code
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    let qrCodeUrl = null;
     
-    console.log('Evolution instance creation result:', result);
+    // Try to get QR code from multiple endpoints
+    try {
+      const qrUrl = `${validatedUrl}/instance/qrcode/${sessionName}`;
+      console.log('Getting QR code from:', qrUrl);
+      
+      const qrResponse = await fetch(qrUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': evolutionApiKey,
+          'Content-Type': 'application/json',
+        }
+      });
 
-    // Store session data in database
+      if (qrResponse.ok) {
+        const qrData = await qrResponse.json();
+        console.log('QR response:', qrData);
+        
+        if (qrData.qrcode) {
+          qrCodeUrl = qrData.qrcode;
+        } else if (qrData.base64) {
+          qrCodeUrl = qrData.base64;
+        }
+      }
+    } catch (qrError) {
+      console.warn('Failed to get QR code:', qrError);
+    }
+
+    // If no QR code from dedicated endpoint, check creation response
+    if (!qrCodeUrl) {
+      if (evolutionData.qrcode) {
+        qrCodeUrl = evolutionData.qrcode;
+      } else if (evolutionData.qr) {
+        qrCodeUrl = evolutionData.qr;
+      } else if (evolutionData.base64) {
+        qrCodeUrl = evolutionData.base64;
+      }
+    }
+
+    console.log('Final QR code URL length:', qrCodeUrl ? qrCodeUrl.length : 0);
+
+    // Store data using admin client to ensure it works
     const insertData = {
       user_id: user.id,
       session_name: sessionName,
-      instance_id: sessionName,
-      token: 'evolution_token_' + sessionName,
-      qr_code_url: result.qrCode,
-      status: result.status
+      instance_id: evolutionData.instance?.instanceName || sessionName,
+      token: evolutionData.hash || 'temp_token',
+      qr_code_url: qrCodeUrl,
+      status: qrCodeUrl ? 'pending' : 'connecting'
     };
 
-    console.log('Inserting session data:', insertData);
+    console.log('Inserting data into evolution_tokens:', insertData);
 
     const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from('evolution_tokens')
@@ -265,16 +256,16 @@ serve(async (req) => {
       throw new Error('Database error: ' + tokenError.message);
     }
 
-    console.log('Session created successfully:', tokenData);
+    console.log('Database insertion successful:', tokenData);
 
     const responseData = {
       success: true,
       data: {
-        instance_id: sessionName,
+        instance_id: evolutionData.instance?.instanceName || sessionName,
         session_name: sessionName,
         token_id: tokenData.id,
-        status: result.status,
-        qr_code: result.qrCode
+        status: qrCodeUrl ? 'pending' : 'connecting',
+        qr_code: qrCodeUrl
       }
     };
 
