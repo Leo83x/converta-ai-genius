@@ -21,6 +21,7 @@ import Integrations from "./pages/Integrations";
 import Profile from "./pages/Profile";
 import Support from "./pages/Support";
 import AffiliateLanding from "./pages/AffiliateLanding";
+import ConfirmationPage from "./pages/ConfirmationPage";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const AppRoutes = () => (
       </PublicRoute>
     } />
     <Route path="/afiliados" element={<AffiliateLanding />} />
+    <Route path="/confirmado" element={<ConfirmationPage />} />
     <Route path="/login" element={
       <PublicRoute>
         <Login />
