@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CheckCircle, DollarSign, Clock, Users, Zap, Star, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield } from 'lucide-react';
+import { CheckCircle, DollarSign, Clock, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AffiliateLanding = () => {
@@ -75,7 +75,10 @@ const AffiliateLanding = () => {
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-purple-500/30">
+      <DialogContent 
+        className="sm:max-w-md bg-gray-900 border-purple-500/30"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white text-center">
             Garanta Sua Vaga na Live!
@@ -158,7 +161,7 @@ const AffiliateLanding = () => {
             </span>
             <br />
             e Use o Converta+ por{' '}
-            <span className="text-yellow-400">1 Ano Grátis</span>
+            <span className="text-green-400">1 Ano Grátis</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
             Torne-se afiliado oficial do <strong className="text-white">Converta+</strong> e 
@@ -172,7 +175,7 @@ const AffiliateLanding = () => {
           <div className="flex flex-wrap justify-center gap-6 text-sm md:text-base">
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle className="w-5 h-5" />
-              <span>Comissões de até 40%</span>
+              <span>Comissões significativas</span>
             </div>
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle className="w-5 h-5" />
@@ -182,6 +185,51 @@ const AffiliateLanding = () => {
               <CheckCircle className="w-5 h-5" />
               <span>Treinamento completo</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* System Differentials Section */}
+      <section className="py-20 px-4 bg-slate-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Por Que o{' '}
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Converta+ é Diferente?
+              </span>
+            </h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              Uma plataforma completa que revoluciona a forma como empresas vendem online
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Bot,
+                title: 'IA Avançada',
+                description: 'Algoritmos inteligentes que aprendem com cada interação e otimizam automaticamente as conversões dos seus clientes.'
+              },
+              {
+                icon: Zap,
+                title: 'Automação Total',
+                description: 'Do primeiro contato até o fechamento da venda, tudo automatizado com fluxos inteligentes de nutrição.'
+              },
+              {
+                icon: BarChart3,
+                title: 'Analytics Poderoso',
+                description: 'Dashboards completos com métricas em tempo real para acompanhar performance e ROI de cada campanha.'
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-8 text-center">
+                  <feature.icon className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
+                  <p className="text-gray-700">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -216,12 +264,12 @@ const AffiliateLanding = () => {
       </section>
 
       {/* Opportunity Explanation */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Para Quem É Esta{' '}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Oportunidade?
               </span>
             </h2>
@@ -245,11 +293,11 @@ const AffiliateLanding = () => {
                 description: 'Pessoas buscando renda extra ou recorrente com tecnologia de ponta e inteligência artificial'
               }
             ].map((target, index) => (
-              <Card key={index} className="bg-gray-800/80 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
+              <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-8 text-center">
-                  <target.icon className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-3">{target.title}</h3>
-                  <p className="text-gray-300">{target.description}</p>
+                  <target.icon className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{target.title}</h3>
+                  <p className="text-gray-700">{target.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -276,8 +324,8 @@ const AffiliateLanding = () => {
             {[
               {
                 icon: DollarSign,
-                title: 'Comissões de 40%',
-                description: 'Ganhe até R$ 200 por venda (plano de R$ 500). Comissões pagas mensalmente.'
+                title: 'Altas Comissões',
+                description: 'Ganhe comissões significativas por venda. Valores atrativos pagos mensalmente.'
               },
               {
                 icon: Gift,
@@ -295,7 +343,7 @@ const AffiliateLanding = () => {
                 description: 'Venda quando, onde e como quiser. Trabalhe no seu ritmo.'
               }
             ].map((benefit, index) => (
-              <Card key={index} className="bg-gray-800/80 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
+              <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <benefit.icon className="w-12 h-12 text-purple-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-3">{benefit.title}</h3>
@@ -308,77 +356,45 @@ const AffiliateLanding = () => {
       </section>
 
       {/* Investment Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-slate-50">
         <div className="max-w-4xl mx-auto text-center">
-          <Card className="bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border-yellow-500/30 overflow-hidden">
+          <Card className="bg-white border-gray-200 shadow-xl overflow-hidden">
             <CardContent className="p-12">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
                 Investimento Único
               </h2>
-              <div className="text-6xl md:text-7xl font-bold text-yellow-400 mb-2">
+              <div className="text-6xl md:text-7xl font-bold text-green-600 mb-2">
                 R$ 500,00
               </div>
-              <div className="text-2xl text-yellow-300 mb-6">
+              <div className="text-2xl text-green-500 mb-6">
                 ou 10x de R$ 50,00 sem juros
               </div>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
-                Você garante <strong className="text-white">acesso completo ao sistema por 1 ano</strong> + 
+              <p className="text-xl text-gray-700 max-w-2xl mx-auto mb-8">
+                Você garante <strong className="text-gray-900">acesso completo ao sistema por 1 ano</strong> + 
                 se torna afiliado oficial com direito a comissões e materiais exclusivos.
               </p>
-              <div className="bg-black/20 rounded-lg p-6 mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">O que você recebe:</h3>
+              <div className="bg-gray-100 rounded-lg p-6 mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">O que você recebe:</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Converta+ por 1 ano (R$ 1.524)</span>
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <span className="text-gray-700">Converta+ por 1 ano (R$ 1.524)</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Programa de Afiliados</span>
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <span className="text-gray-700">Programa de Afiliados</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Materiais de Venda</span>
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <span className="text-gray-700">Materiais de Venda</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Treinamento Completo</span>
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <span className="text-gray-700">Treinamento Completo</span>
                   </div>
                 </div>
               </div>
               <CTAButton size="lg" className="text-xl px-12 py-4" />
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="py-16 px-4 bg-black/20">
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-gray-800/80 border-green-500/30">
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-400 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-1 mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <blockquote className="text-lg md:text-xl text-white mb-4">
-                    "Consegui fazer 8 vendas no primeiro mês como afiliado. O sistema é incrível 
-                    e o suporte da equipe fez toda a diferença. Em 30 dias já tinha recuperado 
-                    o investimento e ainda estava lucrando!"
-                  </blockquote>
-                  <cite className="text-purple-300 font-semibold text-lg">
-                    — Marina Santos, Afiliada desde Janeiro 2024
-                  </cite>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -401,11 +417,11 @@ const AffiliateLanding = () => {
               {
                 title: 'Produto de Alta Demanda',
                 description: 'IA e automação são o futuro. Converta+ resolve problemas reais de empresas que precisam vender mais.',
-                icon: Zap
+                icon: Sparkles
               },
               {
                 title: 'Comissões Competitivas',
-                description: 'Até 40% de comissão por venda + comissões recorrentes. Melhor que a maioria dos programas.',
+                description: 'Altas comissões por venda + comissões recorrentes. Melhor que a maioria dos programas.',
                 icon: TrendingUp
               },
               {
@@ -419,7 +435,7 @@ const AffiliateLanding = () => {
                 icon: Shield
               }
             ].map((advantage, index) => (
-              <Card key={index} className="bg-gray-800/80 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
+              <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
                 <CardContent className="p-8">
                   <advantage.icon className="w-12 h-12 text-purple-400 mb-4" />
                   <h3 className="text-2xl font-bold text-white mb-4">{advantage.title}</h3>
