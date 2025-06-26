@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,6 +20,7 @@ import Conversations from "./pages/Conversations";
 import Integrations from "./pages/Integrations";
 import Profile from "./pages/Profile";
 import Support from "./pages/Support";
+import AffiliateLanding from "./pages/AffiliateLanding";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +63,7 @@ const AppRoutes = () => (
         <Index />
       </PublicRoute>
     } />
+    <Route path="/afiliados" element={<AffiliateLanding />} />
     <Route path="/login" element={
       <PublicRoute>
         <Login />
