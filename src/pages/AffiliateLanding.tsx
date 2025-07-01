@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3 } from 'lucide-react';
+import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AffiliateLanding = () => {
@@ -23,14 +22,7 @@ const AffiliateLanding = () => {
         </Button>
       </DialogTrigger>
       <DialogContent 
-        className="sm:max-w-md bg-gray-900 border-purple-500/30"
-        style={{ 
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 50
-        }}
+        className="sm:max-w-md bg-gray-900 border-purple-500/30 z-50"
       >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white text-center">
@@ -230,16 +222,17 @@ const AffiliateLanding = () => {
       <section className="relative px-4 py-20">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            Essa é a sua chance de{' '}
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Ganhe Comissões
+              lucrar com a maior demanda
             </span>
             <br />
-            e Use o Converta+ por{' '}
-            <span className="text-green-400">1 Ano Grátis</span>
+            do mercado atual
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Torne-se afiliado oficial do <strong className="text-white">Converta+</strong> e 
-            fature vendendo a plataforma de IA mais inteligente do Brasil
+            O atendimento com IA via WhatsApp deixou de ser diferencial e virou obrigação. 
+            Com o <strong className="text-white">Converta+</strong>, você lucra ao indicar uma solução que toda empresa precisa — 
+            e ainda ganha <strong className="text-green-400">altas comissões sem limites</strong>.
           </p>
           
           <div className="mb-12">
@@ -249,7 +242,7 @@ const AffiliateLanding = () => {
           <div className="flex flex-wrap justify-center gap-6 text-sm md:text-base">
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle className="w-5 h-5" />
-              <span>Comissões significativas</span>
+              <span>Altas comissões sem limites</span>
             </div>
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle className="w-5 h-5" />
@@ -282,18 +275,18 @@ const AffiliateLanding = () => {
             {[
               {
                 icon: Bot,
-                title: 'IA Avançada',
-                description: 'Algoritmos inteligentes que aprendem com cada interação e otimizam automaticamente as conversões dos seus clientes.'
-              },
-              {
-                icon: Zap,
-                title: 'Automação Total',
-                description: 'Do primeiro contato até o fechamento da venda, tudo automatizado com fluxos inteligentes de nutrição.'
+                title: 'Criação de Agentes de IA',
+                description: 'Sistema inteligente que permite criar agentes de IA personalizados para cada tipo de negócio e abordagem comercial.'
               },
               {
                 icon: BarChart3,
-                title: 'Analytics Poderoso',
-                description: 'Dashboards completos com métricas em tempo real para acompanhar performance e ROI de cada campanha.'
+                title: 'CRM com Qualificação Automática',
+                description: 'CRM inteligente que qualifica leads automaticamente, organizando prospects por potencial de conversão.'
+              },
+              {
+                icon: Brain,
+                title: 'Inteligência de Performance',
+                description: 'IA que analisa performance dos agentes, conversas, perfis dos leads e campanhas para otimização contínua.'
               }
             ].map((feature, index) => (
               <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -374,7 +367,7 @@ const AffiliateLanding = () => {
               {
                 icon: DollarSign,
                 title: 'Altas Comissões',
-                description: 'Ganhe comissões significativas por venda. Valores atrativos pagos mensalmente.'
+                description: 'Ganhe altas comissões sem limites por venda. Valores atrativos pagos mensalmente.'
               },
               {
                 icon: Gift,
@@ -404,26 +397,20 @@ const AffiliateLanding = () => {
         </div>
       </section>
 
-      {/* Investment Section */}
+      {/* What You Get Section */}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <Card className="bg-gray-800 border-purple-500/30 shadow-xl overflow-hidden">
             <CardContent className="p-12">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                Investimento Único
+                O Que Você Recebe
               </h2>
-              <div className="text-6xl md:text-7xl font-bold text-green-400 mb-2">
-                R$ 500,00
-              </div>
-              <div className="text-2xl text-green-400 mb-6">
-                ou 10x de R$ 50,00 sem juros
-              </div>
               <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
                 Você garante <strong className="text-white">acesso completo ao sistema por 1 ano</strong> + 
                 se torna afiliado oficial com direito a comissões e materiais exclusivos.
               </p>
               <div className="bg-gray-700 rounded-lg p-6 mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">O que você recebe:</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">Benefícios inclusos:</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
@@ -469,7 +456,7 @@ const AffiliateLanding = () => {
                 icon: Sparkles
               },
               {
-                title: 'Comissões Competitivas',
+                title: 'Altas Comissões',
                 description: 'Altas comissões por venda + comissões recorrentes. Melhor que a maioria dos programas.',
                 icon: TrendingUp
               },
