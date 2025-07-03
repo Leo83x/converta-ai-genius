@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +21,9 @@ const ConfirmationPage = () => {
           
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
             Parabéns! Você está oficialmente na lista para a{' '}
-            <strong className="text-white">Live Exclusiva da revolucionária plataforma Converta+.</strong> O link da live será enviado apenas no grupo do whatsapp
+            <strong className="text-white">Live Exclusiva da revolucionária plataforma Converta+.</strong>
+            <br />
+            O link da live será enviado apenas no grupo do whatsapp
           </p>
 
           <div className="mb-8">
