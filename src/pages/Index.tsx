@@ -68,7 +68,7 @@ const Index = () => {
             <Button
               onClick={() => navigate('/demo')}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white"
             >
               <Play className="w-4 h-4 mr-2" />
               Ver Demo

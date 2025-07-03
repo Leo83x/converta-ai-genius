@@ -11,9 +11,9 @@ const Layout = ({ children }: LayoutProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-900 dark">
       <Sidebar />
-      <main className={`flex-1 overflow-auto w-full ${isMobile ? 'pt-16' : ''}`}>
+      <main className={`flex-1 overflow-auto w-full bg-gray-900 ${isMobile ? 'pt-16' : ''}`}>
         {children}
       </main>
     </div>
