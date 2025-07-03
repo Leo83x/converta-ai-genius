@@ -18,7 +18,7 @@ const AffiliateLanding = () => {
           size={size}
           className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`}
         >
-          Quero Ser Afiliado
+          Quero Saber Mais
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
       </DialogTrigger>
@@ -235,7 +235,7 @@ const AffiliateLanding = () => {
             Saiba como lucrar com a plataforma <strong className="text-white">Converta+</strong>, uma solução que toda empresa precisa. <strong className="text-green-400">Ganhe altas comissões sem limites!</strong>
           </p>
           
-          <div className="mb-12">
+          <div className="mb-12 flex justify-center">
             <CTAButton size="lg" className="text-xl px-12 py-4" />
           </div>
 
@@ -321,14 +321,14 @@ const AffiliateLanding = () => {
                 description: 'Vendedores, consultores e profissionais que já trabalham com vendas online e querem expandir seu portfólio'
               },
               {
-                icon: TrendingUp,
-                title: 'Especialistas em Marketing',
-                description: 'Social media, gestores de tráfego, lançadores e profissionais de marketing digital'
-              },
-              {
                 icon: Users,
                 title: 'Empreendedores',
                 description: 'Pessoas buscando renda extra ou recorrente com tecnologia de ponta e inteligência artificial'
+              },
+              {
+                icon: TrendingUp,
+                title: 'Especialistas em Marketing',
+                description: 'Social media, gestores de tráfego, lançadores e profissionais de marketing digital'
               }
             ].map((target, index) => (
               <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
@@ -430,7 +430,9 @@ const AffiliateLanding = () => {
                   </div>
                 </div>
               </div>
-              <CTAButton size="lg" className="text-xl px-12 py-4" />
+              <div className="flex justify-center">
+                <CTAButton size="lg" className="text-xl px-12 py-4" />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -494,7 +496,7 @@ const AffiliateLanding = () => {
             comece a faturar com inteligência artificial ainda esta semana.
           </p>
           
-          <div className="mb-8">
+          <div className="mb-8 flex justify-center">
             <CTAButton size="lg" className="text-2xl px-16 py-6" />
           </div>
 

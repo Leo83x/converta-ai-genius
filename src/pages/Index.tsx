@@ -50,9 +50,9 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 w-full overflow-x-hidden">
       {/* Header */}
-      <header className="px-4 py-6">
+      <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img 
@@ -74,7 +74,7 @@ const Index = () => {
               Ver Demo
             </Button>
             <Button
-              onClick={() => navigate('/afiliados')}
+              onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
             >
               Torne-se um Representante
@@ -84,7 +84,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-16 pb-24 px-4">
+      <section className="pt-16 pb-24 px-4 w-full">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Automação Inteligente de
@@ -107,7 +107,7 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => navigate('/afiliados')}
+              onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
             >
               Torne-se um Representante
@@ -118,7 +118,7 @@ const Index = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-slate-100">
+      <section className="py-20 px-4 bg-slate-100 w-full">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -143,7 +143,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 w-full">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
@@ -179,7 +179,7 @@ const Index = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 bg-slate-100">
+      <section className="py-20 px-4 bg-slate-100 w-full">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -260,7 +260,7 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 w-full">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
             Pronto para Revolucionar suas Vendas?
@@ -268,6 +268,7 @@ const Index = () => {
           <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
             Conheça o sistema na prática ou torne-se um representante oficial e comece a faturar
           </p>
+          
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
@@ -279,7 +280,7 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => navigate('/afiliados')}
+              onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white font-semibold"
             >
               Torne-se um Representante
@@ -290,7 +291,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 bg-black/40">
+      <footer className="py-12 px-4 bg-black/40 w-full">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
