@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -231,8 +232,7 @@ const AffiliateLanding = () => {
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
             O atendimento com IA via WhatsApp deixou de ser diferencial e virou obrigação. 
-            Com o <strong className="text-white">Converta+</strong>, você lucra ao indicar uma solução que toda empresa precisa — 
-            e ainda ganha <strong className="text-green-400">altas comissões sem limites</strong>.
+            Saiba como lucrar com a plataforma <strong className="text-white">Converta+</strong>, uma solução que toda empresa precisa. <strong className="text-green-400">Ganhe altas comissões sem limites!</strong>
           </p>
           
           <div className="mb-12">

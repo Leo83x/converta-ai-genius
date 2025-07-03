@@ -16,14 +16,25 @@ const ConfirmationPage = () => {
           
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Cadastro Confirmado!
+              Falta Pouco!
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
             Parabéns! Você está oficialmente na lista para a{' '}
-            <strong className="text-white">Live Exclusiva do Programa de Afiliados Converta+</strong>
+            <strong className="text-white">Live Exclusiva da revolucionária plataforma Converta+.</strong> O link da live será enviado apenas no grupo do whatsapp
           </p>
+
+          <div className="mb-8">
+            <Button
+              onClick={() => window.open('https://chat.whatsapp.com/EGSJc4DjImVD1m12CJSz3Z', '_blank')}
+              size="lg"
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold text-xl px-12 py-4 shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105"
+            >
+              Acessar Grupo VIP
+              <ArrowRight className="w-6 h-6 ml-2" />
+            </Button>
+          </div>
 
           <div className="flex flex-wrap justify-center gap-6 text-lg">
             <div className="flex items-center gap-2 text-green-400">
@@ -177,10 +188,10 @@ const ConfirmationPage = () => {
                 navigator.share({
                   title: 'Programa de Afiliados Converta+',
                   text: 'Descobri uma oportunidade incrível de renda com IA. Confira!',
-                  url: window.location.origin + '/afiliados'
+                  url: 'https://live.convertamais.online/afiliados'
                 });
               } else {
-                navigator.clipboard.writeText(window.location.origin + '/afiliados');
+                navigator.clipboard.writeText('https://live.convertamais.online/afiliados');
                 alert('Link copiado para a área de transferência!');
               }
             }}
