@@ -15,10 +15,16 @@ const Layout = ({ children }: LayoutProps) => {
   const [isDark, setIsDark] = useState(true);
   const [isGeniusOpen, setIsGeniusOpen] = useState(false);
 
-  // Iniciar sempre no modo escuro
+  // Iniciar sempre no modo escuro e persistir estado
   useEffect(() => {
-    document.documentElement.classList.add('dark');
-    setIsDark(true);
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      setIsDark(false);
+      document.documentElement.classList.remove('dark');
+    } else {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -27,8 +33,10 @@ const Layout = ({ children }: LayoutProps) => {
     
     if (newIsDark) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   };
 
@@ -54,13 +62,15 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
 
-        {/* Botão flutuante Genius AI */}
+        {/* Botão flutuante Genius AI - agora circular */}
         <Button
           onClick={() => setIsGeniusOpen(true)}
-          className="fixed bottom-6 right-6 h-14 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full flex items-center gap-2 z-50"
+          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full flex items-center justify-center z-50 p-0"
         >
-          <span className="text-xl">✨</span>
-          <span className="font-medium">Genius AI</span>
+          <div className="flex flex-col items-center">
+            <span className="text-2xl">✨</span>
+            <span className="text-xs font-medium">AI</span>
+          </div>
         </Button>
 
         <GeniusAgent
