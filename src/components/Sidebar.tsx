@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,8 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -25,26 +27,37 @@ const sidebarItems = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
+    color: 'text-blue-500'
   },
   {
     title: 'Agentes',
     href: '/agents',
     icon: Bot,
+    color: 'text-green-500'
   },
   {
     title: 'CRM',
     href: '/crm',
     icon: Users,
+    color: 'text-orange-500'
   },
   {
     title: 'Conversas',
     href: '/conversations',
     icon: MessageSquare,
+    color: 'text-purple-500'
   },
   {
     title: 'Integrações',
     href: '/integrations',
     icon: Settings,
+    color: 'text-gray-500'
+  },
+  {
+    title: 'Painel do Representante',
+    href: '/affiliate-panel',
+    icon: TrendingUp,
+    color: 'text-pink-500'
   },
 ];
 
@@ -74,7 +87,7 @@ const Sidebar = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleSignOut = async () => {
-    if (isLoggingOut) return; // Previne múltiplos cliques
+    if (isLoggingOut) return;
     
     try {
       console.log('Botão sair clicado');
@@ -87,7 +100,6 @@ const Sidebar = () => {
         description: "Você foi desconectado com sucesso.",
       });
       
-      // Força a navegação para login
       window.location.href = '/login';
       
     } catch (error) {
@@ -109,10 +121,10 @@ const Sidebar = () => {
   const SidebarContent = () => (
     <>
       {/* Logo */}
-      <div className="flex h-16 items-center border-b px-4">
+      <div className="flex h-16 items-center border-b border-gray-200 dark:border-gray-700 px-4">
         <Link to="/dashboard" className="flex items-center space-x-2" onClick={closeMobileMenu}>
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-600 to-green-600"></div>
-          <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600"></div>
+          <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Converta+
           </span>
         </Link>
@@ -132,11 +144,11 @@ const Sidebar = () => {
               className={cn(
                 'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={cn('h-5 w-5', isActive ? 'text-purple-600 dark:text-purple-400' : item.color)} />
               <span>{item.title}</span>
             </Link>
           );
@@ -147,15 +159,15 @@ const Sidebar = () => {
           <Button
             variant="ghost"
             className={cn(
-              'w-full justify-between px-3 py-2 text-sm font-medium',
+              'w-full justify-between px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
               profileExpanded || location.pathname.startsWith('/profile')
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                : ''
             )}
             onClick={() => setProfileExpanded(!profileExpanded)}
           >
             <div className="flex items-center space-x-3">
-              <User className="h-5 w-5" />
+              <User className="h-5 w-5 text-indigo-500" />
               <span>Perfil</span>
             </div>
             {profileExpanded ? (
@@ -177,8 +189,8 @@ const Sidebar = () => {
                     className={cn(
                       'block rounded-lg px-3 py-2 text-sm transition-colors',
                       isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
                     )}
                   >
                     {item.title}
@@ -196,24 +208,24 @@ const Sidebar = () => {
           className={cn(
             'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
             location.pathname === '/support'
-              ? 'bg-blue-50 text-blue-700'
-              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
+              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
           )}
         >
-          <HelpCircle className="h-5 w-5" />
+          <HelpCircle className="h-5 w-5 text-yellow-500" />
           <span>Suporte</span>
         </Link>
       </nav>
 
       {/* Logout Button */}
-      <div className="border-t px-3 py-4">
+      <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-4">
         <Button
           variant="ghost"
-          className="w-full justify-start space-x-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+          className="w-full justify-start space-x-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
           onClick={handleSignOut}
           disabled={isLoggingOut}
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-5 w-5 text-red-500" />
           <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
         </Button>
       </div>
@@ -223,17 +235,17 @@ const Sidebar = () => {
   if (isMobile) {
     return (
       <>
-        {/* Mobile Menu Button - Fixed position */}
+        {/* Mobile Menu Button */}
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-50 bg-white shadow-md border"
+          className="fixed top-4 left-4 z-50 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6 text-gray-700 dark:text-gray-300" />
           ) : (
-            <Menu className="h-6 w-6" />
+            <Menu className="h-6 w-6 text-gray-700 dark:text-gray-300" />
           )}
         </Button>
 
@@ -241,7 +253,7 @@ const Sidebar = () => {
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-40">
             <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={closeMobileMenu} />
-            <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
+            <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white dark:bg-gray-800 shadow-xl">
               <SidebarContent />
             </div>
           </div>
@@ -251,7 +263,7 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
+    <div className="flex h-full w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
       <SidebarContent />
     </div>
   );

@@ -118,10 +118,10 @@ const Dashboard = () => {
       <Layout>
         <div className="p-4 md:p-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
               ))}
             </div>
           </div>
@@ -134,8 +134,8 @@ const Dashboard = () => {
     <Layout>
       <div className="p-4 md:p-8">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm md:text-base text-gray-600 mt-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-2">
             Bem-vindo de volta! Aqui está um resumo da sua atividade.
           </p>
         </div>
@@ -152,52 +152,52 @@ const Dashboard = () => {
 
         {/* Cards adicionais */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Agentes por Canal</h3>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Agentes por Canal</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Widget do Site</span>
-                <span className="text-sm font-medium">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Widget do Site</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {dashboardStats?.totalAgents ? Math.ceil(dashboardStats.totalAgents * 0.4) : 0}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">WhatsApp</span>
-                <span className="text-sm font-medium">
+                <span className="text-sm text-gray-600 dark:text-gray-400">WhatsApp</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {dashboardStats?.totalAgents ? Math.ceil(dashboardStats.totalAgents * 0.4) : 0}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Instagram</span>
-                <span className="text-sm font-medium">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Instagram</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {dashboardStats?.totalAgents ? Math.floor(dashboardStats.totalAgents * 0.2) : 0}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Tempo Economizado</h3>
-            <div className="text-2xl font-bold text-green-600 mb-1">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Tempo Economizado</h3>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
               {dashboardStats?.activeConversations ? (dashboardStats.activeConversations * 5) : 0} min
             </div>
-            <p className="text-sm text-gray-600">em atendimento automatizado</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">em atendimento automatizado</p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h3 className="text-lg font-semibold mb-2">Performance</h3>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Performance</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Respostas Instantâneas</span>
-                <span className="text-sm font-medium text-green-600">100%</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Respostas Instantâneas</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">100%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Disponibilidade</span>
-                <span className="text-sm font-medium text-green-600">24/7</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Disponibilidade</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">24/7</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Satisfação Estimada</span>
-                <span className="text-sm font-medium text-blue-600">95%</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Satisfação Estimada</span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">95%</span>
               </div>
             </div>
           </div>

@@ -13,11 +13,11 @@ const StatsCard = ({ title, value, change, changeType, description }: StatsCardP
   const getChangeColor = () => {
     switch (changeType) {
       case 'increase':
-        return 'text-green-600';
+        return 'text-green-600 dark:text-green-400';
       case 'decrease':
-        return 'text-red-600';
+        return 'text-red-600 dark:text-red-400';
       default:
-        return 'text-gray-600';
+        return 'text-gray-600 dark:text-gray-400';
     }
   };
 
@@ -33,12 +33,12 @@ const StatsCard = ({ title, value, change, changeType, description }: StatsCardP
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-            <p className="text-3xl font-bold text-gray-900">{value}</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{title}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
           </div>
           <div className={`text-2xl ${getChangeColor()}`}>
             {getChangeIcon()}
@@ -48,7 +48,7 @@ const StatsCard = ({ title, value, change, changeType, description }: StatsCardP
           <span className={`text-sm font-medium ${getChangeColor()}`}>
             {change}
           </span>
-          <span className="text-sm text-gray-500">{description}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{description}</span>
         </div>
       </CardContent>
     </Card>
