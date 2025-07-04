@@ -20,7 +20,7 @@ const Demo = () => {
     { id: 'conversations', name: 'Conversas', icon: MessageSquare, color: 'text-purple-500' },
     { id: 'crm', name: 'CRM', icon: Users, color: 'text-orange-500' },
     { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-yellow-500' },
-    { id: 'affiliate', name: 'Painel do Representante', icon: Target, color: 'text-pink-500' },
+    { id: 'affiliate', name: 'Painel Rep.', icon: Target, color: 'text-pink-500' },
     { id: 'settings', name: 'Configurações', icon: Settings, color: 'text-gray-500' },
   ];
 
@@ -530,16 +530,16 @@ const Demo = () => {
               <li key={item.id}>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
+                  className={`w-full flex items-center text-left px-3 py-2 rounded-lg transition-colors ${
                     activeTab === item.id
                       ? 'bg-purple-600 text-white'
                       : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  } ${!sidebarOpen ? 'justify-center' : 'space-x-3'}`}
+                  } ${!sidebarOpen ? 'justify-center' : 'gap-3'}`}
                 >
-                  <item.icon className={`h-5 w-5 ${
+                  <item.icon className={`h-5 w-5 flex-shrink-0 ${
                     activeTab === item.id ? 'text-white' : item.color
                   }`} />
-                  {sidebarOpen && <span>{item.name}</span>}
+                  {sidebarOpen && <span className="text-sm truncate">{item.name}</span>}
                 </button>
               </li>
             ))}
