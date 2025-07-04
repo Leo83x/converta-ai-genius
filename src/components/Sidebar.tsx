@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -118,13 +117,18 @@ const Sidebar = () => {
     setMobileMenuOpen(false);
   };
 
+  // Manter submenu aberto se estiver em alguma das páginas do perfil
+  const shouldKeepProfileOpen = location.pathname.startsWith('/profile');
+
   const SidebarContent = () => (
     <>
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-gray-200 dark:border-gray-700 px-4">
         <Link to="/dashboard" className="flex items-center space-x-2" onClick={closeMobileMenu}>
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600"></div>
-          <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">C+</span>
+          </div>
+          <span className="text-xl font-bold text-gray-900 dark:text-white">
             Converta+
           </span>
         </Link>
@@ -160,7 +164,7 @@ const Sidebar = () => {
             variant="ghost"
             className={cn(
               'w-full justify-between px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-              profileExpanded || location.pathname.startsWith('/profile')
+              (profileExpanded || shouldKeepProfileOpen)
                 ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
                 : ''
             )}
@@ -170,14 +174,14 @@ const Sidebar = () => {
               <User className="h-5 w-5 text-indigo-500" />
               <span>Perfil</span>
             </div>
-            {profileExpanded ? (
+            {(profileExpanded || shouldKeepProfileOpen) ? (
               <ChevronDown className="h-4 w-4" />
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
           </Button>
 
-          {profileExpanded && (
+          {(profileExpanded || shouldKeepProfileOpen) && (
             <div className="ml-8 mt-1 space-y-1">
               {profileItems.map((item) => {
                 const isActive = location.pathname === item.href;

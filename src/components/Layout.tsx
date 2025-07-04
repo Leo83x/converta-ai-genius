@@ -1,9 +1,10 @@
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon } from 'lucide-react';
+import GeniusAgent from './GeniusAgent';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,13 +13,22 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const isMobile = useIsMobile();
   const [isDark, setIsDark] = useState(true);
+  const [isGeniusOpen, setIsGeniusOpen] = useState(false);
+
+  // Iniciar sempre no modo escuro
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    setIsDark(true);
+  }, []);
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-    } else {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    
+    if (newIsDark) {
       document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   };
 
@@ -43,6 +53,20 @@ const Layout = ({ children }: LayoutProps) => {
         <main className={`flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 ${isMobile ? 'pt-4' : ''}`}>
           {children}
         </main>
+
+        {/* Botão flutuante Genius AI */}
+        <Button
+          onClick={() => setIsGeniusOpen(true)}
+          className="fixed bottom-6 right-6 h-14 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full flex items-center gap-2 z-50"
+        >
+          <span className="text-xl">✨</span>
+          <span className="font-medium">Genius AI</span>
+        </Button>
+
+        <GeniusAgent
+          isOpen={isGeniusOpen}
+          onClose={() => setIsGeniusOpen(false)}
+        />
       </div>
     </div>
   );
