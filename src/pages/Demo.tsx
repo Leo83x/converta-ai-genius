@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -554,9 +553,6 @@ const Demo = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-white">Demo - Converta+</h1>
-              <span className="px-3 py-1 bg-purple-600 text-white text-sm rounded-full">
-                Demonstração
-              </span>
             </div>
             <Button
               onClick={() => navigate('/')}

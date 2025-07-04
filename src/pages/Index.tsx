@@ -49,6 +49,14 @@ const Index = () => {
     "Suporte técnico especializado"
   ];
 
+  const handleDemoClick = () => {
+    navigate('/demo');
+    // Scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 w-full overflow-x-hidden">
       {/* Header */}
@@ -66,7 +74,7 @@ const Index = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
-              onClick={() => navigate('/demo')}
+              onClick={handleDemoClick}
               variant="outline"
               size="sm"
               className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white text-xs sm:text-sm px-3 py-2"
@@ -75,7 +83,7 @@ const Index = () => {
               Ver Demo
             </Button>
             <Button
-              onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
+              onClick={() => navigate('/afiliados')}
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
@@ -102,7 +110,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               size="lg"
-              onClick={() => navigate('/demo')}
+              onClick={handleDemoClick}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-4 text-lg text-white"
             >
               <Play className="mr-2 h-5 w-5" />
@@ -110,7 +118,7 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
+              onClick={() => navigate('/afiliados')}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
             >
               Torne-se um Representante
@@ -275,7 +283,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => navigate('/demo')}
+              onClick={handleDemoClick}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-4 text-lg text-white font-semibold"
             >
               <Play className="mr-2 h-5 w-5" />
@@ -283,7 +291,7 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
+              onClick={() => navigate('/afiliados')}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white font-semibold"
             >
               Torne-se um Representante

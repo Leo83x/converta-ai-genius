@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3, Brain } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const AffiliateLanding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const CTAButton = ({ className = "", size = "default" }: { className?: string, size?: "default" | "lg" }) => (
     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -332,14 +333,14 @@ const AffiliateLanding = () => {
           <div className="grid md:grid-cols-3 gap-8 mb-16">
             {[
               {
-                icon: Target,
-                title: 'Profissionais de Vendas',
-                description: 'Vendedores, consultores e profissionais que já trabalham com vendas online e querem expandir seu portfólio'
-              },
-              {
                 icon: Users,
                 title: 'Empreendedores',
                 description: 'Pessoas buscando renda extra ou recorrente com tecnologia de ponta e inteligência artificial'
+              },
+              {
+                icon: Target,
+                title: 'Profissionais de Vendas',
+                description: 'Vendedores, consultores e profissionais que já trabalham com vendas online e querem expandir seu portfólio'
               },
               {
                 icon: TrendingUp,
@@ -534,10 +535,21 @@ const AffiliateLanding = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 bg-black/40 text-center">
-        <p className="text-gray-400 text-lg">
-          © 2025 Converta+ - Plataforma de Automação Inteligente com IA
-        </p>
+      <footer className="py-8 px-4 bg-black/40">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-gray-400 text-lg text-center">
+              © 2025 Converta+ - Plataforma de Automação Inteligente com IA
+            </p>
+            <Button
+              onClick={() => navigate('/')}
+              variant="outline"
+              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white"
+            >
+              Site Principal
+            </Button>
+          </div>
+        </div>
       </footer>
     </div>
   );
