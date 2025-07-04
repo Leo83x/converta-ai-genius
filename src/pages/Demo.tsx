@@ -15,13 +15,13 @@ const Demo = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const sidebarItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: Home },
-    { id: 'agents', name: 'Agentes IA', icon: Bot },
-    { id: 'conversations', name: 'Conversas', icon: MessageSquare },
-    { id: 'crm', name: 'CRM', icon: Users },
-    { id: 'analytics', name: 'Analytics', icon: BarChart3 },
-    { id: 'affiliate', name: 'Painel do Representante', icon: Target },
-    { id: 'settings', name: 'Configurações', icon: Settings },
+    { id: 'dashboard', name: 'Dashboard', icon: Home, color: 'text-blue-500' },
+    { id: 'agents', name: 'Agentes IA', icon: Bot, color: 'text-green-500' },
+    { id: 'conversations', name: 'Conversas', icon: MessageSquare, color: 'text-purple-500' },
+    { id: 'crm', name: 'CRM', icon: Users, color: 'text-orange-500' },
+    { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-yellow-500' },
+    { id: 'affiliate', name: 'Painel do Representante', icon: Target, color: 'text-pink-500' },
+    { id: 'settings', name: 'Configurações', icon: Settings, color: 'text-gray-500' },
   ];
 
   const mockData = {
@@ -536,7 +536,9 @@ const Demo = () => {
                       : 'text-gray-400 hover:text-white hover:bg-gray-700'
                   } ${!sidebarOpen && 'justify-center'}`}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className={`h-5 w-5 ${
+                    activeTab === item.id ? 'text-white' : item.color
+                  }`} />
                   {sidebarOpen && <span>{item.name}</span>}
                 </button>
               </li>

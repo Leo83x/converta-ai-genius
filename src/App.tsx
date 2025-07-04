@@ -19,6 +19,9 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Index from '@/pages/Index';
 import AffiliatePanel from './pages/AffiliatePanel';
+import Demo from '@/pages/Demo';
+import AffiliateLanding from '@/pages/AffiliateLanding';
+import ConfirmationPage from '@/pages/ConfirmationPage';
 
 const queryClient = new QueryClient();
 
@@ -43,6 +46,9 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/afiliados" element={<AffiliateLanding />} />
+              <Route path="/confirmado" element={<ConfirmationPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
