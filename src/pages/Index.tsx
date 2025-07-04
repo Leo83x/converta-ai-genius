@@ -79,7 +79,8 @@ const Index = () => {
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
-              Torne-se um Representante
+              <span className="hidden sm:inline">Torne-se um Representante</span>
+              <span className="sm:hidden">Torne-se Representante</span>
             </Button>
           </div>
         </div>

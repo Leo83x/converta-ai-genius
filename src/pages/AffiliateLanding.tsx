@@ -236,7 +236,7 @@ const AffiliateLanding = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-4 py-20">
+      <section className="relative px-4 py-12 md:py-20">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Essa é a sua chance de{' '}

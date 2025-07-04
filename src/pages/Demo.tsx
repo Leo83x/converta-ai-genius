@@ -530,11 +530,11 @@ const Demo = () => {
               <li key={item.id}>
                 <button
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  className={`w-full flex items-center px-3 py-2 rounded-lg transition-colors ${
                     activeTab === item.id
                       ? 'bg-purple-600 text-white'
                       : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  } ${!sidebarOpen && 'justify-center'}`}
+                  } ${!sidebarOpen ? 'justify-center' : 'space-x-3'}`}
                 >
                   <item.icon className={`h-5 w-5 ${
                     activeTab === item.id ? 'text-white' : item.color
