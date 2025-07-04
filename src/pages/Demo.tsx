@@ -503,7 +503,7 @@ const Demo = () => {
       <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0`}>
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center space-x-3 ${!sidebarOpen && 'justify-center'}`}>
+            <div className={`flex items-center space-x-1 ${!sidebarOpen && 'justify-center'}`}>
               <img 
                 src="/lovable-uploads/b5be6410-a8c5-4f8d-9eb5-a979ed0ffe83.png" 
                 alt="Converta+" 

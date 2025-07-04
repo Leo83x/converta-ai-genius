@@ -125,7 +125,7 @@ const Sidebar = () => {
     <>
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-gray-200 dark:border-gray-700 px-4">
-        <Link to="/dashboard" className="flex items-center space-x-2" onClick={closeMobileMenu}>
+        <Link to="/dashboard" className="flex items-center space-x-1" onClick={closeMobileMenu}>
           <div className="h-8 w-8 rounded-lg flex items-center justify-center">
             <img 
               src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 

@@ -54,7 +54,7 @@ const Index = () => {
       {/* Header */}
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-1">
             <img 
               src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
               alt="Converta+" 
@@ -297,7 +297,7 @@ const Index = () => {
       <footer className="py-12 px-4 bg-black/40 w-full">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
+            <div className="flex items-center space-x-1 mb-4 md:mb-0">
               <img 
                 src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
                 alt="Converta+" 
