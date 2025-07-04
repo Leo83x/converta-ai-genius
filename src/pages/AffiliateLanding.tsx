@@ -219,6 +219,22 @@ const AffiliateLanding = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+      {/* Header */}
+      <header className="px-4 py-6 w-full">
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <div className="flex items-center space-x-3">
+            <img 
+              src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
+              alt="Converta+" 
+              className="h-10 w-10"
+            />
+            <span className="text-2xl font-bold text-white">
+              Converta+
+            </span>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="relative px-4 py-20">
         <div className="max-w-6xl mx-auto text-center">
@@ -354,7 +370,7 @@ const AffiliateLanding = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               Como Funciona o{' '}
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Modelo de Vendas
+                Programa para Representantes
               </span>
             </h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
@@ -407,7 +423,7 @@ const AffiliateLanding = () => {
               </h2>
               <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
                 Você garante <strong className="text-white">acesso completo ao sistema por 1 ano</strong> + 
-                se torna afiliado oficial com direito a comissões e materiais exclusivos.
+                se torna representante oficial com direito a comissões e materiais exclusivos.
               </p>
               <div className="bg-gray-700 rounded-lg p-6 mb-8">
                 <h3 className="text-2xl font-bold text-white mb-4">Benefícios inclusos:</h3>
@@ -418,7 +434,7 @@ const AffiliateLanding = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Programa de Afiliados</span>
+                    <span className="text-gray-300">Programa para Representantes</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
@@ -468,8 +484,8 @@ const AffiliateLanding = () => {
                 icon: Users
               },
               {
-                title: 'Sem Mensalidade de Afiliado',
-                description: 'Pague uma vez e seja afiliado para sempre. Não cobramos taxas mensais ou anuais.',
+                title: 'Sem Mensalidade de Representante',
+                description: 'Pague uma vez e seja representante para sempre. Não cobramos taxas mensais ou anuais.',
                 icon: Shield
               }
             ].map((advantage, index) => (
@@ -492,7 +508,7 @@ const AffiliateLanding = () => {
             Não Perca Esta Oportunidade Única
           </h2>
           <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Seja um dos primeiros afiliados oficiais do Converta+ e 
+            Seja um dos primeiros representantes oficiais do Converta+ e 
             comece a faturar com inteligência artificial ainda esta semana.
           </p>
           
@@ -520,7 +536,7 @@ const AffiliateLanding = () => {
       {/* Footer */}
       <footer className="py-8 px-4 bg-black/40 text-center">
         <p className="text-gray-400 text-lg">
-          © 2024 Converta+ - Plataforma de Automação Inteligente com IA
+          © 2025 Converta+ - Plataforma de Automação Inteligente com IA
         </p>
       </footer>
     </div>

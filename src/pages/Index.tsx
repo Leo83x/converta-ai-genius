@@ -56,7 +56,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img 
-              src="/lovable-uploads/b5be6410-a8c5-4f8d-9eb5-a979ed0ffe83.png" 
+              src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
               alt="Converta+" 
               className="h-10 w-10"
             />
@@ -64,18 +64,20 @@ const Index = () => {
               Converta+
             </span>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
               onClick={() => navigate('/demo')}
               variant="outline"
-              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white"
+              size="sm"
+              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white text-xs sm:text-sm px-3 py-2"
             >
-              <Play className="w-4 h-4 mr-2" />
+              <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Ver Demo
             </Button>
             <Button
               onClick={() => window.open('https://live.convertamais.online/afiliados', '_blank')}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              size="sm"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
               Torne-se um Representante
             </Button>
@@ -296,14 +298,14 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <img 
-                src="/lovable-uploads/b5be6410-a8c5-4f8d-9eb5-a979ed0ffe83.png" 
+                src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
                 alt="Converta+" 
                 className="h-8 w-8"
               />
               <span className="text-xl font-bold text-white">Converta+</span>
             </div>
             <div className="text-gray-400 text-center md:text-right">
-              <p>&copy; 2024 Converta+. Todos os direitos reservados.</p>
+              <p>&copy; 2025 Converta+. Todos os direitos reservados.</p>
               <p className="mt-1">Automação inteligente de leads com IA</p>
             </div>
           </div>

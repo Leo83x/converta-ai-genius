@@ -152,13 +152,20 @@ const Sidebar = () => {
               onClick={closeMobileMenu}
               className={cn(
                 'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                // Quebra de linha melhorada para mobile
+                item.title === 'Painel do Representante' && isMobile 
+                  ? 'whitespace-normal leading-tight' 
+                  : 'whitespace-nowrap',
                 isActive
                   ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
               )}
             >
-              <Icon className={cn('h-5 w-5', isActive ? 'text-purple-600 dark:text-purple-400' : item.color)} />
-              <span>{item.title}</span>
+              <Icon className={cn(
+                'h-5 w-5 flex-shrink-0', 
+                isActive ? 'text-purple-600 dark:text-purple-400' : item.color
+              )} />
+              <span className={item.title === 'Painel do Representante' && isMobile ? 'text-xs' : ''}>{item.title}</span>
             </Link>
           );
         })}
