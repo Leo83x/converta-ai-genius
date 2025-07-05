@@ -22,7 +22,7 @@ const VenomWhatsAppConnection = () => {
         setLastUpdate(new Date());
         // Atualizar timestamp do QR Code para forçar reload
         if (qrCodeUrl) {
-          setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
+          setQrCodeUrl(`https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?t=${Date.now()}`);
         }
       }, 30000); // A cada 30 segundos
       return () => clearInterval(interval);
@@ -30,7 +30,7 @@ const VenomWhatsAppConnection = () => {
   }, [autoRefresh, connectionStatus, qrCodeUrl]);
 
   const loadQRCode = async () => {
-    const qrUrl = `http://31.97.167.218:3002/qr?t=${Date.now()}`;
+    const qrUrl = `https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?t=${Date.now()}`;
     setQrCodeUrl(qrUrl);
     setConnectionStatus('qr_ready');
     setAutoRefresh(true);
