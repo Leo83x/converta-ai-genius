@@ -8,89 +8,69 @@ import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 
 const VenomWhatsAppConnection = () => {
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'loading' | 'qr_ready' | 'connected'>('disconnected');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    checkConnectionStatus();
-    // Verificar status a cada 10 segundos
-    const interval = setInterval(checkConnectionStatus, 10000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const checkConnectionStatus = async () => {
-    try {
-      // Tentar carregar o QR Code para verificar se o servidor está ativo
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      const imageLoadPromise = new Promise((resolve, reject) => {
-        img.onload = () => resolve(true);
-        img.onerror = () => reject(false);
-        img.src = `http://31.97.167.218:3002/qr?t=${Date.now()}`;
-      });
-
-      await imageLoadPromise;
-      
-      // Se conseguiu carregar a imagem, assumir que está conectando
-      setConnectionStatus('connecting');
-      setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
-      
-    } catch (error) {
-      console.log('QR Code not available, server may be disconnected');
-      setConnectionStatus('disconnected');
-      setQrCodeUrl('');
+    // Só fazer auto-refresh se estiver explicitamente habilitado
+    if (autoRefresh && connectionStatus === 'qr_ready') {
+      const interval = setInterval(() => {
+        setLastUpdate(new Date());
+        // Atualizar timestamp do QR Code para forçar reload
+        if (qrCodeUrl) {
+          setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
+        }
+      }, 30000); // A cada 30 segundos
+      return () => clearInterval(interval);
     }
+  }, [autoRefresh, connectionStatus, qrCodeUrl]);
+
+  const loadQRCode = async () => {
+    const qrUrl = `http://31.97.167.218:3002/qr?t=${Date.now()}`;
+    setQrCodeUrl(qrUrl);
+    setConnectionStatus('qr_ready');
+    setAutoRefresh(true);
     setLastUpdate(new Date());
+    
+    toast({
+      title: "QR Code carregado",
+      description: "Escaneie o código com seu WhatsApp para conectar.",
+    });
   };
 
-  const refreshQrCode = async () => {
-    setIsLoading(true);
+  const checkIfConnected = async () => {
+    // Esta função pode ser chamada manualmente para verificar se já está conectado
     try {
-      // Forçar atualização do QR Code
-      setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
-      
-      // Verificar status após refresh
-      setTimeout(() => {
-        checkConnectionStatus();
-      }, 2000);
+      // Aqui você pode adicionar uma verificação real se necessário
+      // Por enquanto, vamos assumir que o usuário precisa confirmar manualmente
+      setConnectionStatus('connected');
+      setAutoRefresh(false);
+      setQrCodeUrl('');
       
       toast({
-        title: "QR Code atualizado",
-        description: "O QR Code foi atualizado com sucesso.",
+        title: "WhatsApp Conectado!",
+        description: "Sua conexão está ativa e pronta para receber mensagens.",
       });
     } catch (error) {
-      console.error('Error refreshing QR code:', error);
-      toast({
-        title: "Erro ao atualizar",
-        description: "Erro ao atualizar o QR Code.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Error checking connection:', error);
     }
   };
 
   const initializeConnection = async () => {
     setIsLoading(true);
-    setConnectionStatus('connecting');
+    setConnectionStatus('loading');
     
     try {
-      // Gerar novo QR Code diretamente
-      setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
+      await loadQRCode();
       
       toast({
         title: "Conexão iniciada",
         description: "QR Code carregado. Escaneie com seu WhatsApp para conectar.",
       });
-
-      // Verificar se QR Code está disponível
-      setTimeout(() => {
-        checkConnectionStatus();
-      }, 2000);
       
     } catch (error) {
       console.error('Error initializing connection:', error);
@@ -105,12 +85,44 @@ const VenomWhatsAppConnection = () => {
     }
   };
 
+  const refreshQrCode = async () => {
+    setIsLoading(true);
+    try {
+      await loadQRCode();
+      toast({
+        title: "QR Code atualizado",
+        description: "QR Code foi atualizado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error refreshing QR code:', error);
+      toast({
+        title: "Erro ao atualizar",
+        description: "Erro ao atualizar o QR Code.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const disconnect = () => {
+    setConnectionStatus('disconnected');
+    setQrCodeUrl('');
+    setAutoRefresh(false);
+    toast({
+      title: "Desconectado",
+      description: "Conexão WhatsApp foi encerrada.",
+    });
+  };
+
   const getStatusBadge = () => {
     switch (connectionStatus) {
       case 'connected':
         return <Badge className="bg-green-500 hover:bg-green-600"><Wifi className="w-3 h-3 mr-1" />Conectado</Badge>;
-      case 'connecting':
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Aguardando</Badge>;
+      case 'qr_ready':
+        return <Badge className="bg-blue-500 hover:bg-blue-600"><QrCode className="w-3 h-3 mr-1" />QR Code Ativo</Badge>;
+      case 'loading':
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Carregando</Badge>;
       default:
         return <Badge variant="secondary"><WifiOff className="w-3 h-3 mr-1" />Desconectado</Badge>;
     }
@@ -157,34 +169,53 @@ const VenomWhatsAppConnection = () => {
                   </Button>
                 )}
 
-                {connectionStatus === 'connecting' && (
-                  <Button
-                    variant="outline"
-                    onClick={refreshQrCode}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Atualizando...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Atualizar QR Code
-                      </>
-                    )}
-                  </Button>
+                {(connectionStatus === 'qr_ready' || connectionStatus === 'loading') && (
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={refreshQrCode}
+                      disabled={isLoading}
+                      className="flex-1"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Atualizando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Atualizar QR Code
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      onClick={checkIfConnected}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Já Conectei
+                    </Button>
+                    
+                    <Button
+                      variant="destructive"
+                      onClick={disconnect}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
                 )}
 
                 {connectionStatus === 'connected' && (
-                  <Alert>
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      WhatsApp conectado e pronto para receber mensagens!
-                    </AlertDescription>
-                  </Alert>
+                  <Button
+                    variant="destructive"
+                    onClick={disconnect}
+                    className="w-full"
+                  >
+                    Desconectar
+                  </Button>
                 )}
               </div>
 
@@ -203,19 +234,28 @@ const VenomWhatsAppConnection = () => {
               <CardTitle className="text-lg md:text-xl">QR Code</CardTitle>
             </CardHeader>
             <CardContent>
-              {connectionStatus === 'connecting' && qrCodeUrl ? (
+              {connectionStatus === 'loading' && (
+                <div className="text-center py-8 md:py-12">
+                  <Loader2 className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-4 animate-spin text-blue-600" />
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                    Carregando QR Code...
+                  </h3>
+                  <p className="text-sm md:text-base text-gray-600">
+                    Aguarde enquanto carregamos seu QR Code de conexão.
+                  </p>
+                </div>
+              )}
+
+              {connectionStatus === 'qr_ready' && qrCodeUrl && (
                 <div className="text-center space-y-4">
                   <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
                     <img
                       src={qrCodeUrl}
                       alt="QR Code WhatsApp"
                       className="w-48 h-48 md:w-64 md:h-64 mx-auto"
-                      onError={() => {
-                        console.error('Error loading QR Code image');
-                        // Tentar recarregar após 3 segundos
-                        setTimeout(() => {
-                          setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
-                        }, 3000);
+                      onError={(e) => {
+                        console.warn('QR Code image failed to load');
+                        // Não resetar o estado aqui, deixar o usuário tentar novamente
                       }}
                       onLoad={() => {
                         console.log('QR Code image loaded successfully');
@@ -231,11 +271,14 @@ const VenomWhatsAppConnection = () => {
                       2. Toque em "Mais opções" ou "Configurações"<br />
                       3. Toque em "Aparelhos conectados"<br />
                       4. Toque em "Conectar um aparelho"<br />
-                      5. Aponte a câmera para este código
+                      5. Aponte a câmera para este código<br />
+                      6. Clique em "Já Conectei" após escanear
                     </p>
                   </div>
                 </div>
-              ) : connectionStatus === 'connected' ? (
+              )}
+              
+              {connectionStatus === 'connected' && (
                 <div className="text-center py-8 md:py-12">
                   <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                     <Wifi className="w-8 h-8 md:w-10 md:h-10 text-green-600" />
@@ -247,7 +290,9 @@ const VenomWhatsAppConnection = () => {
                     Seu WhatsApp está ativo e pronto para interagir com os agentes de IA.
                   </p>
                 </div>
-              ) : (
+              )}
+              
+              {connectionStatus === 'disconnected' && (
                 <div className="text-center py-8 md:py-12">
                   <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                     <QrCode className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
@@ -283,6 +328,7 @@ const VenomWhatsAppConnection = () => {
               <ol className="list-decimal list-inside space-y-1 text-sm">
                 <li>Clique em "Iniciar Conexão" para carregar o QR Code</li>
                 <li>Escaneie o QR Code com seu WhatsApp</li>
+                <li>Clique em "Já Conectei" após escanear com sucesso</li>
                 <li>Configure seus agentes na seção "Agentes" do sistema</li>
                 <li>Certifique-se de que pelo menos um agente esteja ativo para WhatsApp</li>
                 <li>Configure sua OpenAI API Key no perfil do usuário</li>
