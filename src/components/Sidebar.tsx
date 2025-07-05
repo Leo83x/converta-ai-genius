@@ -20,7 +20,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  TrendingUp
+  TrendingUp,
+  Smartphone
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -53,6 +54,12 @@ const sidebarItems = [
     href: '/integrations',
     icon: Settings,
     color: 'text-gray-500'
+  },
+  {
+    title: 'WhatsApp (Venom)',
+    href: '/venom-whatsapp',
+    icon: Smartphone,
+    color: 'text-emerald-500'
   },
   {
     title: 'Painel do Representante',

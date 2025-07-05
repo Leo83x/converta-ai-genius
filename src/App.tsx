@@ -22,6 +22,7 @@ import AffiliatePanel from './pages/AffiliatePanel';
 import Demo from '@/pages/Demo';
 import AffiliateLanding from '@/pages/AffiliateLanding';
 import ConfirmationPage from '@/pages/ConfirmationPage';
+import VenomWhatsAppConnection from '@/pages/VenomWhatsAppConnection';
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AffiliatePanel />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/venom-whatsapp" 
+                element={
+                  <ProtectedRoute>
+                    <VenomWhatsAppConnection />
                   </ProtectedRoute>
                 } 
               />
