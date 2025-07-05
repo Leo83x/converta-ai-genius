@@ -254,8 +254,18 @@ const VenomWhatsAppConnection = () => {
                       alt="QR Code WhatsApp"
                       className="w-48 h-48 md:w-64 md:h-64 mx-auto"
                       onError={(e) => {
-                        console.warn('QR Code image failed to load');
-                        // Não resetar o estado aqui, deixar o usuário tentar novamente
+                        console.error('QR Code image failed to load');
+                        console.error('Image src:', qrCodeUrl);
+                        console.error('Error event:', e);
+                        
+                        // Tentar recarregar após erro
+                        setTimeout(() => {
+                          console.log('Tentando recarregar QR Code após erro...');
+                          if (qrCodeUrl) {
+                            const newUrl = `https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?t=${Date.now()}`;
+                            setQrCodeUrl(newUrl);
+                          }
+                        }, 3000);
                       }}
                       onLoad={() => {
                         console.log('QR Code image loaded successfully');
