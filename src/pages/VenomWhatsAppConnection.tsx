@@ -246,7 +246,7 @@ const VenomWhatsAppConnection = () => {
                 </div>
               )}
 
-              {connectionStatus === 'qr_ready' && qrCodeUrl && (
+               {connectionStatus === 'qr_ready' && qrCodeUrl && (
                 <div className="text-center space-y-4">
                   <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
                     <img
@@ -258,14 +258,12 @@ const VenomWhatsAppConnection = () => {
                         console.error('Image src:', qrCodeUrl);
                         console.error('Error event:', e);
                         
-                        // Tentar recarregar após erro
-                        setTimeout(() => {
-                          console.log('Tentando recarregar QR Code após erro...');
-                          if (qrCodeUrl) {
-                            const newUrl = `https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?t=${Date.now()}`;
-                            setQrCodeUrl(newUrl);
-                          }
-                        }, 3000);
+                        // Mostrar mensagem de erro mais clara ao usuário
+                        toast({
+                          title: "Erro ao carregar QR Code",
+                          description: "Verifique se o servidor Venom Bot está online. Use 'Atualizar QR Code' para tentar novamente.",
+                          variant: "destructive"
+                        });
                       }}
                       onLoad={() => {
                         console.log('QR Code image loaded successfully');
@@ -284,6 +282,14 @@ const VenomWhatsAppConnection = () => {
                       5. Aponte a câmera para este código<br />
                       6. Clique em "Já Conectei" após escanear
                     </p>
+                    <Alert className="mt-4">
+                      <AlertDescription className="text-xs">
+                        <strong>Problema com o QR Code?</strong><br />
+                        • Verifique se o servidor http://31.97.167.218:3002 está online<br />
+                        • Use o botão "Atualizar QR Code" para tentar novamente<br />
+                        • Se persistir, entre em contato com o administrador do servidor
+                      </AlertDescription>
+                    </Alert>
                   </div>
                 </div>
               )}
