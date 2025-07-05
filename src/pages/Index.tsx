@@ -64,7 +64,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-1">
             <img 
-              src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
+              src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
               alt="Converta+" 
               className="h-10 w-10"
             />
@@ -307,7 +307,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-1 mb-4 md:mb-0">
               <img 
-                src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
+                src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
                 alt="Converta+" 
                 className="h-8 w-8"
               />

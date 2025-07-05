@@ -128,7 +128,7 @@ const Sidebar = () => {
         <Link to="/dashboard" className="flex items-center space-x-1" onClick={closeMobileMenu}>
           <div className="h-8 w-8 rounded-lg flex items-center justify-center">
             <img 
-              src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
+              src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
               alt="Converta+" 
               className="h-8 w-8"
             />

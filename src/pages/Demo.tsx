@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import {
 const Demo = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Iniciar fechado no mobile
 
   const sidebarItems = [
     { id: 'dashboard', name: 'Dashboard', icon: Home, color: 'text-blue-500' },
@@ -499,12 +500,12 @@ const Demo = () => {
   return (
     <div className="min-h-screen bg-gray-900 flex w-full overflow-x-hidden">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0`}>
+      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 ${sidebarOpen ? 'fixed inset-y-0 left-0 z-50 md:relative' : 'hidden md:flex'}`}>
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
             <div className={`flex items-center space-x-1 ${!sidebarOpen && 'justify-center'}`}>
               <img 
-                src="/lovable-uploads/b5be6410-a8c5-4f8d-9eb5-a979ed0ffe83.png" 
+                src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
                 alt="Converta+" 
                 className="h-8 w-8"
               />
@@ -546,12 +547,25 @@ const Demo = () => {
         </nav>
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="text-gray-400 hover:text-white md:hidden"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
               <h1 className="text-2xl font-bold text-white">Demo - Converta+</h1>
             </div>
             <Button
