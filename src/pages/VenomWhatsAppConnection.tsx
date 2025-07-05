@@ -12,29 +12,52 @@ const VenomWhatsAppConnection = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [serverConnected, setServerConnected] = useState(false);
+  const [connectionError, setConnectionError] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Só fazer auto-refresh se estiver explicitamente habilitado
-    if (autoRefresh && connectionStatus === 'qr_ready') {
-      const interval = setInterval(() => {
-        setLastUpdate(new Date());
-        // Atualizar timestamp do QR Code para forçar reload
-        if (qrCodeUrl) {
-          setQrCodeUrl(`https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?t=${Date.now()}`);
+  const checkServerStatus = async () => {
+    try {
+      const response = await fetch('http://31.97.167.218:3002/status');
+      const data = await response.json();
+      
+      setServerConnected(data.connected || false);
+      setLastUpdate(new Date());
+      setConnectionError('');
+      
+      if (data.connected) {
+        setConnectionStatus('connected');
+        setQrCodeUrl('');
+        toast({
+          title: "WhatsApp Conectado!",
+          description: "Sua conexão está ativa e pronta para receber mensagens.",
+        });
+      } else {
+        if (connectionStatus !== 'qr_ready') {
+          setConnectionStatus('qr_ready');
         }
-      }, 30000); // A cada 30 segundos
-      return () => clearInterval(interval);
+      }
+      
+      return data.connected;
+    } catch (error) {
+      console.error('Error checking server status:', error);
+      setConnectionError('Erro ao conectar com o servidor. Verifique se o servidor Venom Bot está online.');
+      setServerConnected(false);
+      toast({
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao servidor Venom Bot.",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [autoRefresh, connectionStatus, qrCodeUrl]);
+  };
 
   const loadQRCode = async () => {
-    const qrUrl = `https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?t=${Date.now()}`;
+    const qrUrl = `http://31.97.167.218:3002/qr`;
     setQrCodeUrl(qrUrl);
     setConnectionStatus('qr_ready');
-    setAutoRefresh(true);
     setLastUpdate(new Date());
+    setConnectionError('');
     
     toast({
       title: "QR Code carregado",
@@ -43,26 +66,20 @@ const VenomWhatsAppConnection = () => {
   };
 
   const checkIfConnected = async () => {
-    // Esta função pode ser chamada manualmente para verificar se já está conectado
-    try {
-      // Aqui você pode adicionar uma verificação real se necessário
-      // Por enquanto, vamos assumir que o usuário precisa confirmar manualmente
-      setConnectionStatus('connected');
-      setAutoRefresh(false);
-      setQrCodeUrl('');
-      
-      toast({
-        title: "WhatsApp Conectado!",
-        description: "Sua conexão está ativa e pronta para receber mensagens.",
-      });
-    } catch (error) {
-      console.error('Error checking connection:', error);
-    }
+    setConnectionStatus('connected');
+    setServerConnected(true);
+    setQrCodeUrl('');
+    
+    toast({
+      title: "WhatsApp Conectado!",
+      description: "Sua conexão está ativa e pronta para receber mensagens.",
+    });
   };
 
   const initializeConnection = async () => {
     setIsLoading(true);
     setConnectionStatus('loading');
+    setConnectionError('');
     
     try {
       await loadQRCode();
@@ -75,6 +92,7 @@ const VenomWhatsAppConnection = () => {
     } catch (error) {
       console.error('Error initializing connection:', error);
       setConnectionStatus('disconnected');
+      setConnectionError('Não foi possível carregar o QR Code. Verifique se o servidor está ativo.');
       toast({
         title: "Erro na conexão",
         description: "Não foi possível carregar o QR Code. Verifique se o servidor está ativo.",
@@ -87,17 +105,24 @@ const VenomWhatsAppConnection = () => {
 
   const refreshQrCode = async () => {
     setIsLoading(true);
+    setConnectionError('');
+    
     try {
-      await loadQRCode();
-      toast({
-        title: "QR Code atualizado",
-        description: "QR Code foi atualizado com sucesso.",
-      });
+      const isConnected = await checkServerStatus();
+      
+      if (!isConnected) {
+        await loadQRCode();
+        toast({
+          title: "Status verificado",
+          description: "QR Code atualizado. Status: Aguardando conexão.",
+        });
+      }
     } catch (error) {
-      console.error('Error refreshing QR code:', error);
+      console.error('Error refreshing status:', error);
+      setConnectionError('Erro ao verificar status do servidor.');
       toast({
         title: "Erro ao atualizar",
-        description: "Erro ao atualizar o QR Code.",
+        description: "Erro ao verificar status do servidor.",
         variant: "destructive"
       });
     } finally {
@@ -108,7 +133,8 @@ const VenomWhatsAppConnection = () => {
   const disconnect = () => {
     setConnectionStatus('disconnected');
     setQrCodeUrl('');
-    setAutoRefresh(false);
+    setServerConnected(false);
+    setConnectionError('');
     toast({
       title: "Desconectado",
       description: "Conexão WhatsApp foi encerrada.",
@@ -174,13 +200,13 @@ const VenomWhatsAppConnection = () => {
                     <Button
                       variant="outline"
                       onClick={refreshQrCode}
-                      disabled={isLoading}
+                      disabled={isLoading || serverConnected}
                       className="flex-1"
                     >
                       {isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Atualizando...
+                          Verificando...
                         </>
                       ) : (
                         <>
@@ -192,10 +218,11 @@ const VenomWhatsAppConnection = () => {
                     
                     <Button
                       onClick={checkIfConnected}
-                      className="flex-1"
+                      className={`flex-1 ${serverConnected ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      variant={serverConnected ? "default" : "default"}
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
-                      Já Conectei
+                      {serverConnected ? 'Confirmar Conexão' : 'Já Conectei'}
                     </Button>
                     
                     <Button
@@ -248,49 +275,66 @@ const VenomWhatsAppConnection = () => {
 
                {connectionStatus === 'qr_ready' && qrCodeUrl && (
                 <div className="text-center space-y-4">
-                  <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
-                    <img
-                      src={qrCodeUrl}
-                      alt="QR Code WhatsApp"
-                      className="w-48 h-48 md:w-64 md:h-64 mx-auto"
-                      onError={(e) => {
-                        console.error('QR Code image failed to load');
-                        console.error('Image src:', qrCodeUrl);
-                        console.error('Error event:', e);
-                        
-                        // Mostrar mensagem de erro mais clara ao usuário
-                        toast({
-                          title: "Erro ao carregar QR Code",
-                          description: "Verifique se o servidor Venom Bot está online. Use 'Atualizar QR Code' para tentar novamente.",
-                          variant: "destructive"
-                        });
-                      }}
-                      onLoad={() => {
-                        console.log('QR Code image loaded successfully');
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm md:text-base font-medium text-gray-900">
-                      Escaneie com seu WhatsApp
-                    </p>
-                    <p className="text-xs md:text-sm text-gray-600">
-                      1. Abra o WhatsApp no seu celular<br />
-                      2. Toque em "Mais opções" ou "Configurações"<br />
-                      3. Toque em "Aparelhos conectados"<br />
-                      4. Toque em "Conectar um aparelho"<br />
-                      5. Aponte a câmera para este código<br />
-                      6. Clique em "Já Conectei" após escanear
-                    </p>
-                    <Alert className="mt-4">
-                      <AlertDescription className="text-xs">
-                        <strong>Problema com o QR Code?</strong><br />
-                        • Verifique se o servidor http://31.97.167.218:3002 está online<br />
-                        • Use o botão "Atualizar QR Code" para tentar novamente<br />
-                        • Se persistir, entre em contato com o administrador do servidor
-                      </AlertDescription>
-                    </Alert>
-                  </div>
+                  {connectionError ? (
+                    <div className="py-8 md:py-12">
+                      <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                        <QrCode className="w-8 h-8 md:w-10 md:h-10 text-red-500" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                        Erro ao carregar QR Code
+                      </h3>
+                      <p className="text-sm md:text-base text-red-600 mb-4">
+                        Verifique se o servidor Venom Bot está online.
+                      </p>
+                      <Alert className="text-left">
+                        <AlertDescription className="text-xs">
+                          <strong>Problemas de conexão:</strong><br />
+                          • Servidor: http://31.97.167.218:3002<br />
+                          • Verifique se o servidor está online e acessível<br />
+                          • Use o botão "Atualizar QR Code" para tentar novamente
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="bg-white p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
+                        <img
+                          src={qrCodeUrl}
+                          alt="QR Code WhatsApp"
+                          className="w-48 h-48 md:w-64 md:h-64 mx-auto"
+                          onError={(e) => {
+                            console.error('QR Code image failed to load');
+                            console.error('Image src:', qrCodeUrl);
+                            console.error('Error event:', e);
+                            
+                            setConnectionError('Erro ao carregar QR Code. Verifique se o servidor Venom Bot está online.');
+                            toast({
+                              title: "Erro ao carregar QR Code",
+                              description: "Verifique se o servidor Venom Bot está online.",
+                              variant: "destructive"
+                            });
+                          }}
+                          onLoad={() => {
+                            console.log('QR Code image loaded successfully');
+                            setConnectionError('');
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm md:text-base font-medium text-gray-900">
+                          Escaneie com seu WhatsApp
+                        </p>
+                        <p className="text-xs md:text-sm text-gray-600">
+                          1. Abra o WhatsApp no seu celular<br />
+                          2. Toque em "Mais opções" ou "Configurações"<br />
+                          3. Toque em "Aparelhos conectados"<br />
+                          4. Toque em "Conectar um aparelho"<br />
+                          5. Aponte a câmera para este código<br />
+                          6. Clique em "Já Conectei" após escanear
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               
