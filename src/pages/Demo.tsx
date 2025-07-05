@@ -1,12 +1,12 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowLeft, 
-  Home, Settings, Menu, X, Phone, Mail, Star, TrendingUp,
-  Calendar, Clock, CheckCircle, AlertCircle, DollarSign, Target
+  Bot, MessageSquare, BarChart, Calendar, Clock, CheckCircle, AlertCircle, DollarSign, Target,
+  Home, Settings, Menu, X, Phone, Mail, Star, TrendingUp, Zap, User, Building, MapPin
 } from 'lucide-react';
 
 const Demo = () => {
@@ -19,7 +19,7 @@ const Demo = () => {
     { id: 'agents', name: 'Agentes IA', icon: Bot, color: 'text-green-500' },
     { id: 'conversations', name: 'Conversas', icon: MessageSquare, color: 'text-purple-500' },
     { id: 'crm', name: 'CRM', icon: Users, color: 'text-orange-500' },
-    { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-yellow-500' },
+    { id: 'analytics', name: 'Analytics', icon: BarChart, color: 'text-yellow-500' },
     { id: 'affiliate', name: 'Painel Rep.', icon: Target, color: 'text-pink-500' },
     { id: 'settings', name: 'Configurações', icon: Settings, color: 'text-gray-500' },
   ];
@@ -507,23 +507,16 @@ const Demo = () => {
               <img 
                 src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
                 alt="Converta+" 
-                className="h-8 w-8"
+                className="h-8 w-8 mb-0.5"
               />
               {sidebarOpen && (
                 <span className="text-xl font-bold text-white">Converta+</span>
               )}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-gray-400 hover:text-white"
-            >
-              {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
             {sidebarItems.map((item) => (
@@ -571,6 +564,7 @@ const Demo = () => {
             <Button
               onClick={() => navigate('/')}
               variant="outline"
+              size="sm"
               className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

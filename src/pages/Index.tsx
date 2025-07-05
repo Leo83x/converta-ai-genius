@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign } from 'lucide-react';
+import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign, Brain } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -34,9 +34,9 @@ const Index = () => {
       description: "Gerencie todos os seus leads em um funil de vendas organizado"
     },
     {
-      icon: <Shield className="h-8 w-8 text-indigo-400" />,
-      title: "Segurança Avançada",
-      description: "Dados protegidos com criptografia e políticas de segurança rigorosas"
+      icon: <Brain className="h-8 w-8 text-indigo-400" />,
+      title: "Assistente Inteligente",
+      description: "IA que analisa performance e oferece insights estratégicos para otimização contínua"
     }
   ];
 
@@ -57,6 +57,14 @@ const Index = () => {
     }, 100);
   };
 
+  const handleAffiliateClick = () => {
+    navigate('/afiliados');
+    // Scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 w-full overflow-x-hidden">
       {/* Header */}
@@ -66,7 +74,7 @@ const Index = () => {
             <img 
               src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
               alt="Converta+" 
-              className="h-10 w-10"
+              className="h-10 w-10 mb-0.5"
             />
             <span className="text-2xl font-bold text-white">
               Converta+
@@ -83,7 +91,7 @@ const Index = () => {
               Ver Demo
             </Button>
             <Button
-              onClick={() => navigate('/afiliados')}
+              onClick={handleAffiliateClick}
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
@@ -118,7 +126,7 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => navigate('/afiliados')}
+              onClick={handleAffiliateClick}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
             >
               Torne-se um Representante
@@ -291,7 +299,7 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={() => navigate('/afiliados')}
+              onClick={handleAffiliateClick}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white font-semibold"
             >
               Torne-se um Representante
@@ -309,7 +317,7 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
                 alt="Converta+" 
-                className="h-8 w-8"
+                className="h-8 w-8 mb-0.5"
               />
               <span className="text-xl font-bold text-white">Converta+</span>
             </div>

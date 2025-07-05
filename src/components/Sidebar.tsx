@@ -1,4 +1,5 @@
 
+
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -130,7 +131,7 @@ const Sidebar = () => {
             <img 
               src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
               alt="Converta+" 
-              className="h-8 w-8"
+              className="h-8 w-8 mb-0.5"
             />
           </div>
           <span className="text-xl font-bold text-gray-900 dark:text-white">

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -225,9 +226,9 @@ const AffiliateLanding = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-center">
           <div className="flex items-center space-x-1">
             <img 
-              src="/lovable-uploads/ce25a7c1-b528-4a12-802a-3ccc77677d04.png" 
+              src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
               alt="Converta+" 
-              className="h-10 w-10"
+              className="h-10 w-10 mb-0.5"
             />
             <span className="text-2xl font-bold text-white">
               Converta+
