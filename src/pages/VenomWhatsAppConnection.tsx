@@ -23,30 +23,26 @@ const VenomWhatsAppConnection = () => {
 
   const checkConnectionStatus = async () => {
     try {
-      // Verificar se o servidor está respondendo
-      const response = await fetch('http://31.97.167.218:3002/status', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Tentar carregar o QR Code para verificar se o servidor está ativo
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      const imageLoadPromise = new Promise((resolve, reject) => {
+        img.onload = () => resolve(true);
+        img.onerror = () => reject(false);
+        img.src = `http://31.97.167.218:3002/qr?t=${Date.now()}`;
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.connected) {
-          setConnectionStatus('connected');
-          setQrCodeUrl('');
-        } else {
-          setConnectionStatus('connecting');
-          // Atualizar QR Code
-          setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
-        }
-      } else {
-        setConnectionStatus('disconnected');
-      }
+      await imageLoadPromise;
+      
+      // Se conseguiu carregar a imagem, assumir que está conectando
+      setConnectionStatus('connecting');
+      setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
+      
     } catch (error) {
-      console.error('Error checking connection status:', error);
+      console.log('QR Code not available, server may be disconnected');
       setConnectionStatus('disconnected');
+      setQrCodeUrl('');
     }
     setLastUpdate(new Date());
   };
@@ -83,39 +79,25 @@ const VenomWhatsAppConnection = () => {
     setConnectionStatus('connecting');
     
     try {
-      // Configurar webhook para este sistema
-      const webhookUrl = `${window.location.origin}/functions/v1/venom-webhook`;
-      
-      const configResponse = await fetch('http://31.97.167.218:3002/config-webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          webhookUrl: webhookUrl
-        }),
-      });
-
-      if (configResponse.ok) {
-        toast({
-          title: "Webhook configured",
-          description: "Sistema configurado para receber mensagens.",
-        });
-      }
-
-      // Gerar novo QR Code
+      // Gerar novo QR Code diretamente
       setQrCodeUrl(`http://31.97.167.218:3002/qr?t=${Date.now()}`);
       
       toast({
         title: "Conexão iniciada",
-        description: "Escaneie o QR Code com seu WhatsApp para conectar.",
+        description: "QR Code carregado. Escaneie com seu WhatsApp para conectar.",
       });
+
+      // Verificar se QR Code está disponível
+      setTimeout(() => {
+        checkConnectionStatus();
+      }, 2000);
+      
     } catch (error) {
       console.error('Error initializing connection:', error);
       setConnectionStatus('disconnected');
       toast({
         title: "Erro na conexão",
-        description: "Erro ao inicializar a conexão com WhatsApp.",
+        description: "Não foi possível carregar o QR Code. Verifique se o servidor está ativo.",
         variant: "destructive"
       });
     } finally {
@@ -282,17 +264,35 @@ const VenomWhatsAppConnection = () => {
           </Card>
         </div>
 
-        {/* Informações sobre Agentes */}
+        {/* Informações sobre Agentes e Configuração */}
         <Card className="mt-4 md:mt-6">
           <CardHeader>
-            <CardTitle className="text-lg md:text-xl">Agentes Conectados</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Configuração Manual</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <Alert>
               <AlertDescription>
                 <strong>Webhook URL:</strong> {window.location.origin}/functions/v1/venom-webhook<br />
-                Os agentes de IA ativos no canal WhatsApp responderão automaticamente às mensagens recebidas.
-                Configure seus agentes na seção "Agentes" do sistema.
+                <strong>Configuração no servidor Venom Bot:</strong><br />
+                Configure este webhook URL no seu servidor Venom Bot para que as mensagens sejam processadas pelos agentes de IA.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">Instruções de uso:</h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm">
+                <li>Clique em "Iniciar Conexão" para carregar o QR Code</li>
+                <li>Escaneie o QR Code com seu WhatsApp</li>
+                <li>Configure seus agentes na seção "Agentes" do sistema</li>
+                <li>Certifique-se de que pelo menos um agente esteja ativo para WhatsApp</li>
+                <li>Configure sua OpenAI API Key no perfil do usuário</li>
+              </ol>
+            </div>
+
+            <Alert>
+              <AlertDescription>
+                <strong>Agentes Ativos:</strong> Os agentes de IA configurados no canal WhatsApp responderão automaticamente às mensagens recebidas.
+                Todas as conversas são salvas e podem ser visualizadas na seção "Conversas".
               </AlertDescription>
             </Alert>
           </CardContent>

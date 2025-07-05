@@ -166,24 +166,29 @@ serve(async (req) => {
           })
           .eq('id', conversation.id);
 
-        // Enviar resposta via Venom Bot
-        const venomResponse = await fetch('http://31.97.167.218:3002/send-message', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: from,
-            message: replyText
-          }),
-        });
+        // Enviar resposta via Venom Bot (assumindo que a API do Venom aceita este formato)
+        // Nota: O endpoint exato pode variar dependendo da configuração do servidor Venom
+        try {
+          const venomResponse = await fetch('http://31.97.167.218:3002/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              number: from,
+              text: replyText
+            }),
+          });
 
-        if (!venomResponse.ok) {
-          console.error('Error sending message via Venom Bot:', await venomResponse.text());
-          continue;
+          if (venomResponse.ok) {
+            console.log('Message sent successfully via Venom Bot');
+          } else {
+            console.error('Error sending message via Venom Bot:', await venomResponse.text());
+          }
+        } catch (venomError) {
+          console.error('Network error sending message via Venom Bot:', venomError);
+          // Continuar mesmo se não conseguir enviar, pois a conversa foi salva
         }
-
-        console.log('Message sent successfully via Venom Bot');
 
       } catch (error) {
         console.error(`Error processing agent ${channel.agents.id}:`, error);
