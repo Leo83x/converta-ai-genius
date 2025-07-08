@@ -11,28 +11,31 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching QR code from Venom server...')
+    console.log('Proxying QR code from Venom server...')
     
     const response = await fetch('http://31.97.167.218:3002/qr', {
       method: 'GET',
       headers: {
-        'User-Agent': 'Supabase-Edge-Function/1.0'
+        'User-Agent': 'Supabase-Edge-Function/1.0',
+        'Accept': 'image/png, image/*, */*'
       }
     })
 
-    console.log('Response status:', response.status)
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+    console.log('Venom server response status:', response.status)
 
     if (!response.ok) {
       console.error(`Failed to fetch QR code: ${response.status} - ${response.statusText}`)
-      return new Response(`Error: ${response.status} - ${response.statusText}`, {
-        status: response.status,
-        headers: corsHeaders,
+      return new Response('QR Code não disponível', {
+        status: 503,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/plain',
+        },
       })
     }
 
     const imageBuffer = await response.arrayBuffer()
-    console.log('QR Code image buffer size:', imageBuffer.byteLength)
+    console.log('QR Code proxied successfully, size:', imageBuffer.byteLength, 'bytes')
     
     return new Response(imageBuffer, {
       headers: {
@@ -44,16 +47,12 @@ serve(async (req) => {
       },
     })
   } catch (error) {
-    console.error('Error fetching QR code:', error)
-    return new Response(JSON.stringify({ 
-      error: 'Failed to fetch QR code',
-      message: error.message,
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
+    console.error('Error proxying QR code:', error)
+    return new Response('Servidor Venom indisponível', {
+      status: 503,
       headers: {
         ...corsHeaders,
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/plain'
       },
     })
   }
