@@ -46,3 +46,6 @@ verify_jwt = true
 
 [functions.whatsapp-send-message]
 verify_jwt = true
+
+[functions.venom-qr-proxy]
+verify_jwt = false
