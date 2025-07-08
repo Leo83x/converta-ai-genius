@@ -54,7 +54,9 @@ const VenomWhatsAppConnection = () => {
 
   const loadQRCode = async () => {
     try {
-      const response = await fetch('http://31.97.167.218:3002/qr-base64');
+      // Usa o proxy do Supabase para evitar problemas de Mixed Content
+      const proxyUrl = 'https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?instance=default';
+      const response = await fetch(proxyUrl);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -73,15 +75,27 @@ const VenomWhatsAppConnection = () => {
           title: "QR Code carregado",
           description: "Escaneie o código com seu WhatsApp para conectar.",
         });
+      } else if (data.error) {
+        // Se o WhatsApp já está conectado
+        if (data.error.includes('conectado')) {
+          setConnectionStatus('connected');
+          setQrCodeUrl('');
+          toast({
+            title: "WhatsApp já conectado",
+            description: "Sua conexão está ativa e pronta para uso.",
+          });
+        } else {
+          throw new Error(data.error);
+        }
       } else {
-        throw new Error('Base64 não encontrado na resposta');
+        throw new Error('Resposta inválida do servidor');
       }
     } catch (error) {
       console.error('Erro ao carregar QR Code:', error);
       setConnectionError('Erro ao carregar QR Code. Verifique se o servidor Venom Bot está online.');
       toast({
         title: "Erro ao carregar QR Code",
-        description: "Verifique se o servidor Venom Bot está online e a rota /qr-base64 está disponível.",
+        description: "Verifique se o servidor Venom Bot está online.",
         variant: "destructive"
       });
     }

@@ -1,37 +1,50 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-serve(async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-  const instance = searchParams.get("instance");
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+};
 
-  if (!instance) {
-    return new Response("Project not specified.", { status: 400 });
+serve(async (req: Request) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
 
-  const venomUrl = `http://31.97.167.218:3002/qr?instance=${encodeURIComponent(instance)}`;
+  const { searchParams } = new URL(req.url);
+  const instance = searchParams.get("instance") || "default";
 
   try {
-    const venomResponse = await fetch(venomUrl);
-    const html = await venomResponse.text();
+    const backendUrl = `http://31.97.167.218:3002/qr-base64`;
 
-    const match = html.match(/<img[^>]*src="data:image\/png;base64,([^"]+)"/);
-
-    if (!match) {
-      return new Response("QR code not found in response.", { status: 500 });
+    // Faz a chamada ao backend local (HTTP)
+    const fetchResponse = await fetch(backendUrl);
+    
+    if (!fetchResponse.ok) {
+      throw new Error(`HTTP ${fetchResponse.status}: ${fetchResponse.statusText}`);
     }
+    
+    const data = await fetchResponse.json();
 
-    const base64Data = match[1];
-    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-
-    return new Response(binaryData, {
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "no-store"
+        ...corsHeaders,
+        "Content-Type": "application/json",
       }
     });
   } catch (error) {
     console.error("Erro ao buscar QR do Venom:", error);
-    return new Response("Erro ao buscar QR code", { status: 500 });
+    return new Response(JSON.stringify({ 
+      error: 'Erro ao buscar QR Code.', 
+      details: error.message 
+    }), {
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      }
+    });
   }
 });
