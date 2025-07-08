@@ -53,7 +53,7 @@ const VenomWhatsAppConnection = () => {
   };
 
   const loadQRCode = async () => {
-    const qrUrl = `https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy`;
+    const qrUrl = `https://xekxewtggioememydenu.functions.supabase.co/venom-qr-proxy?instance=default`;
     setQrCodeUrl(qrUrl);
     setConnectionStatus('qr_ready');
     setLastUpdate(new Date());
