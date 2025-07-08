@@ -11,20 +11,20 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Proxying QR code from Venom server...')
+    console.log('Fetching QR code HTML from Venom server...')
     
     const response = await fetch('http://31.97.167.218:3002/qr', {
       method: 'GET',
       headers: {
         'User-Agent': 'Supabase-Edge-Function/1.0',
-        'Accept': 'image/png, image/*, */*'
+        'Accept': 'text/html, */*'
       }
     })
 
     console.log('Venom server response status:', response.status)
 
     if (!response.ok) {
-      console.error(`Failed to fetch QR code: ${response.status} - ${response.statusText}`)
+      console.error(`Failed to fetch QR code HTML: ${response.status} - ${response.statusText}`)
       return new Response('QR Code não disponível', {
         status: 503,
         headers: {
@@ -34,10 +34,32 @@ serve(async (req) => {
       })
     }
 
-    const imageBuffer = await response.arrayBuffer()
-    console.log('QR Code proxied successfully, size:', imageBuffer.byteLength, 'bytes')
+    // Get HTML content
+    const htmlContent = await response.text()
+    console.log('HTML content length:', htmlContent.length)
+
+    // Extract base64 from img src attribute
+    const imgSrcMatch = htmlContent.match(/src="data:image\/png;base64,([^"]+)"/i)
     
-    return new Response(imageBuffer, {
+    if (!imgSrcMatch || !imgSrcMatch[1]) {
+      console.error('No base64 image found in HTML response')
+      return new Response('QR Code não encontrado no HTML', {
+        status: 404,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/plain',
+        },
+      })
+    }
+
+    const base64Data = imgSrcMatch[1]
+    console.log('Extracted base64 data length:', base64Data.length)
+
+    // Convert base64 to binary
+    const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
+    console.log('Binary data length:', binaryData.length)
+    
+    return new Response(binaryData, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'image/png',
@@ -47,9 +69,9 @@ serve(async (req) => {
       },
     })
   } catch (error) {
-    console.error('Error proxying QR code:', error)
-    return new Response('Servidor Venom indisponível', {
-      status: 503,
+    console.error('Error processing QR code:', error)
+    return new Response('Erro interno do servidor', {
+      status: 500,
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/plain'
