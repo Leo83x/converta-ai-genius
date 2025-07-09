@@ -55,114 +55,27 @@ const VenomWhatsAppConnection = () => {
 
   const loadQRCode = async () => {
     try {
-      // Estratégia alternativa: usar JSONP para contornar CORS
-      const generateQRWithJSONP = () => {
-        return new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          const callbackName = 'venomQRCallback' + Date.now();
-          
-          // Timeout de 10 segundos
-          const timeout = setTimeout(() => {
-            cleanup();
-            reject(new Error('Timeout ao carregar QR Code'));
-          }, 10000);
-          
-          const cleanup = () => {
-            if (script.parentNode) {
-              script.parentNode.removeChild(script);
-            }
-            delete (window as any)[callbackName];
-            clearTimeout(timeout);
-          };
-          
-          (window as any)[callbackName] = (data: any) => {
-            cleanup();
-            resolve(data);
-          };
-          
-          script.onerror = () => {
-            cleanup();
-            reject(new Error('Erro ao carregar script'));
-          };
-          
-          // Fallback: se o servidor não suporta JSONP, usa fetch direto com proxy simples
-          script.src = `http://31.97.167.218:3002/qr-base64?callback=${callbackName}`;
-          document.head.appendChild(script);
-        });
-      };
+      setConnectionStatus('qr_ready');
+      setQrCodeUrl(''); // Limpa QR antigo
+      setConnectionError('');
+      
+      // Simula um QR code placeholder enquanto carrega
+      toast({
+        title: "Carregando QR Code",
+        description: "Acesse o link abaixo para ver o QR Code do Venom Bot",
+      });
 
-      // Método alternativo 1: Tentar JSONP primeiro
-      try {
-        const data = await generateQRWithJSONP() as any;
-        
-        if (data && data.base64) {
-          const qrUrl = `data:image/png;base64,${data.base64}`;
-          setQrCodeUrl(qrUrl);
-          setConnectionStatus('qr_ready');
-          setLastUpdate(new Date());
-          setConnectionError('');
-          
-          toast({
-            title: "QR Code carregado",
-            description: "Escaneie o código com seu WhatsApp para conectar.",
-          });
-          return;
-        }
-      } catch (jsonpError) {
-        console.log('JSONP falhou, tentando método direto:', jsonpError);
-      }
-
-      // Método alternativo 2: Fetch direto ignorando CORS (pode funcionar em alguns browsers)
-      try {
-        const response = await fetch('http://31.97.167.218:3002/qr-base64', {
-          method: 'GET',
-          mode: 'no-cors', // Ignora CORS mas não consegue ler resposta
-        });
-        
-        // Como mode: 'no-cors' não permite ler resposta, vamos tentar uma abordagem diferente
-        throw new Error('Método no-cors não permite leitura de resposta');
-      } catch (directError) {
-        console.log('Fetch direto falhou:', directError);
-      }
-
-      // Método alternativo 3: Usar proxy público (apenas para teste - NÃO recomendado em produção)
-      try {
-        const proxyResponse = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('http://31.97.167.218:3002/qr-base64')}`);
-        const proxyData = await proxyResponse.json();
-        
-        if (proxyData.contents) {
-          const qrData = JSON.parse(proxyData.contents);
-          
-          if (qrData.base64) {
-            const qrUrl = `data:image/png;base64,${qrData.base64}`;
-            setQrCodeUrl(qrUrl);
-            setConnectionStatus('qr_ready');
-            setLastUpdate(new Date());
-            setConnectionError('');
-            
-            toast({
-              title: "QR Code carregado (via proxy)",
-              description: "Escaneie o código com seu WhatsApp para conectar.",
-            });
-            return;
-          }
-        }
-      } catch (proxyError) {
-        console.log('Proxy público falhou:', proxyError);
-      }
-
-      // Se todos os métodos falharam
-      throw new Error('Todos os métodos de carregamento falharam');
+      // Mostra instruções para acessar diretamente
+      setConnectionError('Para visualizar o QR Code, acesse diretamente o servidor Venom Bot.');
       
     } catch (error) {
       console.error('Erro ao carregar QR Code:', error);
-      setConnectionError(`Erro ao carregar QR Code: ${error.message}. O servidor Venom pode estar com problemas internos.`);
+      setConnectionError('Erro ao carregar QR Code. Acesse o servidor diretamente.');
       
-      // Mostrar instruções alternativas
       toast({
-        title: "Erro ao carregar QR Code",
-        description: "Tente acessar http://31.97.167.218:3002 diretamente no navegador",
-        variant: "destructive"
+        title: "Acesse o servidor diretamente",
+        description: "Clique no link para ver o QR Code",
+        variant: "default"
       });
     }
   };
@@ -441,38 +354,66 @@ const VenomWhatsAppConnection = () => {
                )}
 
                {connectionStatus === 'qr_ready' && connectionError && (
-                 <div className="py-8 md:py-12">
-                   <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                     <QrCode className="w-8 h-8 md:w-10 md:h-10 text-red-500" />
+                 <div className="text-center py-8 md:py-12">
+                   <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                     <QrCode className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
                    </div>
-                   <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                     Problema de conexão
+                   <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">
+                     QR Code disponível no servidor
                    </h3>
-                   <p className="text-sm md:text-base text-red-600 mb-4">
-                     {connectionError}
-                   </p>
+                   
+                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                     <p className="text-sm text-blue-800 mb-4">
+                       Devido a restrições de segurança (HTTPS vs HTTP), acesse diretamente o servidor para ver o QR Code:
+                     </p>
+                     
+                     <a 
+                       href="http://31.97.167.218:3002" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                     >
+                       🔗 Abrir Servidor Venom Bot
+                     </a>
+                   </div>
+
                    <Alert className="text-left mb-4">
-                     <AlertDescription className="text-xs">
-                       <strong>Soluções alternativas:</strong><br />
-                       • Acesse diretamente: <a href="http://31.97.167.218:3002" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">http://31.97.167.218:3002</a><br />
-                       • Verifique se o servidor Venom está online<br />
-                       • Use o botão "Atualizar QR Code" para tentar novamente<br />
-                       • Se o QR aparecer no link acima, escaneie direto e clique "Já Conectei"
+                     <AlertDescription className="text-sm">
+                       <strong>Passo a passo:</strong><br />
+                       1. Clique no link acima para abrir o servidor<br />
+                       2. Visualize o QR Code na página<br />
+                       3. Escaneie com seu WhatsApp<br />
+                       4. Volte aqui e clique "Já Conectei"
                      </AlertDescription>
                    </Alert>
-                   <Button onClick={refreshQrCode} disabled={isLoading} className="w-full">
-                     {isLoading ? (
-                       <>
-                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                         Tentando novamente...
-                       </>
-                     ) : (
-                       <>
-                         <RefreshCw className="w-4 h-4 mr-2" />
-                         Tentar Novamente
-                       </>
-                     )}
-                   </Button>
+                   
+                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                     <Button
+                       onClick={checkIfConnected}
+                       className="bg-green-600 hover:bg-green-700"
+                     >
+                       <CheckCircle className="w-4 h-4 mr-2" />
+                       Já Conectei
+                     </Button>
+                     
+                     <Button
+                       variant="outline"
+                       onClick={refreshQrCode}
+                       disabled={isLoading}
+                     >
+                       {isLoading ? (
+                         <>
+                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                           Verificando...
+                         </>
+                       ) : (
+                         <>
+                           <RefreshCw className="w-4 h-4 mr-2" />
+                           Atualizar Status
+                         </>
+                       )}
+                     </Button>
+                   </div>
                  </div>
                )}
               
