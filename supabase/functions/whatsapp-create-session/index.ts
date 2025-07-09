@@ -88,86 +88,51 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Get Evolution API configuration
-    const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
-    const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://2969-186-205-11-178.ngrok-free.app';
+    // Get Venom Bot server configuration
+    const venomServerUrl = 'http://31.97.167.218:3002';
     
-    if (!evolutionApiKey) {
-      console.error('Evolution API key not found in environment variables');
-      throw new Error('Evolution API key not configured');
-    }
+    console.log('Venom server URL:', venomServerUrl);
+    console.log('Making request to Venom server');
 
-    console.log('Evolution API URL:', evolutionApiUrl);
-    console.log('Evolution API key found, making request to Evolution API');
+    // Create session in Venom Bot
+    const createUrl = `${venomServerUrl}/start-session`;
+    console.log('Creating session at:', createUrl);
 
-    // Create session in Evolution API
-    const createUrl = `${evolutionApiUrl}/instance/create`;
-    console.log('Creating instance at:', createUrl);
-
-    const evolutionResponse = await fetch(createUrl, {
+    const venomResponse = await fetch(createUrl, {
       method: 'POST',
       headers: {
-        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        instanceName: sessionName,
-        qrcode: true,
-        integration: "WHATSAPP-BAILEYS"
+        sessionName: sessionName,
+        qrcode: true
       })
     });
 
-    console.log('Evolution API response status:', evolutionResponse.status);
+    console.log('Venom response status:', venomResponse.status);
 
-    if (!evolutionResponse.ok) {
-      const errorText = await evolutionResponse.text();
-      console.error('Evolution API error response:', errorText);
-      throw new Error(`Evolution API error: ${evolutionResponse.status} - ${errorText}`);
+    if (!venomResponse.ok) {
+      const errorText = await venomResponse.text();
+      console.error('Venom error response:', errorText);
+      throw new Error(`Venom error: ${venomResponse.status} - ${errorText}`);
     }
 
-    const evolutionData = await evolutionResponse.json();
-    console.log('Evolution API success response:', JSON.stringify(evolutionData, null, 2));
-
-    // Connect the instance
-    try {
-      const connectUrl = `${evolutionApiUrl}/instance/connect/${sessionName}`;
-      console.log('Connecting instance at:', connectUrl);
-      
-      const connectResponse = await fetch(connectUrl, {
-        method: 'GET',
-        headers: {
-          'apikey': evolutionApiKey,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      console.log('Evolution connect response status:', connectResponse.status);
-      
-      if (connectResponse.ok) {
-        const connectData = await connectResponse.json();
-        console.log('Evolution connect success:', connectData);
-      } else {
-        const connectError = await connectResponse.text();
-        console.warn('Evolution connect warning:', connectError);
-      }
-    } catch (connectError) {
-      console.warn('Evolution connect failed (non-critical):', connectError);
-    }
+    const venomData = await venomResponse.json();
+    console.log('Venom success response:', JSON.stringify(venomData, null, 2));
 
     // Wait a moment and then try to get QR code
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     let qrCodeUrl = null;
     
-    // Try to get QR code from multiple endpoints
+    // Try to get QR code from Venom server
     try {
-      const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+      const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
       console.log('Getting QR code from:', qrUrl);
       
       const qrResponse = await fetch(qrUrl, {
         method: 'GET',
         headers: {
-          'apikey': evolutionApiKey,
           'Content-Type': 'application/json',
         }
       });
@@ -178,6 +143,8 @@ serve(async (req) => {
         
         if (qrData.qrcode) {
           qrCodeUrl = qrData.qrcode;
+        } else if (qrData.qr) {
+          qrCodeUrl = qrData.qr;
         } else if (qrData.base64) {
           qrCodeUrl = qrData.base64;
         }
@@ -188,12 +155,12 @@ serve(async (req) => {
 
     // If no QR code from dedicated endpoint, check creation response
     if (!qrCodeUrl) {
-      if (evolutionData.qrcode) {
-        qrCodeUrl = evolutionData.qrcode;
-      } else if (evolutionData.qr) {
-        qrCodeUrl = evolutionData.qr;
-      } else if (evolutionData.base64) {
-        qrCodeUrl = evolutionData.base64;
+      if (venomData.qrcode) {
+        qrCodeUrl = venomData.qrcode;
+      } else if (venomData.qr) {
+        qrCodeUrl = venomData.qr;
+      } else if (venomData.base64) {
+        qrCodeUrl = venomData.base64;
       }
     }
 
@@ -203,8 +170,8 @@ serve(async (req) => {
     const insertData = {
       user_id: user.id,
       session_name: sessionName,
-      instance_id: evolutionData.instance?.instanceName || sessionName,
-      token: evolutionData.hash || 'temp_token',
+      instance_id: sessionName,
+      token: venomData.token || 'venom_token',
       qr_code_url: qrCodeUrl,
       status: qrCodeUrl ? 'pending' : 'connecting'
     };
@@ -227,7 +194,7 @@ serve(async (req) => {
     const responseData = {
       success: true,
       data: {
-        instance_id: evolutionData.instance?.instanceName || sessionName,
+        instance_id: sessionName,
         session_name: sessionName,
         token_id: tokenData.id,
         status: qrCodeUrl ? 'pending' : 'connecting',

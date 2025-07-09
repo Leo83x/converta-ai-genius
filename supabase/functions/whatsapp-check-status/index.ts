@@ -50,24 +50,18 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Get Evolution API configuration
-    const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');
-    const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL') || 'https://2969-186-205-11-178.ngrok-free.app';
+    // Get Venom server configuration
+    const venomServerUrl = 'http://31.97.167.218:3002';
     
-    if (!evolutionApiKey) {
-      throw new Error('Evolution API key not configured');
-    }
+    console.log('Using Venom server URL:', venomServerUrl);
 
-    console.log('Using Evolution API URL:', evolutionApiUrl);
-
-    // Check status in Evolution API
-    const statusUrl = `${evolutionApiUrl}/instance/fetchInstances/${sessionName}`;
+    // Check status in Venom server
+    const statusUrl = `${venomServerUrl}/session/${sessionName}/status`;
     console.log('Checking status at:', statusUrl);
     
     const statusResponse = await fetch(statusUrl, {
       method: 'GET',
       headers: {
-        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       }
     });
@@ -75,16 +69,15 @@ serve(async (req) => {
     console.log('Status response status:', statusResponse.status);
 
     if (!statusResponse.ok) {
-      console.error('Evolution API status error:', statusResponse.status);
+      console.error('Venom status error:', statusResponse.status);
       
       // Try to get QR code directly if status check fails
-      const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+      const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
       console.log('Trying QR code endpoint:', qrUrl);
       
       const qrResponse = await fetch(qrUrl, {
         method: 'GET',
         headers: {
-          'apikey': evolutionApiKey,
           'Content-Type': 'application/json',
         }
       });
@@ -92,7 +85,7 @@ serve(async (req) => {
       let qrCode = null;
       if (qrResponse.ok) {
         const qrData = await qrResponse.json();
-        qrCode = qrData.qrcode || qrData.base64 || null;
+        qrCode = qrData.qrcode || qrData.qr || qrData.base64 || null;
         console.log('QR Code found via direct endpoint:', !!qrCode);
       }
 
@@ -113,29 +106,28 @@ serve(async (req) => {
     let status = 'pending';
     let qrCode = null;
 
-    if (statusData.connectionStatus === 'open') {
+    if (statusData.connectionStatus === 'open' || statusData.status === 'connected') {
       status = 'connected';
-    } else if (statusData.connectionStatus === 'connecting' || statusData.connectionStatus === 'close') {
+    } else if (statusData.connectionStatus === 'connecting' || statusData.connectionStatus === 'close' || statusData.status === 'pending') {
       status = 'pending';
       // Get QR code
-      qrCode = statusData.qrcode || statusData.qr || null;
+      qrCode = statusData.qrcode || statusData.qr || statusData.base64 || null;
       
       // If no QR code in response, try to fetch directly
       if (!qrCode) {
-        const qrUrl = `${evolutionApiUrl}/instance/qrcode/${sessionName}`;
+        const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
         console.log('Fetching QR code from:', qrUrl);
         
         const qrResponse = await fetch(qrUrl, {
           method: 'GET',
           headers: {
-            'apikey': evolutionApiKey,
             'Content-Type': 'application/json',
           }
         });
 
         if (qrResponse.ok) {
           const qrData = await qrResponse.json();
-          qrCode = qrData.qrcode || qrData.base64 || null;
+          qrCode = qrData.qrcode || qrData.qr || qrData.base64 || null;
           console.log('QR Code from direct endpoint:', !!qrCode);
         }
       }
@@ -159,7 +151,7 @@ serve(async (req) => {
       success: true,
       status: status,
       qr_code: qrCode,
-      connection_status: statusData.connectionStatus || 'unknown'
+      connection_status: statusData.connectionStatus || statusData.status || 'unknown'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
