@@ -33,14 +33,14 @@ export const useWhatsAppConnection = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const response = await fetch('http://31.97.167.218:3002/start-session', {
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-create-session', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          sessionName: sessionName.trim(),
-          qrcode: true
+          sessionName: sessionName.trim()
         })
       });
 
@@ -111,11 +111,15 @@ export const useWhatsAppConnection = () => {
     try {
       console.log('Checking status for:', sessionNameToCheck);
       
-      const response = await fetch(`http://31.97.167.218:3002/session/${sessionNameToCheck}/status`, {
-        method: 'GET',
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          sessionName: sessionNameToCheck
+        })
       });
 
       if (response.ok) {
@@ -149,11 +153,15 @@ export const useWhatsAppConnection = () => {
   const startStatusChecking = (sessionNameToCheck: string, token: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://31.97.167.218:3002/session/${sessionNameToCheck}/status`, {
-          method: 'GET',
+        const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+          method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            sessionName: sessionNameToCheck
+          })
         });
 
         if (response.ok) {
