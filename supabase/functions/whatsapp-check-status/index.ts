@@ -56,7 +56,7 @@ serve(async (req) => {
     console.log('Using Venom server URL:', venomServerUrl);
 
     // Check status in Venom server
-    const statusUrl = `${venomServerUrl}/session/${sessionName}/status`;
+    const statusUrl = `${venomServerUrl}/api/session/${sessionName}/status`;
     console.log('Checking status at:', statusUrl);
     
     const statusResponse = await fetch(statusUrl, {
@@ -72,7 +72,7 @@ serve(async (req) => {
       console.error('Venom status error:', statusResponse.status);
       
       // Try to get QR code directly if status check fails
-      const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
+      const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
       console.log('Trying QR code endpoint:', qrUrl);
       
       const qrResponse = await fetch(qrUrl, {
@@ -115,7 +115,7 @@ serve(async (req) => {
       
       // If no QR code in response, try to fetch directly
       if (!qrCode) {
-        const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
+        const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
         console.log('Fetching QR code from:', qrUrl);
         
         const qrResponse = await fetch(qrUrl, {

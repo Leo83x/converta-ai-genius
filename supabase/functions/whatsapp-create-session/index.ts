@@ -95,7 +95,7 @@ serve(async (req) => {
     console.log('Making request to Venom server');
 
     // Create session in Venom Bot
-    const createUrl = `${venomServerUrl}/start-session`;
+    const createUrl = `${venomServerUrl}/api/start-session`;
     console.log('Creating session at:', createUrl);
 
     const venomResponse = await fetch(createUrl, {
@@ -127,7 +127,7 @@ serve(async (req) => {
     
     // Try to get QR code from Venom server
     try {
-      const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
+      const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
       console.log('Getting QR code from:', qrUrl);
       
       const qrResponse = await fetch(qrUrl, {
