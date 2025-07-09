@@ -16,7 +16,7 @@ serve(async (req: Request) => {
   const instance = searchParams.get("instance") || "default";
 
   try {
-    const backendUrl = `http://31.97.167.218:3002/qr-base64`;
+    const backendUrl = `http://31.97.167.218:3002/session/${instance}/qr`;
 
     // Faz a chamada ao backend local (HTTP)
     const fetchResponse = await fetch(backendUrl);
