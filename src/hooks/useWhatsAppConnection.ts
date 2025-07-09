@@ -33,14 +33,14 @@ export const useWhatsAppConnection = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const response = await fetch('http://31.97.167.218:3002/session/start', {
+      const response = await fetch('http://31.97.167.218:3002/start-session', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          sessionName: sessionName.trim()
+          sessionName: sessionName.trim(),
+          qrcode: true
         })
       });
 
