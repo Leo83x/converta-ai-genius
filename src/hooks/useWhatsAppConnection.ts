@@ -33,7 +33,7 @@ export const useWhatsAppConnection = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-create-session', {
+      const response = await fetch('http://31.97.167.218:3002/session/start', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,15 +111,11 @@ export const useWhatsAppConnection = () => {
     try {
       console.log('Checking status for:', sessionNameToCheck);
       
-      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
-        method: 'POST',
+      const response = await fetch(`http://31.97.167.218:3002/session/${sessionNameToCheck}/status`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          sessionName: sessionNameToCheck
-        })
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
@@ -153,15 +149,11 @@ export const useWhatsAppConnection = () => {
   const startStatusChecking = (sessionNameToCheck: string, token: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
-          method: 'POST',
+        const response = await fetch(`http://31.97.167.218:3002/session/${sessionNameToCheck}/status`, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            sessionName: sessionNameToCheck
-          })
+            'Content-Type': 'application/json'
+          }
         });
 
         if (response.ok) {
