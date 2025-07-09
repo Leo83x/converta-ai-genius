@@ -18,10 +18,9 @@ const VenomWhatsAppConnection = () => {
 
   const checkServerStatus = async () => {
     try {
-      // Tenta primeiro verificar se já está conectado
-      const statusResponse = await fetch('http://31.97.167.218:3002/status', {
+      // Usa o proxy nginx configurado para acessar o backend
+      const statusResponse = await fetch('/api/status', {
         method: 'GET',
-        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
         }
@@ -263,7 +262,8 @@ const VenomWhatsAppConnection = () => {
 
               <Alert>
                 <AlertDescription className="text-sm">
-                  <strong>Servidor:</strong> http://31.97.167.218:3002<br />
+                  <strong>Backend URL:</strong> /api/ (proxy nginx)<br />
+                  <strong>Servidor original:</strong> localhost:3002<br />
                   <strong>Última verificação:</strong> {lastUpdate.toLocaleTimeString()}
                 </AlertDescription>
               </Alert>
