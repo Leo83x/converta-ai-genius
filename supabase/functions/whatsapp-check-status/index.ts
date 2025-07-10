@@ -50,8 +50,8 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Use the local Venom server
-    const venomServerUrl = 'http://localhost:3002';
+    // Use the Venom server URL from environment variable
+    const venomServerUrl = Deno.env.get('VENOM_SERVER_URL') || 'https://app.convertamais.online/api';
     
     console.log('Using Venom server URL:', venomServerUrl);
 

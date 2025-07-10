@@ -88,8 +88,8 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Use the local Venom server  
-    const venomServerUrl = 'http://localhost:3002';
+    // Use the Venom server URL from environment variable
+    const venomServerUrl = Deno.env.get('VENOM_SERVER_URL') || 'https://app.convertamais.online/api';
     
     console.log('Venom server URL:', venomServerUrl);
     console.log('Making request to Venom server');

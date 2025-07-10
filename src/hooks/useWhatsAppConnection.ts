@@ -33,28 +33,7 @@ export const useWhatsAppConnection = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      // Fazer chamada direta ao servidor Venom local
-      const venomResponse = await fetch('http://localhost:3002/api/start-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionName: sessionName.trim(),
-          qrcode: true
-        })
-      });
-
-      console.log('Venom response status:', venomResponse.status);
-
-      if (!venomResponse.ok) {
-        throw new Error(`Servidor Venom não disponível: ${venomResponse.status}`);
-      }
-
-      const venomData = await venomResponse.json();
-      console.log('Venom response:', venomData);
-
-      // Salvar no banco usando edge function
+      // Usar edge function para criar sessão
       const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-create-session', {
         method: 'POST',
         headers: {
@@ -62,8 +41,7 @@ export const useWhatsAppConnection = () => {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          sessionName: sessionName.trim(),
-          venomData: venomData
+          sessionName: sessionName.trim()
         })
       });
 
@@ -134,52 +112,37 @@ export const useWhatsAppConnection = () => {
     try {
       console.log('Checking status for:', sessionNameToCheck);
       
-      // Verificar status diretamente no servidor Venom
-      const venomStatusResponse = await fetch(`http://localhost:3002/api/session/${sessionNameToCheck}/status`, {
-        method: 'GET',
+      // Usar edge function para verificar status
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          sessionName: sessionNameToCheck
+        })
       });
 
-      if (venomStatusResponse.ok) {
-        const venomStatusData = await venomStatusResponse.json();
-        console.log('Venom status response:', venomStatusData);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Status response:', data);
 
-        if (venomStatusData.connectionStatus === 'open' || venomStatusData.status === 'connected') {
-          setConnectionStatus('connected');
-          setQrCode('');
-          toast({
-            title: "Conectado!",
-            description: "WhatsApp conectado com sucesso!",
-          });
-          return { success: true, connected: true };
-        } else if (venomStatusData.connectionStatus === 'connecting' || venomStatusData.status === 'pending') {
-          // Tentar buscar QR code
-          try {
-            const qrResponse = await fetch(`http://localhost:3002/api/session/${sessionNameToCheck}/qr`, {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              }
+        if (data.success) {
+          if (data.status === 'connected') {
+            setConnectionStatus('connected');
+            setQrCode('');
+            toast({
+              title: "Conectado!",
+              description: "WhatsApp conectado com sucesso!",
             });
-
-            if (qrResponse.ok) {
-              const qrData = await qrResponse.json();
-              const qrCode = qrData.qrcode || qrData.qr || qrData.base64;
-              
-              if (qrCode && qrCode.length > 50) {
-                setConnectionStatus('pending');
-                setQrCode(qrCode);
-                console.log('QR Code atualizado do status check');
-              }
-            }
-          } catch (qrError) {
-            console.warn('Erro ao buscar QR code:', qrError);
+            return { success: true, connected: true };
+          } else if (data.status === 'pending' && data.qr_code) {
+            setConnectionStatus('pending');
+            setQrCode(data.qr_code);
+            console.log('QR Code atualizado do status check');
           }
         }
-      } else {
-        console.error('Status check failed:', venomStatusResponse.status);
       }
     } catch (error) {
       console.error('Error checking session status:', error);
@@ -190,18 +153,21 @@ export const useWhatsAppConnection = () => {
   const startStatusChecking = (sessionNameToCheck: string, token: string) => {
     const interval = setInterval(async () => {
       try {
-        // Verificar status diretamente no servidor Venom
-        const venomStatusResponse = await fetch(`http://localhost:3002/api/session/${sessionNameToCheck}/status`, {
-          method: 'GET',
+        const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-          }
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            sessionName: sessionNameToCheck
+          })
         });
 
-        if (venomStatusResponse.ok) {
-          const venomStatusData = await venomStatusResponse.json();
+        if (response.ok) {
+          const data = await response.json();
           
-          if (venomStatusData.connectionStatus === 'open' || venomStatusData.status === 'connected') {
+          if (data.success && data.status === 'connected') {
             setConnectionStatus('connected');
             clearInterval(interval);
             toast({
