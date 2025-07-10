@@ -88,8 +88,8 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Use the external Venom server
-    const venomServerUrl = 'http://31.97.167.218:3002';
+    // Use the local Venom server  
+    const venomServerUrl = 'http://localhost:3002';
     
     console.log('Venom server URL:', venomServerUrl);
     console.log('Making request to Venom server');
