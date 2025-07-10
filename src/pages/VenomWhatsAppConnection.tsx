@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Smartphone, Wifi, WifiOff, RefreshCw, QrCode, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
 
 const VenomWhatsAppConnection = () => {
@@ -18,22 +19,32 @@ const VenomWhatsAppConnection = () => {
 
   const checkServerStatus = async () => {
     try {
-      // Usa o proxy nginx configurado para acessar o backend
-      const statusResponse = await fetch('/api/status', {
-        method: 'GET',
+      // Usa as edge functions do Supabase para verificar status
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        return false;
+      }
+
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          sessionName: 'venom-session'
+        })
       });
-      
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
+
+      if (response.ok) {
+        const statusData = await response.json();
         
-        setServerConnected(statusData.connected || false);
+        setServerConnected(statusData.status === 'connected');
         setLastUpdate(new Date());
         setConnectionError('');
         
-        if (statusData.connected) {
+        if (statusData.status === 'connected') {
           setConnectionStatus('connected');
           setQrCodeUrl('');
           toast({
@@ -47,7 +58,6 @@ const VenomWhatsAppConnection = () => {
       return false;
     } catch (error) {
       console.error('Error checking server status:', error);
-      // Se falhar, não mostra erro ainda - vai tentar carregar QR
       return false;
     }
   };
@@ -58,23 +68,49 @@ const VenomWhatsAppConnection = () => {
       setQrCodeUrl(''); // Limpa QR antigo
       setConnectionError('');
       
-      // Simula um QR code placeholder enquanto carrega
-      toast({
-        title: "Carregando QR Code",
-        description: "Acesse o link abaixo para ver o QR Code do Venom Bot",
+      // Usa as edge functions do Supabase para conectar ao Venom
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-create-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          sessionName: 'venom-session-' + Date.now()
+        })
       });
 
-      // Mostra instruções para acessar diretamente
-      setConnectionError('Para visualizar o QR Code, acesse diretamente o servidor Venom Bot.');
+      if (!response.ok) {
+        throw new Error(`Erro na criação da sessão: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.data?.qr_code) {
+        setQrCodeUrl(data.data.qr_code);
+        setConnectionError('');
+        toast({
+          title: "QR Code gerado!",
+          description: "Escaneie com seu WhatsApp para conectar",
+        });
+      } else {
+        throw new Error('QR Code não disponível');
+      }
       
     } catch (error) {
       console.error('Erro ao carregar QR Code:', error);
-      setConnectionError('Erro ao carregar QR Code. Acesse o servidor diretamente.');
+      setConnectionError('Erro ao carregar QR Code do servidor Venom.');
       
       toast({
-        title: "Acesse o servidor diretamente",
-        description: "Clique no link para ver o QR Code",
-        variant: "default"
+        title: "Erro ao gerar QR Code",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive"
       });
     }
   };
@@ -362,20 +398,11 @@ const VenomWhatsAppConnection = () => {
                      QR Code disponível no servidor
                    </h3>
                    
-                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-                     <p className="text-sm text-blue-800 mb-4">
-                       Devido a restrições de segurança (HTTPS vs HTTP), acesse diretamente o servidor para ver o QR Code:
-                     </p>
-                     
-                     <a 
-                       href="http://31.97.167.218:3002" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                     >
-                       🔗 Abrir Servidor Venom Bot
-                     </a>
-                   </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                      <p className="text-sm text-blue-800 mb-4">
+                        O QR Code está sendo gerado pelo servidor Venom. Clique no botão "Atualizar QR Code" para tentar novamente.
+                      </p>
+                    </div>
 
                    <Alert className="text-left mb-4">
                      <AlertDescription className="text-sm">

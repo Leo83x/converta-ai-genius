@@ -50,8 +50,8 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Use localhost for Venom server
-    const venomServerUrl = 'http://localhost:3002';
+    // Use the external Venom server
+    const venomServerUrl = 'http://31.97.167.218:3002';
     
     console.log('Using Venom server URL:', venomServerUrl);
 
