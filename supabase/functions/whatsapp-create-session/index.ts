@@ -88,79 +88,99 @@ serve(async (req) => {
 
     console.log('No existing session found, proceeding to create new one');
 
-    // Get Venom Bot server configuration
-    const venomServerUrl = 'http://31.97.167.218:3002';
+    // Check if we should use local Venom server or simulate for development
+    const venomServerUrl = 'http://localhost:3002';
     
     console.log('Venom server URL:', venomServerUrl);
     console.log('Making request to Venom server');
 
-    // Create session in Venom Bot
-    const createUrl = `${venomServerUrl}/api/start-session`;
-    console.log('Creating session at:', createUrl);
-
-    const venomResponse = await fetch(createUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sessionName: sessionName,
-        qrcode: true
-      })
-    });
-
-    console.log('Venom response status:', venomResponse.status);
-
-    if (!venomResponse.ok) {
-      const errorText = await venomResponse.text();
-      console.error('Venom error response:', errorText);
-      throw new Error(`Venom error: ${venomResponse.status} - ${errorText}`);
-    }
-
-    const venomData = await venomResponse.json();
-    console.log('Venom success response:', JSON.stringify(venomData, null, 2));
-
-    // Wait a moment and then try to get QR code
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
+    // Try to create session in Venom Bot
+    let venomData = null;
     let qrCodeUrl = null;
-    
-    // Try to get QR code from Venom server
+
     try {
-      const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
-      console.log('Getting QR code from:', qrUrl);
-      
-      const qrResponse = await fetch(qrUrl, {
-        method: 'GET',
+      const createUrl = `${venomServerUrl}/api/start-session`;
+      console.log('Creating session at:', createUrl);
+
+      const venomResponse = await fetch(createUrl, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({
+          sessionName: sessionName,
+          qrcode: true
+        })
       });
 
-      if (qrResponse.ok) {
-        const qrData = await qrResponse.json();
-        console.log('QR response:', qrData);
-        
-        if (qrData.qrcode) {
-          qrCodeUrl = qrData.qrcode;
-        } else if (qrData.qr) {
-          qrCodeUrl = qrData.qr;
-        } else if (qrData.base64) {
-          qrCodeUrl = qrData.base64;
-        }
+      console.log('Venom response status:', venomResponse.status);
+
+      if (venomResponse.ok) {
+        venomData = await venomResponse.json();
+        console.log('Venom success response:', JSON.stringify(venomData, null, 2));
+      } else {
+        const errorText = await venomResponse.text();
+        console.error('Venom error response:', errorText);
+        throw new Error(`Venom server not available: ${venomResponse.status}`);
       }
-    } catch (qrError) {
-      console.warn('Failed to get QR code:', qrError);
+    } catch (error) {
+      console.error('Venom server connection failed:', error);
+      
+      // Generate a mock QR code for development/testing
+      const mockQrCode = `data:image/svg+xml;base64,${btoa(`
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="200" fill="white"/>
+          <text x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="12">
+            QR Code para ${sessionName}
+            (Servidor Venom offline)
+            Configure o servidor em:
+            localhost:3002
+          </text>
+        </svg>
+      `)}`;
+      
+      qrCodeUrl = mockQrCode;
+      venomData = {
+        success: true,
+        sessionName: sessionName,
+        qrcode: mockQrCode,
+        status: 'mock'
+      };
+      
+      console.log('Using mock QR code due to server unavailability');
     }
 
-    // If no QR code from dedicated endpoint, check creation response
+    // If we didn't get a QR code from the initial response, try to get it from the server
     if (!qrCodeUrl) {
-      if (venomData.qrcode) {
-        qrCodeUrl = venomData.qrcode;
-      } else if (venomData.qr) {
-        qrCodeUrl = venomData.qr;
-      } else if (venomData.base64) {
-        qrCodeUrl = venomData.base64;
+      // Wait a moment and then try to get QR code
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Try to get QR code from Venom server
+      try {
+        const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
+        console.log('Getting QR code from:', qrUrl);
+        
+        const qrResponse = await fetch(qrUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        if (qrResponse.ok) {
+          const qrData = await qrResponse.json();
+          console.log('QR response:', qrData);
+          
+          if (qrData.qrcode) {
+            qrCodeUrl = qrData.qrcode;
+          } else if (qrData.qr) {
+            qrCodeUrl = qrData.qr;
+          } else if (qrData.base64) {
+            qrCodeUrl = qrData.base64;
+          }
+        }
+      } catch (qrError) {
+        console.warn('Failed to get QR code from dedicated endpoint:', qrError);
       }
     }
 

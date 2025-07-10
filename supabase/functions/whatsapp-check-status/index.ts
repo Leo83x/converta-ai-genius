@@ -50,62 +50,78 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Get Venom server configuration
-    const venomServerUrl = 'http://31.97.167.218:3002';
+    // Use localhost for Venom server
+    const venomServerUrl = 'http://localhost:3002';
     
     console.log('Using Venom server URL:', venomServerUrl);
 
-    // Check status in Venom server
-    const statusUrl = `${venomServerUrl}/api/session/${sessionName}/status`;
-    console.log('Checking status at:', statusUrl);
-    
-    const statusResponse = await fetch(statusUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
+    let statusData = null;
+    let qrCode = null;
+    let status = 'pending';
 
-    console.log('Status response status:', statusResponse.status);
-
-    if (!statusResponse.ok) {
-      console.error('Venom status error:', statusResponse.status);
+    try {
+      // Check status in Venom server
+      const statusUrl = `${venomServerUrl}/api/session/${sessionName}/status`;
+      console.log('Checking status at:', statusUrl);
       
-      // Try to get QR code directly if status check fails
-      const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
-      console.log('Trying QR code endpoint:', qrUrl);
-      
-      const qrResponse = await fetch(qrUrl, {
+      const statusResponse = await fetch(statusUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         }
       });
 
-      let qrCode = null;
-      if (qrResponse.ok) {
-        const qrData = await qrResponse.json();
-        qrCode = qrData.qrcode || qrData.qr || qrData.base64 || null;
-        console.log('QR Code found via direct endpoint:', !!qrCode);
+      console.log('Status response status:', statusResponse.status);
+
+      if (statusResponse.ok) {
+        statusData = await statusResponse.json();
+        console.log('Status response:', statusData);
+      } else {
+        throw new Error(`Venom server returned ${statusResponse.status}`);
+      }
+    } catch (error) {
+      console.error('Venom server connection failed:', error);
+      
+      // Generate mock QR code when server is unavailable
+      const mockQrCode = `data:image/svg+xml;base64,${btoa(`
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="200" fill="white"/>
+          <text x="100" y="100" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="12">
+            QR Code para ${sessionName}
+            (Servidor Venom offline)
+            Configure o servidor em:
+            localhost:3002
+          </text>
+        </svg>
+      `)}`;
+      
+      qrCode = mockQrCode;
+      
+      // Update database using user client (RLS compliant)
+      const { error: updateError } = await supabaseUser
+        .from('evolution_tokens')
+        .update({ 
+          status: 'pending',
+          qr_code_url: qrCode
+        })
+        .eq('session_name', sessionName)
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating status:', updateError);
       }
 
       return new Response(JSON.stringify({
         success: true,
         status: 'pending',
         qr_code: qrCode,
-        connection_status: 'connecting'
+        connection_status: 'server_offline'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const statusData = await statusResponse.json();
-    console.log('Status response:', statusData);
-
-    // Determine status based on response
-    let status = 'pending';
-    let qrCode = null;
-
+    // Process successful response from Venom server
     if (statusData.connectionStatus === 'open' || statusData.status === 'connected') {
       status = 'connected';
     } else if (statusData.connectionStatus === 'connecting' || statusData.connectionStatus === 'close' || statusData.status === 'pending') {
@@ -115,20 +131,24 @@ serve(async (req) => {
       
       // If no QR code in response, try to fetch directly
       if (!qrCode) {
-        const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
-        console.log('Fetching QR code from:', qrUrl);
-        
-        const qrResponse = await fetch(qrUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
+        try {
+          const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
+          console.log('Fetching QR code from:', qrUrl);
+          
+          const qrResponse = await fetch(qrUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
 
-        if (qrResponse.ok) {
-          const qrData = await qrResponse.json();
-          qrCode = qrData.qrcode || qrData.qr || qrData.base64 || null;
-          console.log('QR Code from direct endpoint:', !!qrCode);
+          if (qrResponse.ok) {
+            const qrData = await qrResponse.json();
+            qrCode = qrData.qrcode || qrData.qr || qrData.base64 || null;
+            console.log('QR Code from direct endpoint:', !!qrCode);
+          }
+        } catch (qrError) {
+          console.warn('Failed to fetch QR code directly:', qrError);
         }
       }
     }
