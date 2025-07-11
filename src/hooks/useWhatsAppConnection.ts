@@ -80,14 +80,24 @@ export const useWhatsAppConnection = () => {
 
             startStatusChecking(sessionName.trim(), session.access_token);
             return { success: true, connected: false };
-          } else {
-            setTimeout(() => {
-              checkSessionStatus(sessionName.trim(), session.access_token);
-            }, 2000);
-          }
+            } else {
+              // QR code muito pequeno, vamos tentar buscar diretamente
+              console.log('QR code too small, trying to fetch directly');
+              setTimeout(async () => {
+                const qrCodeResult = await getQrCode(sessionName.trim(), session.access_token);
+                if (!qrCodeResult) {
+                  checkSessionStatus(sessionName.trim(), session.access_token);
+                }
+              }, 2000);
+            }
         } else {
-          setTimeout(() => {
-            checkSessionStatus(sessionName.trim(), session.access_token);
+          // Não recebemos QR code, vamos tentar buscar diretamente
+          console.log('No QR code in response, trying to fetch directly');
+          setTimeout(async () => {
+            const qrCodeResult = await getQrCode(sessionName.trim(), session.access_token);
+            if (!qrCodeResult) {
+              checkSessionStatus(sessionName.trim(), session.access_token);
+            }
           }, 2000);
         }
       } else {
@@ -150,6 +160,37 @@ export const useWhatsAppConnection = () => {
     return { success: false, connected: false };
   };
 
+  const getQrCode = async (sessionNameToCheck: string, token: string) => {
+    try {
+      console.log('Getting QR code for:', sessionNameToCheck);
+      
+      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/venom-qr-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          sessionName: sessionNameToCheck
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('QR code response:', data);
+        
+        if (data.success && data.qr_code) {
+          setQrCode(data.qr_code);
+          setConnectionStatus('pending');
+          return data.qr_code;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting QR code:', error);
+    }
+    return null;
+  };
+
   const startStatusChecking = (sessionNameToCheck: string, token: string) => {
     const interval = setInterval(async () => {
       try {
@@ -169,12 +210,16 @@ export const useWhatsAppConnection = () => {
           
           if (data.success && data.status === 'connected') {
             setConnectionStatus('connected');
+            setQrCode('');
             clearInterval(interval);
             toast({
               title: "WhatsApp conectado!",
               description: "Seu agente já pode receber mensagens",
             });
             return true;
+          } else if (data.success && data.status === 'pending' && !qrCode) {
+            // Se ainda está pendente e não temos QR code, tenta buscar
+            await getQrCode(sessionNameToCheck, token);
           }
         }
       } catch (error) {
@@ -192,6 +237,28 @@ export const useWhatsAppConnection = () => {
     setIsConnecting(false);
   };
 
+  const refreshQrCode = async () => {
+    if (!sessionName.trim()) return;
+    
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session?.access_token) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      console.log('Refreshing QR code for:', sessionName.trim());
+      await getQrCode(sessionName.trim(), session.access_token);
+    } catch (error) {
+      console.error('Error refreshing QR code:', error);
+      toast({
+        title: "Erro ao atualizar QR Code",
+        description: error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive"
+      });
+    }
+  };
+
   return {
     sessionName,
     setSessionName,
@@ -199,6 +266,7 @@ export const useWhatsAppConnection = () => {
     isConnecting,
     connectionStatus,
     createSession,
-    resetConnection
+    resetConnection,
+    refreshQrCode
   };
 };

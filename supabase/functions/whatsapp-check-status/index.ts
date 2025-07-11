@@ -50,8 +50,8 @@ serve(async (req) => {
 
     console.log('Checking status for session:', sessionName);
 
-    // Use the Venom server URL from environment variable
-    const venomServerUrl = Deno.env.get('VENOM_SERVER_URL') || 'https://app.convertamais.online/api';
+    // Use the Venom server URL - connect directly to your localhost:3002 server
+    const venomServerUrl = 'https://app.convertamais.online';
     
     console.log('Using Venom server URL:', venomServerUrl);
 
@@ -61,7 +61,7 @@ serve(async (req) => {
 
     try {
       // Check status in Venom server
-      const statusUrl = `${venomServerUrl}/api/session/${sessionName}/status`;
+      const statusUrl = `${venomServerUrl}/session/${sessionName}/status`;
       console.log('Checking status at:', statusUrl);
       
       const statusResponse = await fetch(statusUrl, {
@@ -132,20 +132,19 @@ serve(async (req) => {
       // If no QR code in response, try to fetch directly
       if (!qrCode) {
         try {
-          const qrUrl = `${venomServerUrl}/api/session/${sessionName}/qr`;
+          const qrUrl = `${venomServerUrl}/session/${sessionName}/qr`;
           console.log('Fetching QR code from:', qrUrl);
           
           const qrResponse = await fetch(qrUrl, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            }
+            method: 'GET'
           });
 
           if (qrResponse.ok) {
-            const qrData = await qrResponse.json();
-            qrCode = qrData.qrcode || qrData.qr || qrData.base64 || null;
-            console.log('QR Code from direct endpoint:', !!qrCode);
+            const qrData = await qrResponse.text();
+            if (qrData && qrData !== 'QR Code não disponível.') {
+              qrCode = `data:image/png;base64,${qrData}`;
+              console.log('QR Code from direct endpoint:', !!qrCode);
+            }
           }
         } catch (qrError) {
           console.warn('Failed to fetch QR code directly:', qrError);

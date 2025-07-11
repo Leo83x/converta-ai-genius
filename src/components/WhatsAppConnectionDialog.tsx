@@ -19,7 +19,8 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
     isConnecting,
     connectionStatus,
     createSession,
-    resetConnection
+    resetConnection,
+    refreshQrCode
   } = useWhatsAppConnection();
 
   const handleCreateSession = async () => {
@@ -49,6 +50,7 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
             connectionStatus={connectionStatus}
             isConnecting={isConnecting}
             onCreateSession={handleCreateSession}
+            onRefreshQR={refreshQrCode}
           />
 
           <WhatsAppQRCode

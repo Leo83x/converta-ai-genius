@@ -17,9 +17,9 @@ const WhatsAppQRCode = ({ qrCode, connectionStatus }: WhatsAppQRCodeProps) => {
           <img
             src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
             alt="QR Code WhatsApp"
-            className="w-48 h-48 border rounded"
+            className="w-48 h-48 border rounded bg-white"
             onError={(e) => {
-              console.error('Error loading QR Code image');
+              console.error('Error loading QR Code image:', qrCode.substring(0, 50));
               e.currentTarget.style.display = 'none';
             }}
             onLoad={() => {
@@ -27,6 +27,9 @@ const WhatsAppQRCode = ({ qrCode, connectionStatus }: WhatsAppQRCodeProps) => {
             }}
           />
         </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Se o QR Code não aparecer, clique em "Atualizar QR Code"
+        </p>
       </div>
       
       <div className="text-sm text-gray-600 space-y-1">
