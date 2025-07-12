@@ -245,6 +245,66 @@ export type Database = {
           },
         ]
       }
+      genius_campaigns: {
+        Row: {
+          ai_suggestions: Json | null
+          budget: string | null
+          campaign_data: Json | null
+          created_at: string
+          duration: string | null
+          format: string[] | null
+          has_strategy: boolean | null
+          id: string
+          name: string
+          objective: string | null
+          persona: string | null
+          platform: string[] | null
+          segment: string | null
+          status: string | null
+          tone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_suggestions?: Json | null
+          budget?: string | null
+          campaign_data?: Json | null
+          created_at?: string
+          duration?: string | null
+          format?: string[] | null
+          has_strategy?: boolean | null
+          id?: string
+          name: string
+          objective?: string | null
+          persona?: string | null
+          platform?: string[] | null
+          segment?: string | null
+          status?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_suggestions?: Json | null
+          budget?: string | null
+          campaign_data?: Json | null
+          created_at?: string
+          duration?: string | null
+          format?: string[] | null
+          has_strategy?: boolean | null
+          id?: string
+          name?: string
+          objective?: string | null
+          persona?: string | null
+          platform?: string[] | null
+          segment?: string | null
+          status?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       genius_inputs: {
         Row: {
           analyzed: boolean | null

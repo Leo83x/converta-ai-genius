@@ -21,7 +21,8 @@ import {
   Menu,
   X,
   TrendingUp,
-  Smartphone
+  Smartphone,
+  Sparkles
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -48,6 +49,12 @@ const sidebarItems = [
     href: '/conversations',
     icon: MessageSquare,
     color: 'text-purple-500'
+  },
+  {
+    title: 'Campanha Genius',
+    href: '/genius-campaign',
+    icon: Sparkles,
+    color: 'text-amber-500'
   },
   {
     title: 'Integrações',
