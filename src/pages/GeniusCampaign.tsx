@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tables } from '@/integrations/supabase/types';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -22,7 +23,13 @@ import {
   MessageSquare,
   Lightbulb,
   Zap,
-  CheckCircle
+  CheckCircle,
+  Plus,
+  Edit,
+  Play,
+  BarChart3,
+  Eye,
+  Grid3X3
 } from 'lucide-react';
 
 const segments = [
@@ -73,11 +80,16 @@ const tones = [
   'Descontraído e divertido'
 ];
 
+type Campaign = Tables<'genius_campaigns'>;
+
 export default function GeniusCampaign() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [view, setView] = useState<'dashboard' | 'wizard'>('dashboard');
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [campaignData, setCampaignData] = useState({
     name: '',
     segment: '',
@@ -102,6 +114,34 @@ export default function GeniusCampaign() {
   ];
 
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  useEffect(() => {
+    if (view === 'dashboard') {
+      loadCampaigns();
+    }
+  }, [view]);
+
+  const loadCampaigns = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('genius_campaigns')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCampaigns(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar campanhas:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar suas campanhas.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handlePlatformChange = (platformId: string, checked: boolean) => {
     setCampaignData(prev => ({
@@ -138,46 +178,62 @@ export default function GeniusCampaign() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('genius_campaigns')
-        .insert({
-          user_id: user.id,
-          name: campaignData.name,
-          segment: campaignData.segment,
-          objective: campaignData.objective,
-          platform: campaignData.platforms,
-          budget: campaignData.budget,
-          duration: campaignData.duration,
-          format: campaignData.formats,
-          tone: campaignData.tone,
-          persona: campaignData.persona,
-          has_strategy: campaignData.hasStrategy,
-          status: 'draft',
-          campaign_data: campaignData
+      if (editingCampaign) {
+        // Update existing campaign
+        const { error } = await supabase
+          .from('genius_campaigns')
+          .update({
+            name: campaignData.name,
+            segment: campaignData.segment,
+            objective: campaignData.objective,
+            platform: campaignData.platforms,
+            budget: campaignData.budget,
+            duration: campaignData.duration,
+            format: campaignData.formats,
+            tone: campaignData.tone,
+            persona: campaignData.persona,
+            has_strategy: campaignData.hasStrategy,
+            campaign_data: campaignData
+          })
+          .eq('id', editingCampaign.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Campanha atualizada!",
+          description: "Sua campanha foi atualizada com sucesso.",
         });
+      } else {
+        // Create new campaign
+        const { error } = await supabase
+          .from('genius_campaigns')
+          .insert({
+            user_id: user.id,
+            name: campaignData.name,
+            segment: campaignData.segment,
+            objective: campaignData.objective,
+            platform: campaignData.platforms,
+            budget: campaignData.budget,
+            duration: campaignData.duration,
+            format: campaignData.formats,
+            tone: campaignData.tone,
+            persona: campaignData.persona,
+            has_strategy: campaignData.hasStrategy,
+            status: 'draft',
+            campaign_data: campaignData
+          });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Campanha salva!",
-        description: "Sua campanha foi criada com sucesso. O Genius AI começará a processar suas estratégias.",
-      });
+        toast({
+          title: "Campanha criada!",
+          description: "Sua campanha foi criada com sucesso. O Genius AI começará a processar suas estratégias.",
+        });
+      }
 
-      // Reset form
-      setCampaignData({
-        name: '',
-        segment: '',
-        objective: '',
-        platforms: [],
-        budget: '',
-        duration: '',
-        formats: [],
-        tone: '',
-        persona: '',
-        hasStrategy: false,
-        additionalInfo: ''
-      });
-      setCurrentStep(0);
+      // Reset form and go back to dashboard
+      resetForm();
+      setView('dashboard');
 
     } catch (error) {
       console.error('Erro ao salvar campanha:', error);
@@ -188,6 +244,67 @@ export default function GeniusCampaign() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setCampaignData({
+      name: '',
+      segment: '',
+      objective: '',
+      platforms: [],
+      budget: '',
+      duration: '',
+      formats: [],
+      tone: '',
+      persona: '',
+      hasStrategy: false,
+      additionalInfo: ''
+    });
+    setCurrentStep(0);
+    setEditingCampaign(null);
+  };
+
+  const handleNewCampaign = () => {
+    resetForm();
+    setView('wizard');
+  };
+
+  const handleEditCampaign = (campaign: Campaign) => {
+    setEditingCampaign(campaign);
+    setCampaignData({
+      name: campaign.name,
+      segment: campaign.segment || '',
+      objective: campaign.objective || '',
+      platforms: campaign.platform || [],
+      budget: campaign.budget || '',
+      duration: campaign.duration || '',
+      formats: campaign.format || [],
+      tone: campaign.tone || '',
+      persona: campaign.persona || '',
+      hasStrategy: campaign.has_strategy || false,
+      additionalInfo: ''
+    });
+    setView('wizard');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'draft': return 'bg-yellow-500';
+      case 'completed': return 'bg-blue-500';
+      case 'paused': return 'bg-gray-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Ativa';
+      case 'draft': return 'Rascunho';
+      case 'completed': return 'Concluída';
+      case 'paused': return 'Pausada';
+      default: return 'Rascunho';
     }
   };
 
@@ -473,18 +590,134 @@ export default function GeniusCampaign() {
     }
   };
 
+  if (view === 'dashboard') {
+    return (
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <Sparkles className="h-8 w-8 text-amber-500" />
+                Campanhas Genius
+              </h1>
+              <p className="text-muted-foreground">
+                Gerencie suas campanhas de marketing inteligentes
+              </p>
+            </div>
+            <Button onClick={handleNewCampaign} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Campanha
+            </Button>
+          </div>
+
+          {/* Campaign Grid */}
+          {campaigns.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Grid3X3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Nenhuma campanha criada</h3>
+                <p className="text-muted-foreground mb-4">
+                  Crie sua primeira campanha inteligente com o Genius AI
+                </p>
+                <Button onClick={handleNewCampaign}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeira Campanha
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {campaigns.map((campaign) => (
+                <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="line-clamp-1">{campaign.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-2 mt-1">
+                          <span className={`w-2 h-2 rounded-full ${getStatusColor(campaign.status || 'draft')}`} />
+                          {getStatusLabel(campaign.status || 'draft')}
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium">{campaign.segment}</p>
+                      <p className="text-xs text-muted-foreground">{campaign.objective}</p>
+                    </div>
+                    
+                    {campaign.platform && campaign.platform.length > 0 && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">PLATAFORMAS</Label>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {campaign.platform.slice(0, 3).map((platform: string) => (
+                            <Badge key={platform} variant="secondary" className="text-xs">
+                              {platforms.find(p => p.id === platform)?.label}
+                            </Badge>
+                          ))}
+                          {campaign.platform.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{campaign.platform.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Criada: {new Date(campaign.created_at).toLocaleDateString()}</span>
+                      <span>{campaign.budget}</span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditCampaign(campaign)}
+                        className="flex-1"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        disabled={campaign.status === 'active'}
+                      >
+                        <Play className="h-3 w-3 mr-1" />
+                        {campaign.status === 'active' ? 'Ativa' : 'Ativar'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
-            <Sparkles className="h-8 w-8 text-amber-500" />
-            Campanha Genius
-          </h1>
-          <p className="text-muted-foreground">
-            Crie campanhas de marketing inteligentes com a ajuda da IA
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Sparkles className="h-8 w-8 text-amber-500" />
+              {editingCampaign ? 'Editar Campanha' : 'Nova Campanha'}
+            </h1>
+            <p className="text-muted-foreground">
+              {editingCampaign ? 'Atualize os dados da sua campanha' : 'Crie campanhas de marketing inteligentes com a ajuda da IA'}
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setView('dashboard')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
         </div>
 
         {/* Progress */}
@@ -508,7 +741,7 @@ export default function GeniusCampaign() {
                     p-2 rounded-full border-2 transition-colors
                     ${isCompleted ? 'bg-green-500 border-green-500 text-white' : 
                       isCurrent ? 'bg-blue-500 border-blue-500 text-white' : 
-                      'bg-gray-100 border-gray-300 text-gray-400'}
+                      'bg-muted border-border text-muted-foreground'}
                   `}>
                     <Icon className="h-4 w-4" />
                   </div>
@@ -545,7 +778,7 @@ export default function GeniusCampaign() {
               className="flex items-center gap-2"
             >
               <Lightbulb className="h-4 w-4" />
-              {isLoading ? 'Criando...' : 'Criar Campanha'}
+              {isLoading ? (editingCampaign ? 'Salvando...' : 'Criando...') : (editingCampaign ? 'Salvar Alterações' : 'Criar Campanha')}
             </Button>
           ) : (
             <Button
