@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
+import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -85,6 +86,7 @@ type Campaign = Tables<'genius_campaigns'>;
 export default function GeniusCampaign() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<'dashboard' | 'wizard'>('dashboard');
@@ -306,6 +308,66 @@ export default function GeniusCampaign() {
       case 'paused': return 'Pausada';
       default: return 'Rascunho';
     }
+  };
+
+  const handleActivateCampaign = async (campaign: Campaign) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('genius_campaigns')
+        .update({ 
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', campaign.id);
+
+      if (error) throw error;
+
+      // Atualiza o estado local
+      setCampaigns(prev => 
+        prev.map(c => 
+          c.id === campaign.id 
+            ? { ...c, status: 'active' as const }
+            : c
+        )
+      );
+
+      toast({
+        title: "Campanha ativada!",
+        description: `A campanha "${campaign.name}" foi ativada com sucesso. Você pode acompanhar o desempenho no Dashboard.`
+      });
+
+      // Integração: Criar leads automáticos no CRM baseado na campanha
+      if (campaign.objective?.includes('leads') || campaign.objective?.includes('captar')) {
+        // Criar um lead inicial no CRM para rastreamento
+        await supabase
+          .from('leads')
+          .insert({
+            user_id: user.id,
+            name: `Lead Campanha: ${campaign.name}`,
+            source: `Campanha Genius - ${campaign.platform?.join(', ')}`,
+            stage: 'new',
+            notes: `Lead gerado automaticamente pela ativação da campanha "${campaign.name}" no segmento ${campaign.segment}`
+          });
+      }
+
+    } catch (error) {
+      console.error('Erro ao ativar campanha:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível ativar a campanha. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  const handleViewCRM = () => {
+    navigate('/crm');
   };
 
   const renderStep = () => {
@@ -592,7 +654,7 @@ export default function GeniusCampaign() {
 
   if (view === 'dashboard') {
     return (
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="p-6 max-w-7xl mx-auto">
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -605,11 +667,21 @@ export default function GeniusCampaign() {
                 Gerencie suas campanhas de marketing inteligentes
               </p>
             </div>
-            <Button onClick={handleNewCampaign} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Nova Campanha
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleViewDashboard}>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+              <Button variant="outline" onClick={handleViewCRM}>
+                <Users className="h-4 w-4 mr-2" />
+                CRM
+              </Button>
+              <Button onClick={handleNewCampaign} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Nova Campanha
+              </Button>
+            </div>
+            </div>
 
           {/* Campaign Grid */}
           {campaigns.length === 0 ? (
@@ -685,6 +757,7 @@ export default function GeniusCampaign() {
                         size="sm"
                         className="flex-1"
                         disabled={campaign.status === 'active'}
+                        onClick={() => handleActivateCampaign(campaign)}
                       >
                         <Play className="h-3 w-3 mr-1" />
                         {campaign.status === 'active' ? 'Ativa' : 'Ativar'}
@@ -701,7 +774,7 @@ export default function GeniusCampaign() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="p-6 max-w-4xl mx-auto">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
