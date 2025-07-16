@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
+import Layout from '@/components/Layout';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, 
@@ -30,7 +31,9 @@ import {
   Play,
   BarChart3,
   Eye,
-  Grid3X3
+  Grid3X3,
+  Pause,
+  Trash2
 } from 'lucide-react';
 
 const segments = [
@@ -362,12 +365,73 @@ export default function GeniusCampaign() {
     }
   };
 
-  const handleViewDashboard = () => {
-    navigate('/dashboard');
+  const handlePauseCampaign = async (campaign: Campaign) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('genius_campaigns')
+        .update({ 
+          status: 'paused',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', campaign.id);
+
+      if (error) throw error;
+
+      setCampaigns(prev => 
+        prev.map(c => 
+          c.id === campaign.id 
+            ? { ...c, status: 'paused' as const }
+            : c
+        )
+      );
+
+      toast({
+        title: "Campanha pausada!",
+        description: `A campanha "${campaign.name}" foi pausada.`
+      });
+
+    } catch (error) {
+      console.error('Erro ao pausar campanha:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível pausar a campanha. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleViewCRM = () => {
-    navigate('/crm');
+  const handleDeleteCampaign = async (campaign: Campaign) => {
+    if (!user?.id) return;
+    
+    if (!confirm(`Tem certeza que deseja excluir a campanha "${campaign.name}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('genius_campaigns')
+        .delete()
+        .eq('id', campaign.id);
+
+      if (error) throw error;
+
+      setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+
+      toast({
+        title: "Campanha excluída!",
+        description: `A campanha "${campaign.name}" foi excluída com sucesso.`
+      });
+
+    } catch (error) {
+      console.error('Erro ao excluir campanha:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a campanha. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const renderStep = () => {
@@ -654,7 +718,8 @@ export default function GeniusCampaign() {
 
   if (view === 'dashboard') {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
+      <Layout>
+        <div className="p-6 max-w-7xl mx-auto">
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -667,20 +732,10 @@ export default function GeniusCampaign() {
                 Gerencie suas campanhas de marketing inteligentes
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleViewDashboard}>
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Dashboard
-              </Button>
-              <Button variant="outline" onClick={handleViewCRM}>
-                <Users className="h-4 w-4 mr-2" />
-                CRM
-              </Button>
-              <Button onClick={handleNewCampaign} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Nova Campanha
-              </Button>
-            </div>
+            <Button onClick={handleNewCampaign} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Nova Campanha
+            </Button>
             </div>
 
           {/* Campaign Grid */}
@@ -742,25 +797,56 @@ export default function GeniusCampaign() {
                       <span>{campaign.budget}</span>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 flex-wrap">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditCampaign(campaign)}
-                        className="flex-1"
+                        className="flex-1 min-w-[70px]"
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Editar
                       </Button>
+                      
+                      {campaign.status === 'active' ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handlePauseCampaign(campaign)}
+                          className="flex-1 min-w-[70px]"
+                        >
+                          <Pause className="h-3 w-3 mr-1" />
+                          Pausar
+                        </Button>
+                      ) : campaign.status === 'paused' ? (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleActivateCampaign(campaign)}
+                          className="flex-1 min-w-[70px]"
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Ativar
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleActivateCampaign(campaign)}
+                          className="flex-1 min-w-[70px]"
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Ativar
+                        </Button>
+                      )}
+                      
                       <Button
-                        variant="default"
+                        variant="destructive"
                         size="sm"
-                        className="flex-1"
-                        disabled={campaign.status === 'active'}
-                        onClick={() => handleActivateCampaign(campaign)}
+                        onClick={() => handleDeleteCampaign(campaign)}
+                        className="min-w-[40px]"
                       >
-                        <Play className="h-3 w-3 mr-1" />
-                        {campaign.status === 'active' ? 'Ativa' : 'Ativar'}
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </CardContent>
@@ -769,12 +855,14 @@ export default function GeniusCampaign() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <Layout>
+      <div className="p-6 max-w-4xl mx-auto">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -867,7 +955,8 @@ export default function GeniusCampaign() {
             </Button>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }

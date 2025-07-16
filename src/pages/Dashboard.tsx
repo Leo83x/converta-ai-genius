@@ -37,9 +37,16 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id);
 
+      // Buscar campanhas genius
+      const { data: campaigns } = await supabase
+        .from('genius_campaigns')
+        .select('*')
+        .eq('user_id', user.id);
+
       const totalLeads = leads?.length || 0;
       const totalConversations = conversations?.length || 0;
       const totalAgents = agents?.length || 0;
+      const activeCampaigns = campaigns?.filter(c => c.status === 'active').length || 0;
 
       // Calcular conversas ativas (últimas 24h)
       const dayAgo = new Date();
@@ -75,7 +82,8 @@ const Dashboard = () => {
         conversationsChange,
         conversionChange,
         tokensChange,
-        totalAgents
+        totalAgents,
+        activeCampaigns
       };
     },
     enabled: !!user?.id,
@@ -110,6 +118,13 @@ const Dashboard = () => {
       change: dashboardStats?.tokensChange || "0%",
       changeType: (dashboardStats?.tokensUsed || 0) > 0 ? "increase" as const : "neutral" as const,
       description: "do limite mensal"
+    },
+    {
+      title: "Campanhas Genius",
+      value: dashboardStats?.activeCampaigns?.toString() || "0",
+      change: dashboardStats?.activeCampaigns ? "+100%" : "0%",
+      changeType: (dashboardStats?.activeCampaigns || 0) > 0 ? "increase" as const : "neutral" as const,
+      description: "campanhas ativas"
     }
   ];
 
