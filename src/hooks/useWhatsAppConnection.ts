@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,6 +9,10 @@ export const useWhatsAppConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const { toast } = useToast();
+  
+  // Refs para controle de polling
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const currentSessionRef = useRef<string>('');
 
   const createSession = async () => {
     if (!sessionName.trim()) {
@@ -17,12 +21,16 @@ export const useWhatsAppConnection = () => {
         description: "Digite um nome para a sessão",
         variant: "destructive"
       });
-      return;
+      return { success: false, connected: false };
     }
 
+    // Para qualquer polling anterior
+    stopPolling();
+    
     setIsConnecting(true);
     setConnectionStatus('connecting');
     setQrCode('');
+    currentSessionRef.current = sessionName.trim();
     
     try {
       console.log('Creating session with name:', sessionName.trim());
@@ -66,40 +74,15 @@ export const useWhatsAppConnection = () => {
           return { success: true, connected: true };
         }
 
-        if (data.data && data.data.qr_code) {
-          const qrCodeData = data.data.qr_code;
-          console.log('QR Code received:', qrCodeData ? 'Yes' : 'No');
-          
-          if (qrCodeData && qrCodeData.length > 50) {
-            setQrCode(qrCodeData);
-            setConnectionStatus('pending');
-            toast({
-              title: "QR Code gerado!",
-              description: "Escaneie o código com seu WhatsApp",
-            });
+        setConnectionStatus('pending');
+        toast({
+          title: "Sessão criada!",
+          description: "Aguardando QR Code...",
+        });
 
-            startStatusChecking(sessionName.trim(), session.access_token);
-            return { success: true, connected: false };
-            } else {
-              // QR code muito pequeno, vamos tentar buscar diretamente
-              console.log('QR code too small, trying to fetch directly');
-              setTimeout(async () => {
-                const qrCodeResult = await getQrCode(sessionName.trim(), session.access_token);
-                if (!qrCodeResult) {
-                  checkSessionStatus(sessionName.trim(), session.access_token);
-                }
-              }, 2000);
-            }
-        } else {
-          // Não recebemos QR code, vamos tentar buscar diretamente
-          console.log('No QR code in response, trying to fetch directly');
-          setTimeout(async () => {
-            const qrCodeResult = await getQrCode(sessionName.trim(), session.access_token);
-            if (!qrCodeResult) {
-              checkSessionStatus(sessionName.trim(), session.access_token);
-            }
-          }, 2000);
-        }
+        // Iniciar polling para QR Code e status
+        startPollingForQrCodeAndStatus(sessionName.trim(), session.access_token);
+        return { success: true, connected: false };
       } else {
         throw new Error(data.error || 'Falha ao criar sessão');
       }
@@ -118,48 +101,122 @@ export const useWhatsAppConnection = () => {
     }
   };
 
-  const checkSessionStatus = async (sessionNameToCheck: string, token: string) => {
-    try {
-      console.log('Checking status for:', sessionNameToCheck);
-      
-      // Usar edge function para verificar status
-      const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          sessionName: sessionNameToCheck
-        })
-      });
+  // Nova função de polling mais robusta
+  const startPollingForQrCodeAndStatus = (sessionId: string, token: string) => {
+    // Para qualquer polling anterior
+    stopPolling();
+    
+    console.log(`Iniciando polling para sessão: ${sessionId}`);
+    
+    pollingIntervalRef.current = setInterval(async () => {
+      // Verifica se ainda é a sessão atual
+      if (currentSessionRef.current !== sessionId) {
+        console.log('Sessão mudou, parando polling');
+        stopPolling();
+        return;
+      }
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Status response:', data);
+      try {
+        // 1. Tentar obter QR Code se ainda não temos
+        if (!qrCode) {
+          const qrResponse = await fetch('https://xekxewtggioememydenu.functions.supabase.co/venom-qr-code', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              sessionName: sessionId
+            })
+          });
 
-        if (data.success) {
-          if (data.status === 'connected') {
-            setConnectionStatus('connected');
-            setQrCode('');
-            toast({
-              title: "Conectado!",
-              description: "WhatsApp conectado com sucesso!",
-            });
-            return { success: true, connected: true };
-          } else if (data.status === 'pending' && data.qr_code) {
-            setConnectionStatus('pending');
-            setQrCode(data.qr_code);
-            console.log('QR Code atualizado do status check');
+          if (qrResponse.ok) {
+            const qrData = await qrResponse.json();
+            if (qrData.success && qrData.qr_code && qrData.status === 'pending') {
+              setQrCode(qrData.qr_code);
+              console.log('QR Code obtido via polling');
+            } else if (qrData.status === 'server_offline') {
+              console.log('Servidor Venom offline, continuando polling...');
+            }
           }
         }
+
+        // 2. Verificar status da sessão
+        const statusResponse = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            sessionName: sessionId
+          })
+        });
+
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json();
+          
+          if (statusData.success) {
+            if (statusData.status === 'connected') {
+              setConnectionStatus('connected');
+              setQrCode('');
+              stopPolling();
+              toast({
+                title: "WhatsApp conectado!",
+                description: "Seu agente já pode receber mensagens",
+              });
+              return;
+            } else if (statusData.status === 'pending' && statusData.qr_code && !qrCode) {
+              setQrCode(statusData.qr_code);
+              console.log('QR Code obtido via status check');
+            } else if (statusData.status === 'closed' || statusData.status === 'disconnected') {
+              setConnectionStatus('disconnected');
+              setQrCode('');
+              stopPolling();
+              toast({
+                title: "Sessão desconectada",
+                description: "A sessão foi fechada. Tente criar uma nova.",
+                variant: "destructive"
+              });
+              return;
+            }
+          }
+        }
+
+      } catch (error) {
+        console.error('Erro durante polling:', error);
+        // Não para o polling em caso de erro, a API pode estar reiniciando
       }
-    } catch (error) {
-      console.error('Error checking session status:', error);
-    }
-    return { success: false, connected: false };
+    }, 3000); // Polling a cada 3 segundos
+
+    // Para o polling após 5 minutos (timeout)
+    setTimeout(() => {
+      if (pollingIntervalRef.current) {
+        console.log('Timeout do polling atingido');
+        stopPolling();
+        if (connectionStatus !== 'connected') {
+          toast({
+            title: "Timeout",
+            description: "Tempo limite para conexão atingido. Tente novamente.",
+            variant: "destructive"
+          });
+          setConnectionStatus('disconnected');
+          setQrCode('');
+        }
+      }
+    }, 300000);
   };
 
+  // Função para parar polling
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+      console.log('Polling parado');
+    }
+  };
+
+  // Função para buscar QR Code diretamente
   const getQrCode = async (sessionNameToCheck: string, token: string) => {
     try {
       console.log('Getting QR code for:', sessionNameToCheck);
@@ -179,10 +236,16 @@ export const useWhatsAppConnection = () => {
         const data = await response.json();
         console.log('QR code response:', data);
         
-        if (data.success && data.qr_code) {
+        if (data.success && data.qr_code && data.status === 'pending') {
           setQrCode(data.qr_code);
           setConnectionStatus('pending');
           return data.qr_code;
+        } else if (data.status === 'server_offline') {
+          console.log('Servidor Venom não disponível');
+          toast({
+            title: "Servidor temporariamente indisponível",
+            description: "Tentando novamente...",
+          });
         }
       }
     } catch (error) {
@@ -191,50 +254,13 @@ export const useWhatsAppConnection = () => {
     return null;
   };
 
-  const startStatusChecking = (sessionNameToCheck: string, token: string) => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/whatsapp-check-status', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            sessionName: sessionNameToCheck
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.success && data.status === 'connected') {
-            setConnectionStatus('connected');
-            setQrCode('');
-            clearInterval(interval);
-            toast({
-              title: "WhatsApp conectado!",
-              description: "Seu agente já pode receber mensagens",
-            });
-            return true;
-          } else if (data.success && data.status === 'pending' && !qrCode) {
-            // Se ainda está pendente e não temos QR code, tenta buscar
-            await getQrCode(sessionNameToCheck, token);
-          }
-        }
-      } catch (error) {
-        console.error('Error in status check interval:', error);
-      }
-    }, 5000);
-
-    setTimeout(() => clearInterval(interval), 300000);
-  };
-
   const resetConnection = () => {
+    stopPolling();
     setSessionName('');
     setQrCode('');
     setConnectionStatus('disconnected');
     setIsConnecting(false);
+    currentSessionRef.current = '';
   };
 
   const refreshQrCode = async () => {
@@ -248,6 +274,7 @@ export const useWhatsAppConnection = () => {
       }
 
       console.log('Refreshing QR code for:', sessionName.trim());
+      setQrCode(''); // Limpa QR atual
       await getQrCode(sessionName.trim(), session.access_token);
     } catch (error) {
       console.error('Error refreshing QR code:', error);
@@ -258,6 +285,13 @@ export const useWhatsAppConnection = () => {
       });
     }
   };
+
+  // Cleanup no unmount
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
 
   return {
     sessionName,
