@@ -5,8 +5,22 @@ interface WhatsAppQRCodeProps {
 }
 
 const WhatsAppQRCode = ({ qrCode, connectionStatus }: WhatsAppQRCodeProps) => {
-  if (connectionStatus !== 'pending' || !qrCode) {
+  // Debug logs para rastrear o estado
+  console.log('WhatsAppQRCode - connectionStatus:', connectionStatus);
+  console.log('WhatsAppQRCode - qrCode length:', qrCode?.length || 0);
+  console.log('WhatsAppQRCode - qrCode preview:', qrCode?.substring(0, 50) || 'empty');
+
+  // Só esconde se realmente não tiver QR code E o status não for pending
+  if (!qrCode && connectionStatus !== 'pending') {
+    console.log('WhatsAppQRCode - Hiding: no qrCode and status not pending');
     return null;
+  }
+
+  // Se tem QR code, prepara a src da imagem
+  let imageSrc = '';
+  if (qrCode) {
+    imageSrc = qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`;
+    console.log('WhatsAppQRCode - Image src prepared:', imageSrc.substring(0, 50));
   }
 
   return (
@@ -14,25 +28,47 @@ const WhatsAppQRCode = ({ qrCode, connectionStatus }: WhatsAppQRCodeProps) => {
       <div className="text-center">
         <p className="font-semibold mb-2">Escaneie o QR Code:</p>
         <div className="flex justify-center">
-          <img
-            src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
-            alt="QR Code WhatsApp"
-            className="w-48 h-48 border rounded bg-white"
-            onError={(e) => {
-              console.error('Error loading QR Code image:', qrCode.substring(0, 50));
-              e.currentTarget.style.display = 'none';
-            }}
-            onLoad={() => {
-              console.log('QR Code image loaded successfully');
-            }}
-          />
+          {qrCode ? (
+            <img
+              id="qrCodeImage"
+              src={imageSrc}
+              alt="QR Code WhatsApp"
+              className="w-48 h-48 border-2 border-border rounded-lg bg-background"
+              style={{
+                display: 'block',
+                minWidth: '192px',
+                minHeight: '192px',
+                maxWidth: '250px',
+                maxHeight: '250px'
+              }}
+              onError={(e) => {
+                console.error('QR Code image ERROR loading:', {
+                  src: imageSrc.substring(0, 100),
+                  length: imageSrc.length,
+                  connectionStatus
+                });
+                e.currentTarget.style.border = '2px solid red';
+                e.currentTarget.alt = 'Erro ao carregar QR Code';
+              }}
+              onLoad={() => {
+                console.log('QR Code image loaded successfully', {
+                  src: imageSrc.substring(0, 50),
+                  connectionStatus
+                });
+              }}
+            />
+          ) : (
+            <div className="w-48 h-48 border-2 border-dashed border-muted-foreground/50 rounded-lg bg-muted/50 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground">Aguardando QR Code...</p>
+            </div>
+          )}
         </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Se o QR Code não aparecer, clique em "Atualizar QR Code"
+        <p className="text-xs text-muted-foreground mt-2">
+          {qrCode ? 'Se o QR Code não aparecer, clique em "Atualizar QR Code"' : 'Conectando com servidor...'}
         </p>
       </div>
       
-      <div className="text-sm text-gray-600 space-y-1">
+      <div className="text-sm text-muted-foreground space-y-1">
         <p><strong>Como conectar:</strong></p>
         <ol className="list-decimal list-inside space-y-1">
           <li>Abra o WhatsApp no seu celular</li>
