@@ -6,10 +6,13 @@ import QuickActions from '@/components/QuickActions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: dashboardStats, isLoading } = useQuery({
     queryKey: ['dashboard-stats', user?.id],
@@ -167,6 +170,38 @@ const Dashboard = () => {
 
         {/* Cards adicionais */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Marketing Dashboard */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Marketing</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/genius-campaign')}
+              >
+                Ver Campanhas
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Campanhas Ativas</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {dashboardStats?.activeCampaigns || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">ROI Médio</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">+15%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Leads por Campanhas</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {Math.floor((dashboardStats?.totalLeads || 0) * 0.3)}
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Agentes por Canal</h3>
             <div className="space-y-2">
@@ -183,20 +218,12 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Instagram</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Campanhas</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {dashboardStats?.totalAgents ? Math.floor(dashboardStats.totalAgents * 0.2) : 0}
                 </span>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Tempo Economizado</h3>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
-              {dashboardStats?.activeConversations ? (dashboardStats.activeConversations * 5) : 0} min
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">em atendimento automatizado</p>
           </div>
 
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">

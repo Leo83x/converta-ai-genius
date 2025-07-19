@@ -84,6 +84,7 @@ export type Database = {
       agents: {
         Row: {
           active: boolean | null
+          campaign_id: string | null
           channel: string | null
           created_at: string
           id: string
@@ -93,6 +94,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          campaign_id?: string | null
           channel?: string | null
           created_at?: string
           id?: string
@@ -102,6 +104,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          campaign_id?: string | null
           channel?: string | null
           created_at?: string
           id?: string
@@ -118,6 +121,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      campaign_metrics: {
+        Row: {
+          campaign_id: string
+          clicks: number | null
+          conversions: number | null
+          cost: number | null
+          created_at: string
+          date: string
+          id: string
+          impressions: number | null
+          leads_generated: number | null
+          revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          clicks?: number | null
+          conversions?: number | null
+          cost?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          impressions?: number | null
+          leads_generated?: number | null
+          revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          clicks?: number | null
+          conversions?: number | null
+          cost?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          impressions?: number | null
+          leads_generated?: number | null
+          revenue?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       evolution_inbound_messages: {
         Row: {
@@ -374,6 +422,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          campaign_id: string | null
           created_at: string
           email: string | null
           id: string
@@ -387,6 +436,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          campaign_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -400,6 +450,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          campaign_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -517,6 +568,27 @@ export type Database = {
           name?: string
           order_index?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          qr: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          qr?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          qr?: string | null
+          status?: string | null
         }
         Relationships: []
       }

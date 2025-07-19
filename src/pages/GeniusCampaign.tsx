@@ -8,11 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
 import Layout from '@/components/Layout';
+import CampaignAnalytics from '@/components/CampaignAnalytics';
+import CampaignAgentIntegration from '@/components/CampaignAgentIntegration';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, 
@@ -95,6 +98,7 @@ export default function GeniusCampaign() {
   const [view, setView] = useState<'dashboard' | 'wizard'>('dashboard');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [campaignData, setCampaignData] = useState({
     name: '',
     segment: '',
@@ -801,11 +805,11 @@ export default function GeniusCampaign() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleEditCampaign(campaign)}
+                        onClick={() => setSelectedCampaign(campaign)}
                         className="flex-1 min-w-[70px]"
                       >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Editar
+                        <BarChart3 className="h-3 w-3 mr-1" />
+                        Ver Analytics
                       </Button>
                       
                       {campaign.status === 'active' ? (
@@ -852,6 +856,114 @@ export default function GeniusCampaign() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+          
+          {/* Modal de Analytics */}
+          {selectedCampaign && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold">
+                      {selectedCampaign.name} - Analytics & Configurações
+                    </h2>
+                    <button
+                      onClick={() => setSelectedCampaign(null)}
+                      className="text-gray-500 hover:text-gray-700 text-xl"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <Tabs defaultValue="analytics" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                      <TabsTrigger value="config">Configurações</TabsTrigger>
+                      <TabsTrigger value="agents">Agents</TabsTrigger>
+                      <TabsTrigger value="leads">Leads</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="analytics" className="mt-6">
+                      <CampaignAnalytics campaignId={selectedCampaign.id} />
+                    </TabsContent>
+                    
+                    <TabsContent value="config" className="mt-6">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div>
+                          <Label className="block text-sm font-medium mb-2">Nome da Campanha</Label>
+                          <Input
+                            value={selectedCampaign.name}
+                            disabled
+                            className="bg-gray-50"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium mb-2">Objetivo</Label>
+                          <Input
+                            value={selectedCampaign.objective || ''}
+                            disabled
+                            className="bg-gray-50"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium mb-2">Orçamento</Label>
+                          <Input
+                            value={selectedCampaign.budget || ''}
+                            disabled
+                            className="bg-gray-50"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium mb-2">Duração</Label>
+                          <Input
+                            value={selectedCampaign.duration || ''}
+                            disabled
+                            className="bg-gray-50"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-6">
+                        <Button 
+                          onClick={() => {
+                            handleEditCampaign(selectedCampaign);
+                            setSelectedCampaign(null);
+                          }}
+                          className="flex-1"
+                        >
+                          Editar Campanha
+                        </Button>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="agents" className="mt-6">
+                      <CampaignAgentIntegration 
+                        campaignId={selectedCampaign.id} 
+                        campaignName={selectedCampaign.name}
+                      />
+                    </TabsContent>
+                    
+                    <TabsContent value="leads" className="mt-6">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-medium">Leads da Campanha</h3>
+                          <Button 
+                            onClick={() => navigate('/crm')}
+                            variant="outline"
+                          >
+                            Ver no CRM
+                          </Button>
+                        </div>
+                        <CampaignAnalytics campaignId={selectedCampaign.id} />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
             </div>
           )}
         </div>
