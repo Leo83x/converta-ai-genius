@@ -16,10 +16,10 @@ const WhatsAppQRCode = ({ qrCode, connectionStatus }: WhatsAppQRCodeProps) => {
     return null;
   }
 
-  // Se tem QR code, prepara a src da imagem
+  // Se tem QR code, usa diretamente (pode ser SVG ou PNG)
   let imageSrc = '';
   if (qrCode) {
-    imageSrc = qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`;
+    imageSrc = qrCode; // Usa diretamente o que vem da API
     console.log('WhatsAppQRCode - Image src prepared:', imageSrc.substring(0, 50));
   }
 
