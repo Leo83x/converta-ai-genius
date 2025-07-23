@@ -221,6 +221,7 @@ export const useWhatsAppConnection = () => {
     try {
       console.log('Getting QR code for:', sessionNameToCheck);
       
+      // Primeiro tenta a função edge do Supabase
       const response = await fetch('https://xekxewtggioememydenu.functions.supabase.co/venom-qr-code', {
         method: 'POST',
         headers: {
@@ -234,19 +235,39 @@ export const useWhatsAppConnection = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('QR code response:', data);
+        console.log('QR code response from Supabase function:', data);
         
         if (data.success && data.qr_code && data.status === 'pending') {
           setQrCode(data.qr_code);
           setConnectionStatus('pending');
           return data.qr_code;
         } else if (data.status === 'server_offline') {
-          console.log('Servidor Venom não disponível');
-          toast({
-            title: "Servidor temporariamente indisponível",
-            description: "Tentando novamente...",
-          });
+          console.log('Servidor Venom não disponível via Supabase function');
         }
+      }
+
+      // Fallback: tenta diretamente a nova rota JSON da API
+      try {
+        console.log('Trying direct API fallback...');
+        const directResponse = await fetch(`https://app.convertamais.online/sessions/${sessionNameToCheck}/qr-json`);
+        
+        if (directResponse.ok) {
+          const directData = await directResponse.json();
+          console.log('QR code response from direct API:', directData);
+          
+          if (directData.qrcode) {
+            setQrCode(directData.qrcode);
+            setConnectionStatus('pending');
+            return directData.qrcode;
+          }
+        }
+      } catch (fallbackError) {
+        console.error('Fallback API error:', fallbackError);
+        toast({
+          title: "Erro de conectividade",
+          description: "Não foi possível acessar o servidor. Verifique sua conexão.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error getting QR code:', error);
