@@ -7,13 +7,153 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
+      affiliate_commissions: {
+        Row: {
+          affiliate_id: string | null
+          created_at: string
+          id: string
+          month_year: string
+          paid_at: string | null
+          status: string
+          total_commission: number
+          total_sales: number
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id?: string | null
+          created_at?: string
+          id?: string
+          month_year: string
+          paid_at?: string | null
+          status?: string
+          total_commission?: number
+          total_sales?: number
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string | null
+          created_at?: string
+          id?: string
+          month_year?: string
+          paid_at?: string | null
+          status?: string
+          total_commission?: number
+          total_sales?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commissions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_sales: {
+        Row: {
+          affiliate_id: string | null
+          amount: number
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          id: string
+          status: string
+          stripe_session_id: string | null
+          subscriber_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id?: string | null
+          amount: number
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          subscriber_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string | null
+          amount?: number
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          subscriber_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_sales_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_sales_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          affiliate_code: string
+          commission_rate: number
+          created_at: string
+          email: string
+          id: string
+          level: string
+          status: string
+          total_commissions: number
+          total_sales: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          affiliate_code: string
+          commission_rate?: number
+          created_at?: string
+          email: string
+          id?: string
+          level?: string
+          status?: string
+          total_commissions?: number
+          total_sales?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          affiliate_code?: string
+          commission_rate?: number
+          created_at?: string
+          email?: string
+          id?: string
+          level?: string
+          status?: string
+          total_commissions?: number
+          total_sales?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agent_channels: {
         Row: {
           agent_id: string | null
@@ -589,6 +729,42 @@ export type Database = {
           id?: string
           qr?: string | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
