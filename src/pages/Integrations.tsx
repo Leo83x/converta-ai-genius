@@ -63,8 +63,15 @@ const Integrations = () => {
 
   const checkIntegrationStatuses = async () => {
     try {
-      // Verificar status do WhatsApp
-      const { data: whatsappTokens } = await supabase
+      // Verificar status do WhatsApp Z-API
+      const { data: zapiInstances } = await supabase
+        .from('whatsapp_instances')
+        .select('status')
+        .eq('user_id', user?.id)
+        .eq('status', 'connected');
+
+      // Verificar status do WhatsApp Evolution (legacy)
+      const { data: evolutionTokens } = await supabase
         .from('evolution_tokens')
         .select('status')
         .eq('user_id', user?.id)
@@ -78,9 +85,12 @@ const Integrations = () => {
 
       setIntegrations(prev => prev.map(integration => {
         if (integration.name === 'WhatsApp Business') {
+          // Considerar conectado se houver Z-API ou Evolution ativo
+          const hasZapi = zapiInstances && zapiInstances.length > 0;
+          const hasEvolution = evolutionTokens && evolutionTokens.length > 0;
           return { 
             ...integration, 
-            status: whatsappTokens && whatsappTokens.length > 0 ? 'connected' : 'disconnected' 
+            status: hasZapi || hasEvolution ? 'connected' : 'disconnected' 
           };
         }
         if (integration.name === 'Instagram Direct') {

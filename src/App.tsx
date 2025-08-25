@@ -24,6 +24,7 @@ import AffiliateLanding from '@/pages/AffiliateLanding';
 import ConfirmationPage from '@/pages/ConfirmationPage';
 import VenomWhatsAppConnection from '@/pages/VenomWhatsAppConnection';
 import GeniusCampaign from '@/pages/GeniusCampaign';
+import Pricing from '@/pages/Pricing';
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <GeniusCampaign />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/pricing" 
+                element={
+                  <ProtectedRoute>
+                    <Pricing />
                   </ProtectedRoute>
                 } 
               />

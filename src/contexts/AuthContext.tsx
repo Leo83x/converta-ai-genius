@@ -1,14 +1,21 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+
+interface SubscriptionStatus {
+  subscribed: boolean;
+  subscription_tier?: string;
+  subscription_end?: string;
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  subscriptionStatus: SubscriptionStatus;
   signOut: () => Promise<void>;
   refreshUserData: () => Promise<void>;
+  checkSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({ subscribed: false });
 
   const createUserProfile = async (user: User) => {
     try {
@@ -66,6 +74,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const checkSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) {
+        console.error('Erro ao verificar assinatura:', error);
+        return;
+      }
+      setSubscriptionStatus(data || { subscribed: false });
+    } catch (error) {
+      console.error('Erro ao verificar assinatura:', error);
+    }
+  };
+
   const refreshUserData = async () => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -78,6 +99,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Atualizando dados do usuário:', session.user.id);
         setSession(session);
         setUser(session.user);
+        // Verificar assinatura quando atualizar dados do usuário
+        await checkSubscription();
       }
     } catch (error) {
       console.error('Erro ao atualizar dados do usuário:', error);
@@ -100,6 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Criar perfil do usuário quando ele fizer login
           setTimeout(async () => {
             await createUserProfile(session.user);
+            await checkSubscription();
           }, 0);
         } else if (event === 'SIGNED_OUT') {
           console.log('Usuário deslogado');
@@ -135,6 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session?.user) {
         setTimeout(async () => {
           await createUserProfile(session.user);
+          await checkSubscription();
         }, 0);
       }
       
@@ -162,6 +187,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Limpa os estados após o logout bem-sucedido
       setSession(null);
       setUser(null);
+      setSubscriptionStatus({ subscribed: false });
       
       console.log('Logout realizado com sucesso');
       
@@ -170,6 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Se houver erro, ainda força a limpeza local
       setSession(null);
       setUser(null);
+      setSubscriptionStatus({ subscribed: false });
       throw error;
     } finally {
       setLoading(false);
@@ -180,8 +207,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     loading,
+    subscriptionStatus,
     signOut,
     refreshUserData,
+    checkSubscription,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -22,7 +22,8 @@ import {
   X,
   TrendingUp,
   Smartphone,
-  Sparkles
+  Sparkles,
+  CreditCard
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -61,6 +62,12 @@ const sidebarItems = [
     href: '/integrations',
     icon: Settings,
     color: 'text-gray-500'
+  },
+  {
+    title: 'Assinaturas',
+    href: '/pricing',
+    icon: CreditCard,
+    color: 'text-green-500'
   },
   {
     title: 'WhatsApp (Venom)',

@@ -7,11 +7,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const isMobile = useIsMobile();
-  const { user } = useAuth();
+  const { user, subscriptionStatus } = useAuth();
   const navigate = useNavigate();
 
   const { data: dashboardStats, isLoading } = useQuery({
@@ -166,6 +167,77 @@ const Dashboard = () => {
           {stats.map((stat, index) => (
             <StatsCard key={index} {...stat} />
           ))}
+        </div>
+
+        {/* Status de Integrações */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+          {/* Z-API Status */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">WhatsApp Z-API</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/integrations')}
+              >
+                Configurar
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                <Badge variant="outline" className="text-orange-600 border-orange-300">
+                  Modo Desenvolvimento
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Instâncias</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">0/3</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stripe Status */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assinatura</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/pricing')}
+              >
+                {subscriptionStatus.subscribed ? 'Gerenciar' : 'Ver Planos'}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Plano</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {subscriptionStatus.subscription_tier || 'Gratuito'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
+                {subscriptionStatus.subscribed ? (
+                  <Badge variant="outline" className="text-green-600 border-green-300">
+                    Ativo
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-orange-600 border-orange-300">
+                    Não Assinado
+                  </Badge>
+                )}
+              </div>
+              {subscriptionStatus.subscription_end && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Renovação</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    {new Date(subscriptionStatus.subscription_end).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Cards adicionais */}
