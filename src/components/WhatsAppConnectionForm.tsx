@@ -24,10 +24,10 @@ const WhatsAppConnectionForm = ({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="sessionName">Nome da Sessão</Label>
+        <Label htmlFor="sessionName">Nome da Instância</Label>
         <Input
           id="sessionName"
-          placeholder="Ex: minha-loja-zap"
+          placeholder="Ex: Minha Loja WhatsApp"
           value={sessionName}
           onChange={(e) => onSessionNameChange(e.target.value)}
           disabled={connectionStatus === 'connected' || isConnecting}
@@ -43,10 +43,10 @@ const WhatsAppConnectionForm = ({
           {isConnecting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Criando Sessão...
+              Criando Instância...
             </>
           ) : (
-            "Criar Sessão"
+            "Criar Instância"
           )}
         </Button>
       )}

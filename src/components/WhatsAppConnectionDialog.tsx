@@ -1,6 +1,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useWhatsAppConnection } from '@/hooks/useWhatsAppConnection';
+import { useZapiConnection } from '@/hooks/useZapiConnection';
 import WhatsAppConnectionForm from './WhatsAppConnectionForm';
 import WhatsAppQRCode from './WhatsAppQRCode';
 import WhatsAppConnectionStatus from './WhatsAppConnectionStatus';
@@ -13,18 +13,18 @@ interface WhatsAppConnectionDialogProps {
 
 const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppConnectionDialogProps) => {
   const {
-    sessionName,
-    setSessionName,
+    instanceName,
+    setInstanceName,
     qrCode,
     isConnecting,
     connectionStatus,
-    createSession,
+    createInstance,
     resetConnection,
-    refreshQrCode
-  } = useWhatsAppConnection();
+    refreshQrCode,
+  } = useZapiConnection();
 
-  const handleCreateSession = async () => {
-    const result = await createSession();
+  const handleCreateInstance = async () => {
+    const result = await createInstance();
     if (result?.success && result?.connected) {
       onSuccess();
       handleClose();
@@ -45,11 +45,11 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
         
         <div className="space-y-4">
           <WhatsAppConnectionForm
-            sessionName={sessionName}
-            onSessionNameChange={setSessionName}
+            sessionName={instanceName}
+            onSessionNameChange={setInstanceName}
             connectionStatus={connectionStatus}
             isConnecting={isConnecting}
-            onCreateSession={handleCreateSession}
+            onCreateSession={handleCreateInstance}
             onRefreshQR={refreshQrCode}
           />
 

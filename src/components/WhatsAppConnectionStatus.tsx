@@ -7,11 +7,11 @@ interface WhatsAppConnectionStatusProps {
 }
 
 const WhatsAppConnectionStatus = ({ connectionStatus, qrCode }: WhatsAppConnectionStatusProps) => {
-  if (connectionStatus === 'connecting' && !qrCode) {
+  if (connectionStatus === 'creating' && !qrCode) {
     return (
       <div className="text-center py-4">
         <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin text-blue-600" />
-        <p className="text-sm text-gray-600">Criando sessão...</p>
+        <p className="text-sm text-gray-600">Criando instância...</p>
       </div>
     );
   }
@@ -50,7 +50,7 @@ const WhatsAppConnectionStatus = ({ connectionStatus, qrCode }: WhatsAppConnecti
   if (connectionStatus === 'disconnected') {
     return (
       <div className="text-center py-2">
-        <p className="text-sm text-gray-500">Clique em "Criar Sessão" para começar</p>
+        <p className="text-sm text-gray-500">Clique em "Criar Instância" para começar</p>
       </div>
     );
   }
