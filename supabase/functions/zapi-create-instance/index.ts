@@ -66,6 +66,9 @@ serve(async (req: Request) => {
 
     if (developmentMode || !partnerToken) {
       console.log('Running in development mode - using mock data');
+      console.log('Partner token present:', !!partnerToken);
+      console.log('Development mode:', developmentMode);
+      
       // Mock instance creation for development
       instanceId = `mock_instance_${Date.now()}`;
       apiToken = `mock_token_${Date.now()}_${Math.random().toString(36).substring(7)}`;
