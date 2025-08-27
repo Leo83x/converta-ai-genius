@@ -47,6 +47,12 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id);
 
+      // Buscar instâncias Z-API
+      const { data: zapiInstances } = await supabase
+        .from('whatsapp_instances')
+        .select('*')
+        .eq('user_id', user.id);
+
       const totalLeads = leads?.length || 0;
       const totalConversations = conversations?.length || 0;
       const totalAgents = agents?.length || 0;
@@ -77,6 +83,12 @@ const Dashboard = () => {
       const conversionChange = conversionRate > 0 ? '+5%' : '0%';
       const tokensChange = tokensUsed > 0 ? '+15%' : '0%';
 
+      // Stats das instâncias Z-API
+      const totalZapiInstances = zapiInstances?.length || 0;
+      const connectedZapiInstances = zapiInstances?.filter(i => i.status === 'connected').length || 0;
+      const pendingZapiInstances = zapiInstances?.filter(i => i.status === 'pending').length || 0;
+      const signedZapiInstances = zapiInstances?.filter(i => i.signed).length || 0;
+
       return {
         totalLeads,
         activeConversations,
@@ -87,7 +99,13 @@ const Dashboard = () => {
         conversionChange,
         tokensChange,
         totalAgents,
-        activeCampaigns
+        activeCampaigns,
+        zapiStats: {
+          total: totalZapiInstances,
+          connected: connectedZapiInstances,
+          pending: pendingZapiInstances,
+          signed: signedZapiInstances
+        }
       };
     },
     enabled: !!user?.id,
@@ -191,8 +209,22 @@ const Dashboard = () => {
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Instâncias</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">0/3</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Instâncias Totais</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {dashboardStats?.zapiStats?.total || 0}/3
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Conectadas</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                  {dashboardStats?.zapiStats?.connected || 0}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Pendentes</span>
+                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                  {dashboardStats?.zapiStats?.pending || 0}
+                </span>
               </div>
             </div>
           </div>

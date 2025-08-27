@@ -66,9 +66,9 @@ const Integrations = () => {
       // Verificar status do WhatsApp Z-API
       const { data: zapiInstances } = await supabase
         .from('whatsapp_instances')
-        .select('status')
+        .select('*')
         .eq('user_id', user?.id)
-        .eq('status', 'connected');
+        .order('created_at', { ascending: false });
 
       // Verificar status do WhatsApp Evolution (legacy)
       const { data: evolutionTokens } = await supabase
@@ -85,12 +85,26 @@ const Integrations = () => {
 
       setIntegrations(prev => prev.map(integration => {
         if (integration.name === 'WhatsApp Business') {
-          // Considerar conectado se houver Z-API ou Evolution ativo
-          const hasZapi = zapiInstances && zapiInstances.length > 0;
+          // Priorizar Z-API sobre Evolution
+          const hasConnectedZapi = zapiInstances?.some(instance => instance.status === 'connected');
+          const hasPendingZapi = zapiInstances?.some(instance => instance.status === 'pending');
           const hasEvolution = evolutionTokens && evolutionTokens.length > 0;
+          
+          let status = 'disconnected';
+          if (hasConnectedZapi) status = 'connected';
+          else if (hasPendingZapi) status = 'pending';
+          else if (hasEvolution) status = 'connected';
+          
           return { 
             ...integration, 
-            status: hasZapi || hasEvolution ? 'connected' : 'disconnected' 
+            status,
+            description: hasConnectedZapi 
+              ? 'Z-API conectada e ativa'
+              : hasPendingZapi 
+                ? 'Z-API aguardando conexão'
+                : hasEvolution 
+                  ? 'Evolution API ativa (Legacy)'
+                  : 'Conecte seus agentes ao WhatsApp Business'
           };
         }
         if (integration.name === 'Instagram Direct') {
@@ -134,7 +148,7 @@ const Integrations = () => {
   const handleConfigure = (integrationName: string) => {
     switch (integrationName) {
       case 'WhatsApp Business':
-        navigate('/channels/whatsapp');
+        navigate('/integrations/whatsapp-zapi');
         break;
       case 'Instagram Direct':
         navigate('/channels/instagram');
@@ -217,18 +231,18 @@ const Integrations = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'connected': return 'bg-green-100 text-green-800';
-      case 'disconnected': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'connected': return 'bg-green-100 text-green-800 border-green-300';
+      case 'pending': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'disconnected': return 'bg-red-100 text-red-800 border-red-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
       case 'connected': return 'Conectado';
+      case 'pending': return 'Aguardando QR';
       case 'disconnected': return 'Desconectado';
-      case 'pending': return 'Pendente';
       default: return status;
     }
   };
@@ -284,6 +298,27 @@ const Integrations = () => {
                           onClick={() => handleDisconnect(integration.name)}
                         >
                           Desconectar
+                        </Button>
+                      </>
+                    ) : integration.status === 'pending' ? (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleConnect(integration.name)}
+                        >
+                          <LinkIcon className="mr-2 h-4 w-4" />
+                          Ver QR Code
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleConfigure(integration.name)}
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          Gerenciar
                         </Button>
                       </>
                     ) : (

@@ -16,12 +16,28 @@ export const useZapiConnection = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'creating' | 'pending' | 'connected' | 'error'>('disconnected');
   const [currentInstance, setCurrentInstance] = useState<ZapiInstance | null>(null);
+  const [pollingEnabled, setPollingEnabled] = useState(false);
   const { toast } = useToast();
 
   // Load existing instances on mount
   useEffect(() => {
     loadExistingInstances();
   }, []);
+
+  // Polling effect for checking connection status
+  useEffect(() => {
+    if (!pollingEnabled || !currentInstance) return;
+
+    const pollInterval = setInterval(async () => {
+      if (connectionStatus === 'pending' && currentInstance) {
+        await getQrCode(currentInstance.instanceId);
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [pollingEnabled, currentInstance, connectionStatus]);
 
   const loadExistingInstances = async () => {
     try {
@@ -47,9 +63,12 @@ export const useZapiConnection = () => {
         });
         setConnectionStatus(instance.status === 'connected' ? 'connected' : 'pending');
         
-        // If pending, try to get QR code
+        // If pending, try to get QR code and enable polling
         if (instance.status !== 'connected') {
+          setPollingEnabled(true);
           getQrCode(instance.instance_id);
+        } else {
+          setPollingEnabled(false);
         }
       }
     } catch (error) {
@@ -181,15 +200,18 @@ export const useZapiConnection = () => {
       if (data.qrCode) {
         setQrCode(data.qrCode);
         setConnectionStatus('pending');
+        setPollingEnabled(true);
       } else if (data.status === 'connected') {
         setConnectionStatus('connected');
         setQrCode('');
+        setPollingEnabled(false);
         toast({
           title: "WhatsApp Conectado!",
           description: "Sua conta WhatsApp está conectada e pronta para uso",
         });
       } else {
         setConnectionStatus('pending');
+        setPollingEnabled(true);
         // Retry after a delay if no QR code yet
         setTimeout(() => getQrCode(instanceId), 3000);
       }
@@ -217,6 +239,7 @@ export const useZapiConnection = () => {
     setIsConnecting(false);
     setConnectionStatus('disconnected');
     setCurrentInstance(null);
+    setPollingEnabled(false);
   }, []);
 
   return {

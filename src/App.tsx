@@ -22,7 +22,7 @@ import AffiliatePanel from './pages/AffiliatePanel';
 import Demo from '@/pages/Demo';
 import AffiliateLanding from '@/pages/AffiliateLanding';
 import ConfirmationPage from '@/pages/ConfirmationPage';
-
+import ZApiManagement from '@/pages/ZApiManagement';
 import GeniusCampaign from '@/pages/GeniusCampaign';
 import Pricing from '@/pages/Pricing';
 
@@ -134,6 +134,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AffiliatePanel />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/integrations/whatsapp-zapi" 
+                element={
+                  <ProtectedRoute>
+                    <ZApiManagement />
                   </ProtectedRoute>
                 } 
               />
