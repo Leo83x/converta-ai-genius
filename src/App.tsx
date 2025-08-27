@@ -22,7 +22,7 @@ import AffiliatePanel from './pages/AffiliatePanel';
 import Demo from '@/pages/Demo';
 import AffiliateLanding from '@/pages/AffiliateLanding';
 import ConfirmationPage from '@/pages/ConfirmationPage';
-import VenomWhatsAppConnection from '@/pages/VenomWhatsAppConnection';
+
 import GeniusCampaign from '@/pages/GeniusCampaign';
 import Pricing from '@/pages/Pricing';
 
@@ -134,14 +134,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AffiliatePanel />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/venom-whatsapp" 
-                element={
-                  <ProtectedRoute>
-                    <VenomWhatsAppConnection />
                   </ProtectedRoute>
                 } 
               />

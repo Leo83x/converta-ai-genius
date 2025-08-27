@@ -21,7 +21,6 @@ import {
   Menu,
   X,
   TrendingUp,
-  Smartphone,
   Sparkles,
   CreditCard
 } from 'lucide-react';
@@ -68,12 +67,6 @@ const sidebarItems = [
     href: '/pricing',
     icon: CreditCard,
     color: 'text-green-500'
-  },
-  {
-    title: 'WhatsApp (Venom)',
-    href: '/venom-whatsapp',
-    icon: Smartphone,
-    color: 'text-emerald-500'
   },
   {
     title: 'Painel do Representante',
