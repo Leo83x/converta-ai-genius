@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Create Instance Called (v4-ROBUST) ===');
+  console.log('=== Z-API Create Instance Called (v5-TOKEN-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());

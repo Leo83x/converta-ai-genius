@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Get QR Code Called (v3-FORCE-DEV) ===');
+  console.log('=== Z-API Get QR Code Called (v4-TOKEN-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
