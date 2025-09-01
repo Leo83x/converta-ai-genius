@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Create Instance Called (v2) ===');
+  console.log('=== Z-API Create Instance Called (v3-FIXED) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
@@ -90,7 +90,6 @@ serve(async (req: Request) => {
 
     if (!actualToken) {
       // Check if we're in development mode or should use fallback
-      const devMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
       console.log('No token found, development mode:', devMode);
       
       if (devMode !== 'true') {
@@ -146,9 +145,7 @@ serve(async (req: Request) => {
     console.log('Z-API request payload:', requestPayload);
     console.log('Using token:', foundTokenName, 'Length:', actualToken?.length || 0);
     
-    // Check development mode first
-    const devMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
-    
+    // Use the devMode already declared at the top
     let zapiData;
     
     if (devMode === 'true' || !actualToken) {
