@@ -8,7 +8,10 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('Z-API Get QR Code called');
+  console.log('=== Z-API Get QR Code Called (v2) ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Timestamp:', new Date().toISOString());
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -86,6 +89,19 @@ serve(async (req: Request) => {
     const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
     const zapiPartnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
     const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
+    
+    console.log('Z-API Environment check:', {
+      hasBaseUrl: !!zapiBaseUrl,
+      hasPartnerToken: !!zapiPartnerToken,
+      developmentMode,
+      allZapiKeys: Object.keys(Deno.env.toObject()).filter(key => key.includes('ZAPI')),
+    });
+    
+    if (zapiPartnerToken) {
+      console.log('ZAPI Token found - length:', zapiPartnerToken.length, 'starts with:', zapiPartnerToken.substring(0, 8));
+    } else {
+      console.log('ZAPI_PARTNER_TOKEN is null/undefined');
+    }
 
     if (!zapiPartnerToken && !developmentMode) {
       throw new Error('ZAPI_PARTNER_TOKEN is required');

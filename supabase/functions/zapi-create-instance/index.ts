@@ -8,9 +8,10 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Create Instance Called ===');
+  console.log('=== Z-API Create Instance Called (v2) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
+  console.log('Timestamp:', new Date().toISOString());
   console.log('Headers:', Object.fromEntries(req.headers.entries()));
 
   // 🔥 CRITICAL: Handle OPTIONS first, before any other logic
@@ -30,13 +31,26 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
+    const devMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
     
-    console.log('Environment check:', {
+    console.log('Environment check (detailed):', {
       hasSupabaseUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
       hasAnonKey: !!supabaseAnonKey,
       hasPartnerToken: !!partnerToken,
+      hasDevMode: !!devMode,
+      allEnvKeys: Object.keys(Deno.env.toObject()).filter(key => 
+        key.includes('ZAPI') || key.includes('SUPABASE')
+      ),
     });
+    
+    // Log raw token for debugging (masked for security)
+    if (partnerToken) {
+      console.log('Token found - length:', partnerToken.length, 'starts with:', partnerToken.substring(0, 8));
+    } else {
+      console.log('ZAPI_PARTNER_TOKEN is null/undefined');
+      console.log('All available env vars:', Object.keys(Deno.env.toObject()));
+    }
 
     if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       throw new Error('Missing required Supabase environment variables');

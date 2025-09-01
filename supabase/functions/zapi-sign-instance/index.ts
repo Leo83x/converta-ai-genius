@@ -8,7 +8,10 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('Z-API Sign Instance called');
+  console.log('=== Z-API Sign Instance Called (v2) ===');
+  console.log('Method:', req.method);
+  console.log('URL:', req.url);
+  console.log('Timestamp:', new Date().toISOString());
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -71,6 +74,19 @@ serve(async (req: Request) => {
     const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
     const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
     const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
+    
+    console.log('Z-API Environment check:', {
+      hasPartnerToken: !!partnerToken,
+      hasBaseUrl: !!zapiBaseUrl,
+      developmentMode,
+      allZapiKeys: Object.keys(Deno.env.toObject()).filter(key => key.includes('ZAPI')),
+    });
+    
+    if (partnerToken) {
+      console.log('ZAPI Token found - length:', partnerToken.length, 'starts with:', partnerToken.substring(0, 8));
+    } else {
+      console.log('ZAPI_PARTNER_TOKEN is null/undefined');
+    }
 
     if (!developmentMode && partnerToken) {
       console.log('Signing real instance via Z-API Partner');
