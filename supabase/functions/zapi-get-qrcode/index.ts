@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Get QR Code Called (v2-ROBUST) ===');
+  console.log('=== Z-API Get QR Code Called (v3-FORCE-DEV) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
@@ -133,15 +133,17 @@ serve(async (req: Request) => {
       console.log('ZAPI_PARTNER_TOKEN is null/undefined');
     }
 
-    if (!actualToken && !developmentMode) {
-      console.error('CRITICAL: No ZAPI token found and not in development mode');
-      throw new Error('ZAPI_PARTNER_TOKEN is required');
+    // Force development mode if no token is available
+    let finalDevelopmentMode = developmentMode;
+    if (!actualToken) {
+      console.log('No token found, forcing development mode');
+      finalDevelopmentMode = true;
     }
 
     let qrCode: string | null = null;
     let status = 'disconnected';
 
-    if (developmentMode || !actualToken) {
+    if (finalDevelopmentMode || !actualToken) {
       console.log('Running in development mode - generating mock QR code');
       
       // Generate a mock QR code (simple SVG)
@@ -251,7 +253,7 @@ serve(async (req: Request) => {
       qrCode,
       status,
       instanceId: instanceData.instance_id,
-      developmentMode: developmentMode || !actualToken,
+      developmentMode: finalDevelopmentMode || !actualToken,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
