@@ -8,11 +8,20 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Create Instance Called (v5-TOKEN-FIX) ===');
+  console.log('=== Z-API Create Instance Called (v6-FINAL-TOKEN-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
   console.log('Headers:', Object.fromEntries(req.headers.entries()));
+
+  // 🔥 CRITICAL DEBUG: Log ALL environment variables to see what's available
+  const allEnv = Deno.env.toObject();
+  console.log('🔍 ALL ENVIRONMENT VARIABLES:');
+  Object.keys(allEnv).forEach(key => {
+    if (key.includes('ZAPI') || key.includes('TOKEN')) {
+      console.log(`  ${key}: ${allEnv[key] ? `[${allEnv[key].length} chars]` : 'NULL/UNDEFINED'}`);
+    }
+  });
 
   // 🔥 CRITICAL: Handle OPTIONS first, before any other logic
   if (req.method === 'OPTIONS') {

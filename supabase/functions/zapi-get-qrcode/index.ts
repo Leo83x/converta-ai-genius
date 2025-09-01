@@ -8,10 +8,19 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Get QR Code Called (v4-TOKEN-FIX) ===');
+  console.log('=== Z-API Get QR Code Called (v5-FINAL-TOKEN-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
+
+  // 🔥 CRITICAL DEBUG: Log ALL environment variables to see what's available
+  const allEnv = Deno.env.toObject();
+  console.log('🔍 ALL ENVIRONMENT VARIABLES WITH TOKEN:');
+  Object.keys(allEnv).forEach(key => {
+    if (key.includes('ZAPI') || key.includes('TOKEN')) {
+      console.log(`  ${key}: ${allEnv[key] ? `[${allEnv[key].length} chars] = ${allEnv[key].substring(0, 10)}...` : 'NULL/UNDEFINED'}`);
+    }
+  });
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
