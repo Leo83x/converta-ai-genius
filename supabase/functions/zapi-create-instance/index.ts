@@ -8,19 +8,40 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('Z-API Create Instance called');
+  console.log('Z-API Create Instance called - Start');
+  console.log('Request method:', req.method);
+  console.log('Request headers:', Object.fromEntries(req.headers.entries()));
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('Starting main request processing...');
+    
+    // Test environment variables first
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
+    
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey,
+      hasPartnerToken: !!partnerToken,
+      partnerTokenLength: partnerToken?.length || 0
+    });
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Missing required Supabase environment variables');
+    }
+
     // Create admin client for auth verification
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    console.log('Creating Supabase admin client...');
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get authorization header
     const authHeader = req.headers.get('Authorization');
@@ -28,121 +49,74 @@ serve(async (req: Request) => {
       console.error('No authorization header provided');
       throw new Error('No authorization header');
     }
+    
+    console.log('Auth header present, length:', authHeader.length);
 
     // Verify user authentication
+    console.log('Verifying user authentication...');
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
-    if (authError || !user) {
-      console.error('Authentication failed:', authError);
-      throw new Error('Unauthorized');
+    if (authError) {
+      console.error('Authentication error:', authError);
+      throw new Error(`Authentication failed: ${authError.message}`);
     }
 
-    console.log('User authenticated:', user.id);
+    if (!user) {
+      console.error('No user found in token');
+      throw new Error('User not found');
+    }
+
+    console.log('User authenticated successfully:', user.id);
+
+    // Parse request body
+    console.log('Parsing request body...');
+    let requestBody;
+    try {
+      requestBody = await req.json();
+      console.log('Request body parsed:', requestBody);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error(`Invalid JSON in request body: ${parseError.message}`);
+    }
+
+    const { instanceName } = requestBody;
+    console.log('Instance name from request:', instanceName);
+
+    if (!instanceName || typeof instanceName !== 'string' || instanceName.trim() === '') {
+      throw new Error('Instance name is required and must be a non-empty string');
+    }
 
     // Create user client for RLS-compliant operations
-    const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: {
-            Authorization: authHeader,
-          },
-        },
-      }
-    );
-
-    const requestBody = await req.json();
-    const { instanceName } = requestBody;
-    console.log('Creating instance with name:', instanceName);
-
-    if (!instanceName || instanceName.trim() === '') {
-      throw new Error('Instance name is required');
+    if (!supabaseAnonKey) {
+      throw new Error('Missing SUPABASE_ANON_KEY');
     }
 
-    // Get Z-API Partner configuration
-    const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
-    const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
-    const developmentMode = false; // Forçar modo produção
-    
-    console.log('Z-API Configuration:', {
-      hasPartnerToken: !!partnerToken,
-      tokenLength: partnerToken?.length || 0,
-      zapiBaseUrl,
-      developmentMode,
-      tokenPreview: partnerToken ? `${partnerToken.substring(0, 20)}...` : 'NOT_FOUND'
+    console.log('Creating user client...');
+    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
     });
 
-    let instanceId: string;
-    let apiToken: string;
-    let dueDate: string;
-
-    if (!partnerToken) {
-      console.error('ZAPI_PARTNER_TOKEN not found in environment');
-      throw new Error('Z-API Partner token not configured. Please add the ZAPI_PARTNER_TOKEN secret.');
-    }
-
-    if (developmentMode) {
-      console.log('Running in development mode - using mock data');
-      
-      // Mock instance creation for development
-      instanceId = `mock_instance_${Date.now()}`;
-      apiToken = `mock_token_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      dueDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(); // 48 hours from now
-    } else {
-      console.log('Creating real instance via Z-API Partner');
-      console.log('Request payload:', {
-        name: instanceName,
-        sessionName: `Converta+ - ${instanceName}`,
-        deliveryCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
-      });
-      
-      // Create instance via Z-API Partner API
-      const zapiResponse = await fetch(`${zapiBaseUrl}/instances/integrator/on-demand`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': partnerToken,
-        },
-        body: JSON.stringify({
-          name: instanceName,
-          sessionName: `Converta+ - ${instanceName}`,
-          deliveryCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
-          receivedCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
-          disconnectedCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
-          connectedCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
-          messageStatusCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
-          isDevice: false,
-          businessDevice: true,
-        }),
-      });
-
-      console.log('Z-API Response Status:', zapiResponse.status);
-      console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
-
-      if (!zapiResponse.ok) {
-        const errorText = await zapiResponse.text();
-        console.error('Z-API Partner error details:', {
-          status: zapiResponse.status,
-          statusText: zapiResponse.statusText,
-          errorBody: errorText,
-          headers: Object.fromEntries(zapiResponse.headers.entries())
-        });
-        throw new Error(`Z-API Partner error: ${zapiResponse.status} - ${errorText}`);
-      }
-
-      const zapiData = await zapiResponse.json();
-      console.log('Z-API Partner response:', zapiData);
-
-      instanceId = zapiData.id;
-      apiToken = zapiData.token;
-      dueDate = zapiData.due;
-    }
+    // For now, let's create a mock instance to test the database operations
+    console.log('Creating mock instance for testing...');
+    const instanceId = `test_instance_${Date.now()}`;
+    const apiToken = `test_token_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     // Save instance data to Supabase
     console.log('Saving instance to database...');
+    console.log('Insert data:', {
+      user_id: user.id,
+      instance_id: instanceId,
+      api_token: apiToken,
+      signed: false,
+      status: 'created',
+    });
+
     const { data: instanceData, error: insertError } = await supabaseUser
       .from('whatsapp_instances')
       .insert({
@@ -156,18 +130,23 @@ serve(async (req: Request) => {
       .maybeSingle();
 
     if (insertError) {
-      console.error('Database insert error:', insertError);
+      console.error('Database insert error details:', {
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint,
+        code: insertError.code
+      });
       throw new Error(`Database error: ${insertError.message}`);
     }
 
     if (!instanceData) {
       console.error('No instance data returned from database');
-      throw new Error('Failed to create instance in database');
+      throw new Error('Failed to create instance in database - no data returned');
     }
 
-    console.log('Instance created successfully:', instanceData);
+    console.log('Instance created successfully in database:', instanceData);
 
-    return new Response(JSON.stringify({
+    const response = {
       success: true,
       instance: {
         id: instanceData.id,
@@ -176,30 +155,43 @@ serve(async (req: Request) => {
         signed: instanceData.signed,
         status: instanceData.status,
       },
-      developmentMode,
-    }), {
+      developmentMode: true,
+      message: 'Instance created in test mode'
+    };
+
+    console.log('Sending success response:', response);
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in zapi-create-instance:', error);
+    console.error('=== ERROR IN ZAPI-CREATE-INSTANCE ===');
+    console.error('Error message:', error.message);
+    console.error('Error name:', error.name);
     console.error('Error stack:', error.stack);
+    console.error('Error details:', error);
     
     // Determine error type and provide appropriate response
     let statusCode = 500;
     let errorMessage = error.message || 'Unknown error occurred';
     
-    if (errorMessage.includes('Unauthorized')) {
+    if (errorMessage.includes('authorization') || errorMessage.includes('Authentication') || errorMessage.includes('User not found')) {
       statusCode = 401;
-    } else if (errorMessage.includes('not configured') || errorMessage.includes('required')) {
+    } else if (errorMessage.includes('required') || errorMessage.includes('Invalid JSON') || errorMessage.includes('must be')) {
       statusCode = 400;
     }
     
-    return new Response(JSON.stringify({ 
+    const errorResponse = { 
       success: false, 
       error: errorMessage,
-      timestamp: new Date().toISOString()
-    }), {
+      timestamp: new Date().toISOString(),
+      details: error.name || 'Unknown error type'
+    };
+
+    console.log('Sending error response:', errorResponse);
+    
+    return new Response(JSON.stringify(errorResponse), {
       status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
