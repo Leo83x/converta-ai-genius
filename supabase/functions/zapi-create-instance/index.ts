@@ -25,6 +25,7 @@ serve(async (req: Request) => {
     // Get authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('No authorization header provided');
       throw new Error('No authorization header');
     }
 
@@ -34,6 +35,7 @@ serve(async (req: Request) => {
     );
 
     if (authError || !user) {
+      console.error('Authentication failed:', authError);
       throw new Error('Unauthorized');
     }
 
@@ -52,8 +54,13 @@ serve(async (req: Request) => {
       }
     );
 
-    const { instanceName } = await req.json();
-    console.log('Creating instance:', instanceName);
+    const requestBody = await req.json();
+    const { instanceName } = requestBody;
+    console.log('Creating instance with name:', instanceName);
+
+    if (!instanceName || instanceName.trim() === '') {
+      throw new Error('Instance name is required');
+    }
 
     // Get Z-API Partner configuration
     const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
@@ -135,6 +142,7 @@ serve(async (req: Request) => {
     }
 
     // Save instance data to Supabase
+    console.log('Saving instance to database...');
     const { data: instanceData, error: insertError } = await supabaseUser
       .from('whatsapp_instances')
       .insert({
@@ -145,11 +153,16 @@ serve(async (req: Request) => {
         status: 'created',
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (insertError) {
       console.error('Database insert error:', insertError);
       throw new Error(`Database error: ${insertError.message}`);
+    }
+
+    if (!instanceData) {
+      console.error('No instance data returned from database');
+      throw new Error('Failed to create instance in database');
     }
 
     console.log('Instance created successfully:', instanceData);
@@ -170,11 +183,24 @@ serve(async (req: Request) => {
 
   } catch (error) {
     console.error('Error in zapi-create-instance:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Determine error type and provide appropriate response
+    let statusCode = 500;
+    let errorMessage = error.message || 'Unknown error occurred';
+    
+    if (errorMessage.includes('Unauthorized')) {
+      statusCode = 401;
+    } else if (errorMessage.includes('not configured') || errorMessage.includes('required')) {
+      statusCode = 400;
+    }
+    
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message 
+      error: errorMessage,
+      timestamp: new Date().toISOString()
     }), {
-      status: 500,
+      status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
