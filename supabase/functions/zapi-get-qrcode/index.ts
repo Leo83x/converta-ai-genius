@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Get QR Code Called (v5-FINAL-TOKEN-FIX) ===');
+  console.log('=== Z-API Get QR Code Called (v6-FINAL-TOKEN-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
@@ -94,66 +94,44 @@ serve(async (req: Request) => {
       signed: instanceData.signed 
     });
 
-    // Get Z-API Partner configuration
-    const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
-    const zapiPartnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
-    const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
-    
-    // Debug: List ALL environment variables to see what's available  
-    const allEnvVars = Deno.env.toObject();
-    console.log('ALL ENV VARS:', Object.keys(allEnvVars));
-    console.log('ZAPI related vars:', Object.keys(allEnvVars).filter(k => k.includes('ZAPI')));
-    
-    // Try different possible names for the token
-    const possibleTokenNames = [
+    // 🔥 CRITICAL: Multiple attempts to find the token
+    let zapiToken = null;
+    const possibleTokenVars = [
       'ZAPI_PARTNER_TOKEN',
-      'ZAPI_TOKEN', 
-      'PARTNER_TOKEN',
+      'ZAPI_TOKEN',
+      'Z_API_PARTNER_TOKEN', 
       'Z_API_TOKEN',
-      'Z_API_PARTNER_TOKEN'
+      'PARTNER_TOKEN'
     ];
     
-    let actualToken = zapiPartnerToken;
-    let foundTokenName = 'ZAPI_PARTNER_TOKEN';
-    
-    if (!actualToken) {
-      for (const tokenName of possibleTokenNames) {
-        const token = Deno.env.get(tokenName);
-        if (token) {
-          actualToken = token;
-          foundTokenName = tokenName;
-          break;
-        }
+    console.log('🔍 SEARCHING FOR ZAPI TOKEN:');
+    for (const varName of possibleTokenVars) {
+      const value = Deno.env.get(varName);
+      console.log(`  ${varName}: ${value ? `FOUND [${value.length} chars] = ${value.substring(0, 15)}...` : 'NOT FOUND'}`);
+      if (value && !zapiToken) {
+        zapiToken = value;
+        console.log(`✅ USING TOKEN FROM: ${varName}`);
       }
     }
     
-    console.log('Z-API Environment check:', {
-      hasBaseUrl: !!zapiBaseUrl,
-      hasPartnerToken: !!actualToken,
-      foundTokenName,
-      developmentMode,
-      tokenLength: actualToken?.length || 0,
-      allZapiKeys: Object.keys(allEnvVars).filter(key => key.includes('ZAPI')),
-    });
+    const devModeEnv = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
+    console.log('🔍 DEVELOPMENT MODE ENV:', devModeEnv);
     
-    if (actualToken) {
-      console.log('ZAPI Token found - length:', actualToken.length, 'starts with:', actualToken.substring(0, 8));
-    } else {
-      console.log('ZAPI_PARTNER_TOKEN is null/undefined');
-    }
+    // Force production mode if we have a valid token
+    const isDevelopmentMode = devModeEnv === 'true' || !zapiToken;
+    console.log('🎯 FINAL MODE DECISION:', { 
+      isDevelopmentMode, 
+      hasToken: !!zapiToken, 
+      tokenLength: zapiToken?.length || 0,
+      devModeEnv 
+    });
 
-    // Force development mode if no token is available
-    let finalDevelopmentMode = developmentMode;
-    if (!actualToken) {
-      console.log('No token found, forcing development mode');
-      finalDevelopmentMode = true;
-    }
-
+    const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
     let qrCode: string | null = null;
     let status = 'disconnected';
 
-    if (finalDevelopmentMode || !actualToken) {
-      console.log('Running in development mode - generating mock QR code');
+    if (isDevelopmentMode) {
+      console.log('✅ RUNNING IN DEVELOPMENT MODE - generating mock QR code');
       
       // Generate a mock QR code (simple SVG)
       const mockQrSvg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
@@ -169,7 +147,7 @@ serve(async (req: Request) => {
       qrCode = `data:image/svg+xml;base64,${base64QR}`;
       status = 'pending';
     } else {
-      console.log('Getting real QR code from Z-API');
+      console.log('✅ RUNNING IN PRODUCTION MODE - getting real QR code from Z-API');
       
       try {
         // Use regular Z-API endpoint with instance ID and token
@@ -262,7 +240,7 @@ serve(async (req: Request) => {
       qrCode,
       status,
       instanceId: instanceData.instance_id,
-      developmentMode: finalDevelopmentMode || !actualToken,
+      developmentMode: isDevelopmentMode,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

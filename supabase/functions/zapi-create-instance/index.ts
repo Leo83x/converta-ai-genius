@@ -35,75 +35,45 @@ serve(async (req: Request) => {
   try {
     console.log('Processing main request...');
     
-    // Environment variables check
+    // Environment variables check with advanced debugging
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
-    const devModeEnv = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
-    let devMode = devModeEnv; // Use local variable for mode control
     
-    console.log('Environment check (detailed):', {
-      hasSupabaseUrl: !!supabaseUrl,
-      hasServiceKey: !!supabaseServiceKey,
-      hasAnonKey: !!supabaseAnonKey,
-      hasPartnerToken: !!partnerToken,
-      hasDevMode: !!devMode,
-      allEnvKeys: Object.keys(Deno.env.toObject()).filter(key => 
-        key.includes('ZAPI') || key.includes('SUPABASE')
-      ),
-    });
-    
-    // Log raw token for debugging (masked for security)
-    if (partnerToken) {
-      console.log('Token found - length:', partnerToken.length, 'starts with:', partnerToken.substring(0, 8));
-    } else {
-      console.log('ZAPI_PARTNER_TOKEN is null/undefined');
-      console.log('All available env vars:', Object.keys(Deno.env.toObject()));
-    }
-
-    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-      throw new Error('Missing required Supabase environment variables');
-    }
-
-    // Debug: List ALL environment variables to see what's available
-    const allEnvVars = Deno.env.toObject();
-    console.log('ALL ENV VARS:', Object.keys(allEnvVars));
-    console.log('ZAPI related vars:', Object.keys(allEnvVars).filter(k => k.includes('ZAPI')));
-    
-    // Try different possible names for the token
-    const possibleTokenNames = [
+    // 🔥 CRITICAL: Multiple attempts to find the token
+    let zapiToken = null;
+    const possibleTokenVars = [
       'ZAPI_PARTNER_TOKEN',
-      'ZAPI_TOKEN', 
-      'PARTNER_TOKEN',
+      'ZAPI_TOKEN',
+      'Z_API_PARTNER_TOKEN', 
       'Z_API_TOKEN',
-      'Z_API_PARTNER_TOKEN'
+      'PARTNER_TOKEN'
     ];
     
-    let actualToken = null;
-    let foundTokenName = null;
-    
-    for (const tokenName of possibleTokenNames) {
-      const token = Deno.env.get(tokenName);
-      if (token) {
-        actualToken = token;
-        foundTokenName = tokenName;
-        break;
+    console.log('🔍 SEARCHING FOR ZAPI TOKEN:');
+    for (const varName of possibleTokenVars) {
+      const value = Deno.env.get(varName);
+      console.log(`  ${varName}: ${value ? `FOUND [${value.length} chars] = ${value.substring(0, 15)}...` : 'NOT FOUND'}`);
+      if (value && !zapiToken) {
+        zapiToken = value;
+        console.log(`✅ USING TOKEN FROM: ${varName}`);
       }
     }
     
-    console.log('Token search results:', {
-      foundToken: !!actualToken,
-      foundTokenName,
-      tokenLength: actualToken?.length || 0
+    const devModeEnv = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
+    console.log('🔍 DEVELOPMENT MODE ENV:', devModeEnv);
+    
+    // Force production mode if we have a valid token
+    const isDevelopmentMode = devModeEnv === 'true' || !zapiToken;
+    console.log('🎯 FINAL MODE DECISION:', { 
+      isDevelopmentMode, 
+      hasToken: !!zapiToken, 
+      tokenLength: zapiToken?.length || 0,
+      devModeEnv 
     });
-
-    // Always allow operation - fallback to development mode if token issues
-    if (!actualToken) {
-      console.log('No token found, forcing development mode');
-      console.log('Available environment variables:', Object.keys(allEnvVars));
-      // Force development mode when token is not available
-      devMode = 'true';
+    
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      throw new Error('Missing required Supabase environment variables');
     }
 
     // Authentication
@@ -150,13 +120,12 @@ serve(async (req: Request) => {
     };
     
     console.log('Z-API request payload:', requestPayload);
-    console.log('Using token:', foundTokenName, 'Length:', actualToken?.length || 0);
+    console.log('Using mode:', isDevelopmentMode ? 'DEVELOPMENT' : 'PRODUCTION');
     
-    // Use the devMode already declared at the top
     let zapiData;
     
-    if (devMode === 'true' || !actualToken) {
-      console.log('Running in development mode - creating mock instance');
+    if (isDevelopmentMode) {
+      console.log('✅ RUNNING IN DEVELOPMENT MODE - creating mock instance');
       
       // Generate mock instance data
       const mockInstanceId = `dev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -171,12 +140,14 @@ serve(async (req: Request) => {
       
       console.log('Mock Z-API response created:', zapiData);
     } else {
+      console.log('✅ RUNNING IN PRODUCTION MODE - calling real Z-API with token');
+      
       // Real Z-API call
       const zapiResponse = await fetch('https://api.z-api.io/instances/integrator/on-demand', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${actualToken}`,
+          'Authorization': `Bearer ${zapiToken}`,
         },
         body: JSON.stringify(requestPayload),
       });
@@ -252,8 +223,8 @@ serve(async (req: Request) => {
         signed: instanceData.signed,
         status: instanceData.status,
       },
-      developmentMode: devMode === 'true' || !actualToken,
-      message: devMode === 'true' || !actualToken 
+      developmentMode: isDevelopmentMode,
+      message: isDevelopmentMode
         ? 'Instance created successfully in development mode' 
         : 'Instance created successfully via Z-API Partner'
     };
