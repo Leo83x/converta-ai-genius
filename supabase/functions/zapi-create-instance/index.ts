@@ -102,10 +102,67 @@ serve(async (req: Request) => {
       },
     });
 
-    // For now, let's create a mock instance to test the database operations
-    console.log('Creating mock instance for testing...');
-    const instanceId = `test_instance_${Date.now()}`;
-    const apiToken = `test_token_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    // Get Z-API Partner configuration
+    const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
+    const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
+    
+    console.log('Z-API Configuration:', {
+      hasPartnerToken: !!partnerToken,
+      tokenLength: partnerToken?.length || 0,
+      zapiBaseUrl,
+      tokenPreview: partnerToken ? `${partnerToken.substring(0, 20)}...` : 'NOT_FOUND'
+    });
+
+    if (!partnerToken) {
+      console.error('ZAPI_PARTNER_TOKEN not found in environment');
+      throw new Error('Z-API Partner token not configured. Please add the ZAPI_PARTNER_TOKEN secret.');
+    }
+
+    // Create instance via Z-API Partner API with correct headers and endpoint
+    console.log('Creating real instance via Z-API Partner');
+    const requestPayload = {
+      instanceName: instanceName,
+      plan: "standard"
+    };
+    
+    console.log('Z-API Partner request:', {
+      url: `${zapiBaseUrl}/instances`,
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Token': '[HIDDEN]'
+      },
+      payload: requestPayload
+    });
+    
+    const zapiResponse = await fetch(`${zapiBaseUrl}/instances`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Token': partnerToken,
+      },
+      body: JSON.stringify(requestPayload),
+    });
+
+    console.log('Z-API Response Status:', zapiResponse.status);
+    console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
+
+    if (!zapiResponse.ok) {
+      const errorText = await zapiResponse.text();
+      console.error('Z-API Partner error details:', {
+        status: zapiResponse.status,
+        statusText: zapiResponse.statusText,
+        errorBody: errorText,
+        headers: Object.fromEntries(zapiResponse.headers.entries())
+      });
+      throw new Error(`Z-API Partner error: ${zapiResponse.status} - ${errorText}`);
+    }
+
+    const zapiData = await zapiResponse.json();
+    console.log('Z-API Partner response:', zapiData);
+
+    // Extract instance data from Z-API response
+    const instanceId = zapiData.instance?.instanceId || zapiData.instanceId || `instance_${Date.now()}`;
+    const apiToken = zapiData.instance?.token || zapiData.token || `token_${Date.now()}`;
 
     // Save instance data to Supabase
     console.log('Saving instance to database...');
@@ -155,8 +212,8 @@ serve(async (req: Request) => {
         signed: instanceData.signed,
         status: instanceData.status,
       },
-      developmentMode: true,
-      message: 'Instance created in test mode'
+      developmentMode: false,
+      message: 'Instance created successfully via Z-API Partner'
     };
 
     console.log('Sending success response:', response);
