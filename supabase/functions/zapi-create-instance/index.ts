@@ -86,14 +86,13 @@ serve(async (req: Request) => {
     console.log('Creating Z-API instance...');
     
     const requestPayload = {
-      instanceName: instanceName.trim(),
-      plan: "standard"
+      name: instanceName.trim(),
     };
     
     console.log('Z-API request payload:', requestPayload);
     console.log('Partner token available:', !!partnerToken);
     
-    const zapiResponse = await fetch('https://api.z-api.io/instances', {
+    const zapiResponse = await fetch('https://api.z-api.io/instances/integrator/on-demand', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
