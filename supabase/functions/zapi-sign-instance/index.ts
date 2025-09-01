@@ -152,7 +152,7 @@ serve(async (req: Request) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${zapiToken}`,
+            'Authorization': zapiToken,
           },
           body: JSON.stringify(signPayload),
         });

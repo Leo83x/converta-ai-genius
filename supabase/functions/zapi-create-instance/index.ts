@@ -143,14 +143,14 @@ serve(async (req: Request) => {
       console.log('✅ RUNNING IN PRODUCTION MODE - calling real Z-API with token');
       
       // Real Z-API call
-      const zapiResponse = await fetch('https://api.z-api.io/instances/integrator/on-demand', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${zapiToken}`,
-        },
-        body: JSON.stringify(requestPayload),
-      });
+        const zapiResponse = await fetch('https://api.z-api.io/instances/integrator/on-demand', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': zapiToken,
+          },
+          body: JSON.stringify(requestPayload),
+        });
       
       console.log('Z-API Response Status:', zapiResponse.status);
       console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
