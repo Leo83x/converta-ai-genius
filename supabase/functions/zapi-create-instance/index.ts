@@ -84,19 +84,16 @@ serve(async (req: Request) => {
 
     // Create Z-API instance
     console.log('Creating Z-API instance...');
-    const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
     
     const requestPayload = {
       instanceName: instanceName.trim(),
       plan: "standard"
     };
     
-    console.log('Z-API request:', {
-      url: `${zapiBaseUrl}/instances`,
-      payload: requestPayload
-    });
+    console.log('Z-API request payload:', requestPayload);
+    console.log('Partner token available:', !!partnerToken);
     
-    const zapiResponse = await fetch(`${zapiBaseUrl}/instances`, {
+    const zapiResponse = await fetch('https://api.z-api.io/instances', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,6 +101,9 @@ serve(async (req: Request) => {
       },
       body: JSON.stringify(requestPayload),
     });
+    
+    console.log('Z-API Response Status:', zapiResponse.status);
+    console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
 
     console.log('Z-API Response Status:', zapiResponse.status);
 
