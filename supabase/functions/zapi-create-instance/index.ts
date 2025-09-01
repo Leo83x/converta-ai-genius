@@ -97,7 +97,7 @@ serve(async (req: Request) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Token': partnerToken,
+        'Authorization': `Bearer ${partnerToken}`,
       },
       body: JSON.stringify(requestPayload),
     });
