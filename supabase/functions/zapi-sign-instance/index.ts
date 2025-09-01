@@ -75,20 +75,50 @@ serve(async (req: Request) => {
     const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
     const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
     
+    // Debug: List ALL environment variables to see what's available  
+    const allEnvVars = Deno.env.toObject();
+    console.log('ALL ENV VARS:', Object.keys(allEnvVars));
+    console.log('ZAPI related vars:', Object.keys(allEnvVars).filter(k => k.includes('ZAPI')));
+    
+    // Try different possible names for the token
+    const possibleTokenNames = [
+      'ZAPI_PARTNER_TOKEN',
+      'ZAPI_TOKEN', 
+      'PARTNER_TOKEN',
+      'Z_API_TOKEN',
+      'Z_API_PARTNER_TOKEN'
+    ];
+    
+    let actualToken = partnerToken;
+    let foundTokenName = 'ZAPI_PARTNER_TOKEN';
+    
+    if (!actualToken) {
+      for (const tokenName of possibleTokenNames) {
+        const token = Deno.env.get(tokenName);
+        if (token) {
+          actualToken = token;
+          foundTokenName = tokenName;
+          break;
+        }
+      }
+    }
+    
     console.log('Z-API Environment check:', {
-      hasPartnerToken: !!partnerToken,
+      hasPartnerToken: !!actualToken,
       hasBaseUrl: !!zapiBaseUrl,
+      foundTokenName,
       developmentMode,
-      allZapiKeys: Object.keys(Deno.env.toObject()).filter(key => key.includes('ZAPI')),
+      tokenLength: actualToken?.length || 0,
+      allZapiKeys: Object.keys(allEnvVars).filter(key => key.includes('ZAPI')),
     });
     
-    if (partnerToken) {
-      console.log('ZAPI Token found - length:', partnerToken.length, 'starts with:', partnerToken.substring(0, 8));
+    if (actualToken) {
+      console.log('ZAPI Token found - length:', actualToken.length, 'starts with:', actualToken.substring(0, 8));
     } else {
       console.log('ZAPI_PARTNER_TOKEN is null/undefined');
     }
 
-    if (!developmentMode && partnerToken) {
+    if (!developmentMode && actualToken) {
       console.log('Signing real instance via Z-API Partner');
       
       // Sign instance via Z-API Partner API
@@ -98,7 +128,7 @@ serve(async (req: Request) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${partnerToken}`,
+          'Authorization': `Bearer ${actualToken}`,
         },
       });
 
@@ -140,7 +170,7 @@ serve(async (req: Request) => {
         signed: updatedInstance.signed,
         status: updatedInstance.status,
       },
-      developmentMode,
+      developmentMode: developmentMode || !actualToken,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

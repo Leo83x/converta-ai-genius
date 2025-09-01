@@ -90,27 +90,58 @@ serve(async (req: Request) => {
     const zapiPartnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
     const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
     
+    // Debug: List ALL environment variables to see what's available  
+    const allEnvVars = Deno.env.toObject();
+    console.log('ALL ENV VARS:', Object.keys(allEnvVars));
+    console.log('ZAPI related vars:', Object.keys(allEnvVars).filter(k => k.includes('ZAPI')));
+    
+    // Try different possible names for the token
+    const possibleTokenNames = [
+      'ZAPI_PARTNER_TOKEN',
+      'ZAPI_TOKEN', 
+      'PARTNER_TOKEN',
+      'Z_API_TOKEN',
+      'Z_API_PARTNER_TOKEN'
+    ];
+    
+    let actualToken = zapiPartnerToken;
+    let foundTokenName = 'ZAPI_PARTNER_TOKEN';
+    
+    if (!actualToken) {
+      for (const tokenName of possibleTokenNames) {
+        const token = Deno.env.get(tokenName);
+        if (token) {
+          actualToken = token;
+          foundTokenName = tokenName;
+          break;
+        }
+      }
+    }
+    
     console.log('Z-API Environment check:', {
       hasBaseUrl: !!zapiBaseUrl,
-      hasPartnerToken: !!zapiPartnerToken,
+      hasPartnerToken: !!actualToken,
+      foundTokenName,
       developmentMode,
-      allZapiKeys: Object.keys(Deno.env.toObject()).filter(key => key.includes('ZAPI')),
+      tokenLength: actualToken?.length || 0,
+      allZapiKeys: Object.keys(allEnvVars).filter(key => key.includes('ZAPI')),
     });
     
-    if (zapiPartnerToken) {
-      console.log('ZAPI Token found - length:', zapiPartnerToken.length, 'starts with:', zapiPartnerToken.substring(0, 8));
+    if (actualToken) {
+      console.log('ZAPI Token found - length:', actualToken.length, 'starts with:', actualToken.substring(0, 8));
     } else {
       console.log('ZAPI_PARTNER_TOKEN is null/undefined');
     }
 
-    if (!zapiPartnerToken && !developmentMode) {
+    if (!actualToken && !developmentMode) {
+      console.error('CRITICAL: No ZAPI token found and not in development mode');
       throw new Error('ZAPI_PARTNER_TOKEN is required');
     }
 
     let qrCode: string | null = null;
     let status = 'disconnected';
 
-    if (developmentMode) {
+    if (developmentMode || !actualToken) {
       console.log('Running in development mode - generating mock QR code');
       
       // Generate a mock QR code (simple SVG)
@@ -220,7 +251,7 @@ serve(async (req: Request) => {
       qrCode,
       status,
       instanceId: instanceData.instance_id,
-      developmentMode,
+      developmentMode: developmentMode || !actualToken,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

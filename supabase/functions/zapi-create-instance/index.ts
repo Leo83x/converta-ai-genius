@@ -56,8 +56,48 @@ serve(async (req: Request) => {
       throw new Error('Missing required Supabase environment variables');
     }
 
-    if (!partnerToken) {
-      throw new Error('ZAPI_PARTNER_TOKEN not found in environment');
+    // Debug: List ALL environment variables to see what's available
+    const allEnvVars = Deno.env.toObject();
+    console.log('ALL ENV VARS:', Object.keys(allEnvVars));
+    console.log('ZAPI related vars:', Object.keys(allEnvVars).filter(k => k.includes('ZAPI')));
+    
+    // Try different possible names for the token
+    const possibleTokenNames = [
+      'ZAPI_PARTNER_TOKEN',
+      'ZAPI_TOKEN', 
+      'PARTNER_TOKEN',
+      'Z_API_TOKEN',
+      'Z_API_PARTNER_TOKEN'
+    ];
+    
+    let actualToken = null;
+    let foundTokenName = null;
+    
+    for (const tokenName of possibleTokenNames) {
+      const token = Deno.env.get(tokenName);
+      if (token) {
+        actualToken = token;
+        foundTokenName = tokenName;
+        break;
+      }
+    }
+    
+    console.log('Token search results:', {
+      foundToken: !!actualToken,
+      foundTokenName,
+      tokenLength: actualToken?.length || 0
+    });
+
+    if (!actualToken) {
+      // Check if we're in development mode or should use fallback
+      const devMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
+      console.log('No token found, development mode:', devMode);
+      
+      if (devMode !== 'true') {
+        console.error('CRITICAL: No ZAPI token found in any expected environment variable names');
+        console.log('Available environment variables:', Object.keys(allEnvVars));
+        throw new Error('ZAPI Partner Token not found - please check Supabase secrets configuration');
+      }
     }
 
     // Authentication
@@ -104,34 +144,55 @@ serve(async (req: Request) => {
     };
     
     console.log('Z-API request payload:', requestPayload);
-    console.log('Partner token available:', !!partnerToken);
+    console.log('Using token:', foundTokenName, 'Length:', actualToken?.length || 0);
     
-    const zapiResponse = await fetch('https://api.z-api.io/instances/integrator/on-demand', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${partnerToken}`,
-      },
-      body: JSON.stringify(requestPayload),
-    });
+    // Check development mode first
+    const devMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
     
-    console.log('Z-API Response Status:', zapiResponse.status);
-    console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
-
-    console.log('Z-API Response Status:', zapiResponse.status);
-
-    if (!zapiResponse.ok) {
-      const errorText = await zapiResponse.text();
-      console.error('Z-API error:', {
-        status: zapiResponse.status,
-        statusText: zapiResponse.statusText,
-        body: errorText
+    let zapiData;
+    
+    if (devMode === 'true' || !actualToken) {
+      console.log('Running in development mode - creating mock instance');
+      
+      // Generate mock instance data
+      const mockInstanceId = `dev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const mockToken = `dev_token_${Math.random().toString(36).substr(2, 16)}`;
+      
+      zapiData = {
+        id: mockInstanceId,
+        token: mockToken,
+        due: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+        status: 'created'
+      };
+      
+      console.log('Mock Z-API response created:', zapiData);
+    } else {
+      // Real Z-API call
+      const zapiResponse = await fetch('https://api.z-api.io/instances/integrator/on-demand', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${actualToken}`,
+        },
+        body: JSON.stringify(requestPayload),
       });
-      throw new Error(`Z-API error: ${zapiResponse.status} - ${errorText}`);
-    }
+      
+      console.log('Z-API Response Status:', zapiResponse.status);
+      console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
 
-    const zapiData = await zapiResponse.json();
-    console.log('Z-API response structure:', JSON.stringify(zapiData, null, 2));
+      if (!zapiResponse.ok) {
+        const errorText = await zapiResponse.text();
+        console.error('Z-API error:', {
+          status: zapiResponse.status,
+          statusText: zapiResponse.statusText,
+          body: errorText
+        });
+        throw new Error(`Z-API error: ${zapiResponse.status} - ${errorText}`);
+      }
+
+      zapiData = await zapiResponse.json();
+      console.log('Z-API response structure:', JSON.stringify(zapiData, null, 2));
+    }
 
     // Extract instance data from Z-API response
     // Z-API Partner response should contain: { id, token, due }
@@ -187,7 +248,10 @@ serve(async (req: Request) => {
         signed: instanceData.signed,
         status: instanceData.status,
       },
-      message: 'Instance created successfully via Z-API Partner'
+      developmentMode: devMode === 'true' || !actualToken,
+      message: devMode === 'true' || !actualToken 
+        ? 'Instance created successfully in development mode' 
+        : 'Instance created successfully via Z-API Partner'
     };
 
     return new Response(JSON.stringify(response), {
