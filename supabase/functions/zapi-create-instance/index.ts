@@ -58,16 +58,27 @@ serve(async (req: Request) => {
     // Get Z-API Partner configuration
     const partnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
     const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
-    const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
+    const developmentMode = false; // Forçar modo produção
+    
+    console.log('Z-API Configuration:', {
+      hasPartnerToken: !!partnerToken,
+      tokenLength: partnerToken?.length || 0,
+      zapiBaseUrl,
+      developmentMode,
+      tokenPreview: partnerToken ? `${partnerToken.substring(0, 20)}...` : 'NOT_FOUND'
+    });
 
     let instanceId: string;
     let apiToken: string;
     let dueDate: string;
 
-    if (developmentMode || !partnerToken) {
+    if (!partnerToken) {
+      console.error('ZAPI_PARTNER_TOKEN not found in environment');
+      throw new Error('Z-API Partner token not configured. Please add the ZAPI_PARTNER_TOKEN secret.');
+    }
+
+    if (developmentMode) {
       console.log('Running in development mode - using mock data');
-      console.log('Partner token present:', !!partnerToken);
-      console.log('Development mode:', developmentMode);
       
       // Mock instance creation for development
       instanceId = `mock_instance_${Date.now()}`;
@@ -75,6 +86,11 @@ serve(async (req: Request) => {
       dueDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(); // 48 hours from now
     } else {
       console.log('Creating real instance via Z-API Partner');
+      console.log('Request payload:', {
+        name: instanceName,
+        sessionName: `Converta+ - ${instanceName}`,
+        deliveryCallbackUrl: `${Deno.env.get('SUPABASE_URL')}/functions/v1/zapi-webhook`,
+      });
       
       // Create instance via Z-API Partner API
       const zapiResponse = await fetch(`${zapiBaseUrl}/instances/integrator/on-demand`, {
@@ -96,10 +112,18 @@ serve(async (req: Request) => {
         }),
       });
 
+      console.log('Z-API Response Status:', zapiResponse.status);
+      console.log('Z-API Response Headers:', Object.fromEntries(zapiResponse.headers.entries()));
+
       if (!zapiResponse.ok) {
         const errorText = await zapiResponse.text();
-        console.error('Z-API Partner error:', errorText);
-        throw new Error(`Z-API Partner error: ${zapiResponse.status} ${errorText}`);
+        console.error('Z-API Partner error details:', {
+          status: zapiResponse.status,
+          statusText: zapiResponse.statusText,
+          errorBody: errorText,
+          headers: Object.fromEntries(zapiResponse.headers.entries())
+        });
+        throw new Error(`Z-API Partner error: ${zapiResponse.status} - ${errorText}`);
       }
 
       const zapiData = await zapiResponse.json();
