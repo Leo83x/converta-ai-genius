@@ -117,11 +117,19 @@ serve(async (req: Request) => {
     }
 
     const zapiData = await zapiResponse.json();
-    console.log('Z-API response:', zapiData);
+    console.log('Z-API response structure:', JSON.stringify(zapiData, null, 2));
 
     // Extract instance data from Z-API response
-    const instanceId = zapiData.instance?.instanceId || zapiData.instanceId || `instance_${Date.now()}`;
-    const apiToken = zapiData.instance?.token || zapiData.token || `token_${Date.now()}`;
+    // Z-API Partner response should contain: { id, token, due }
+    if (!zapiData.id || !zapiData.token) {
+      console.error('Invalid Z-API response structure:', zapiData);
+      throw new Error(`Invalid Z-API response: missing id or token. Response: ${JSON.stringify(zapiData)}`);
+    }
+
+    const instanceId = zapiData.id;
+    const apiToken = zapiData.token;
+    
+    console.log('Extracted data:', { instanceId, tokenLength: apiToken?.length });
 
     // Save to database
     console.log('Saving to database...');
