@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 serve(async (req: Request) => {
@@ -52,9 +52,9 @@ serve(async (req: Request) => {
       }
     );
 
-    // Get instanceId from URL
-    const url = new URL(req.url);
-    const instanceId = url.searchParams.get('instanceId');
+    // Get instanceId from request body
+    const requestBody = await req.json();
+    const { instanceId } = requestBody;
     
     if (!instanceId) {
       throw new Error('Instance ID is required');
