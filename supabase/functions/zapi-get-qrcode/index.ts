@@ -111,59 +111,80 @@ serve(async (req: Request) => {
       qrCode = `data:image/svg+xml;base64,${base64QR}`;
       status = 'pending';
     } else {
-      console.log('Getting real QR code from Z-API Partner');
+      console.log('Getting real QR code from Z-API');
       
       try {
-        // First, get the instance status from Z-API Partner
-        const statusUrl = `${zapiBaseUrl}/instances/integrator/status/${instanceData.instance_id}`;
-        console.log('Z-API Partner Status URL:', statusUrl);
+        // Use regular Z-API endpoint with instance ID and token
+        const qrUrl = `${zapiBaseUrl}/instances/${instanceData.instance_id}/token/${instanceData.api_token}/qr-code`;
+        console.log('Z-API QR URL:', qrUrl);
         
-        const statusResponse = await fetch(statusUrl, {
+        const qrResponse = await fetch(qrUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${zapiPartnerToken}`,
             'Content-Type': 'application/json',
           },
         });
 
-        console.log('Z-API Partner status response status:', statusResponse.status);
-        console.log('Z-API Partner status response headers:', Object.fromEntries(statusResponse.headers.entries()));
+        console.log('Z-API QR response status:', qrResponse.status);
+        console.log('Z-API QR response headers:', Object.fromEntries(qrResponse.headers.entries()));
 
-        if (statusResponse.ok) {
-          const statusData = await statusResponse.json();
-          console.log('Z-API Partner status response data:', JSON.stringify(statusData, null, 2));
+        if (qrResponse.ok) {
+          const qrData = await qrResponse.json();
+          console.log('Z-API QR response data:', JSON.stringify(qrData, null, 2));
           
-          // Check instance status
-          if (statusData.connected) {
-            status = 'connected';
-            console.log('Instance is already connected');
-          } else if (statusData.qrcode) {
-            // QR code is available
-            qrCode = `data:image/png;base64,${statusData.qrcode}`;
+          // Check QR code response
+          if (qrData.qrcode) {
+            qrCode = `data:image/png;base64,${qrData.qrcode}`;
             status = 'pending';
             console.log('QR code found and converted to data URL');
+          } else if (qrData.status === 'open') {
+            status = 'connected';
+            console.log('Instance is already connected');
           } else {
-            // Instance is connecting but no QR code yet
             status = 'connecting';
             console.log('Instance still connecting, no QR code available yet');
           }
         } else {
-          const errorText = await statusResponse.text();
-          console.warn('Z-API Partner status request failed:', {
-            status: statusResponse.status,
-            statusText: statusResponse.statusText,
+          const errorText = await qrResponse.text();
+          console.warn('Z-API QR request failed:', {
+            status: qrResponse.status,
+            statusText: qrResponse.statusText,
             body: errorText
           });
           
-          // If status endpoint fails, try alternative approach
-          if (statusResponse.status === 404 || statusResponse.status === 401) {
-            status = 'error';
-          } else {
+          // If QR endpoint fails, try status endpoint
+          try {
+            const statusUrl = `${zapiBaseUrl}/instances/${instanceData.instance_id}/token/${instanceData.api_token}/status`;
+            console.log('Z-API Status URL:', statusUrl);
+            
+            const statusResponse = await fetch(statusUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              console.log('Z-API status response data:', JSON.stringify(statusData, null, 2));
+              
+              if (statusData.status === 'open') {
+                status = 'connected';
+              } else if (statusData.status === 'closed') {
+                status = 'pending';
+              } else {
+                status = 'connecting';
+              }
+            } else {
+              status = 'connecting';
+            }
+          } catch (statusError) {
+            console.error('Error fetching status from Z-API:', statusError);
             status = 'connecting';
           }
         }
       } catch (error) {
-        console.error('Error fetching status from Z-API Partner:', error);
+        console.error('Error fetching QR from Z-API:', error);
         status = 'error';
       }
     }
