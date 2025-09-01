@@ -82,9 +82,14 @@ serve(async (req: Request) => {
       signed: instanceData.signed 
     });
 
-    // Get Z-API configuration
+    // Get Z-API Partner configuration
     const zapiBaseUrl = Deno.env.get('ZAPI_BASE_URL') || 'https://api.z-api.io';
+    const zapiPartnerToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
     const developmentMode = Deno.env.get('ZAPI_DEVELOPMENT_MODE') === 'true';
+
+    if (!zapiPartnerToken && !developmentMode) {
+      throw new Error('ZAPI_PARTNER_TOKEN is required');
+    }
 
     let qrCode: string | null = null;
     let status = 'disconnected';
@@ -106,49 +111,59 @@ serve(async (req: Request) => {
       qrCode = `data:image/svg+xml;base64,${base64QR}`;
       status = 'pending';
     } else {
-      console.log('Getting real QR code from Z-API');
+      console.log('Getting real QR code from Z-API Partner');
       
       try {
-        // Get QR code from Z-API
-        const qrUrl = `${zapiBaseUrl}/instances/${instanceData.instance_id}/token/${instanceData.api_token}/qrcode`;
-        console.log('Z-API QR URL:', qrUrl);
+        // First, get the instance status from Z-API Partner
+        const statusUrl = `${zapiBaseUrl}/instances/integrator/status/${instanceData.instance_id}`;
+        console.log('Z-API Partner Status URL:', statusUrl);
         
-        const zapiResponse = await fetch(qrUrl, {
+        const statusResponse = await fetch(statusUrl, {
           method: 'GET',
           headers: {
+            'Authorization': `Bearer ${zapiPartnerToken}`,
             'Content-Type': 'application/json',
           },
         });
 
-        console.log('Z-API QR response status:', zapiResponse.status);
-        console.log('Z-API QR response headers:', Object.fromEntries(zapiResponse.headers.entries()));
+        console.log('Z-API Partner status response status:', statusResponse.status);
+        console.log('Z-API Partner status response headers:', Object.fromEntries(statusResponse.headers.entries()));
 
-        if (zapiResponse.ok) {
-          const zapiData = await zapiResponse.json();
-          console.log('Z-API QR response data:', JSON.stringify(zapiData, null, 2));
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json();
+          console.log('Z-API Partner status response data:', JSON.stringify(statusData, null, 2));
           
-          if (zapiData.qrcode) {
-            qrCode = `data:image/png;base64,${zapiData.qrcode}`;
+          // Check instance status
+          if (statusData.connected) {
+            status = 'connected';
+            console.log('Instance is already connected');
+          } else if (statusData.qrcode) {
+            // QR code is available
+            qrCode = `data:image/png;base64,${statusData.qrcode}`;
             status = 'pending';
             console.log('QR code found and converted to data URL');
-          } else if (zapiData.status === 'open') {
-            status = 'connected';
-            console.log('Instance already connected');
           } else {
+            // Instance is connecting but no QR code yet
             status = 'connecting';
-            console.log('Instance still connecting, no QR code yet');
+            console.log('Instance still connecting, no QR code available yet');
           }
         } else {
-          const errorText = await zapiResponse.text();
-          console.warn('Z-API QR request failed:', {
-            status: zapiResponse.status,
-            statusText: zapiResponse.statusText,
+          const errorText = await statusResponse.text();
+          console.warn('Z-API Partner status request failed:', {
+            status: statusResponse.status,
+            statusText: statusResponse.statusText,
             body: errorText
           });
-          status = 'connecting';
+          
+          // If status endpoint fails, try alternative approach
+          if (statusResponse.status === 404 || statusResponse.status === 401) {
+            status = 'error';
+          } else {
+            status = 'connecting';
+          }
         }
       } catch (error) {
-        console.error('Error fetching QR from Z-API:', error);
+        console.error('Error fetching status from Z-API Partner:', error);
         status = 'error';
       }
     }
