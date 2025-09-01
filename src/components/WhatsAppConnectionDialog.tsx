@@ -89,6 +89,7 @@ const WhatsAppConnectionDialog = ({ open, onOpenChange, onSuccess }: WhatsAppCon
               isConnecting={isConnecting}
               onCreateSession={handleCreateInstance}
               onRefreshQR={refreshQrCode}
+              onResetConnection={resetConnection}
             />
 
             <WhatsAppQRCode

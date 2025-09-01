@@ -11,6 +11,7 @@ interface WhatsAppConnectionFormProps {
   isConnecting: boolean;
   onCreateSession: () => void;
   onRefreshQR?: () => void;
+  onResetConnection?: () => void;
 }
 
 const WhatsAppConnectionForm = ({
@@ -19,7 +20,8 @@ const WhatsAppConnectionForm = ({
   connectionStatus,
   isConnecting,
   onCreateSession,
-  onRefreshQR
+  onRefreshQR,
+  onResetConnection
 }: WhatsAppConnectionFormProps) => {
   return (
     <div className="space-y-4">
@@ -52,13 +54,25 @@ const WhatsAppConnectionForm = ({
       )}
 
       {connectionStatus === 'pending' && onRefreshQR && (
-        <Button
-          onClick={onRefreshQR}
-          variant="outline"
-          className="w-full"
-        >
-          Atualizar QR Code
-        </Button>
+        <div className="space-y-2">
+          <Button
+            onClick={onRefreshQR}
+            variant="outline"
+            className="w-full"
+          >
+            Atualizar QR Code
+          </Button>
+          
+          {onResetConnection && (
+            <Button
+              onClick={onResetConnection}
+              variant="destructive"
+              className="w-full"
+            >
+              Criar Nova Instância
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

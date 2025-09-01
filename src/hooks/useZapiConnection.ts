@@ -233,14 +233,40 @@ export const useZapiConnection = () => {
     }
   }, [currentInstance]);
 
-  const resetConnection = useCallback(() => {
-    setInstanceName('');
-    setQrCode('');
-    setIsConnecting(false);
-    setConnectionStatus('disconnected');
-    setCurrentInstance(null);
-    setPollingEnabled(false);
-  }, []);
+  const resetConnection = useCallback(async () => {
+    try {
+      // If there's a current instance, delete it from database
+      if (currentInstance) {
+        const { error } = await supabase
+          .from('whatsapp_instances')
+          .delete()
+          .eq('id', currentInstance.id);
+        
+        if (error) {
+          console.error('Error deleting instance:', error);
+        }
+      }
+      
+      setInstanceName('');
+      setQrCode('');
+      setIsConnecting(false);
+      setConnectionStatus('disconnected');
+      setCurrentInstance(null);
+      setPollingEnabled(false);
+      
+      toast({
+        title: "Conexão resetada",
+        description: "Você pode criar uma nova instância",
+      });
+    } catch (error) {
+      console.error('Error resetting connection:', error);
+      toast({
+        title: "Erro ao resetar",
+        description: "Erro ao limpar instância anterior",
+        variant: "destructive",
+      });
+    }
+  }, [currentInstance, toast]);
 
   return {
     instanceName,
