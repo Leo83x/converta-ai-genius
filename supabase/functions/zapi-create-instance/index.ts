@@ -40,31 +40,42 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     
-    // 🔥 CRITICAL: Multiple attempts to find the token
+    // 🔥 CRITICAL: Enhanced token detection with multiple strategies
     let zapiToken = null;
     const possibleTokenVars = [
       'ZAPI_PARTNER_TOKEN',
-      'ZAPI_TOKEN',
-      'Z_API_PARTNER_TOKEN', 
+      'ZAPI_TOKEN', 
+      'Z_API_PARTNER_TOKEN',
       'Z_API_TOKEN',
-      'PARTNER_TOKEN'
+      'PARTNER_TOKEN',
+      'ZAPI_API_TOKEN',
+      'Z_API_INTEGRATOR_TOKEN'
     ];
     
-    console.log('🔍 SEARCHING FOR ZAPI TOKEN:');
+    console.log('🔍 SEARCHING FOR ZAPI TOKEN WITH ENHANCED DETECTION:');
     for (const varName of possibleTokenVars) {
       const value = Deno.env.get(varName);
-      console.log(`  ${varName}: ${value ? `FOUND [${value.length} chars] = ${value.substring(0, 15)}...` : 'NOT FOUND'}`);
-      if (value && !zapiToken) {
-        zapiToken = value;
-        console.log(`✅ USING TOKEN FROM: ${varName}`);
+      if (value && value.trim()) {
+        console.log(`  ${varName}: FOUND [${value.length} chars] = ${value.substring(0, 20)}...`);
+        if (!zapiToken) {
+          zapiToken = value.trim();
+          console.log(`✅ SELECTED TOKEN FROM: ${varName}`);
+        }
+      } else {
+        console.log(`  ${varName}: NOT FOUND`);
       }
     }
     
+    // Check for force production mode
+    const forceProduction = Deno.env.get('ZAPI_FORCE_PRODUCTION') === 'true';
     const devModeEnv = Deno.env.get('ZAPI_DEVELOPMENT_MODE');
-    console.log('🔍 DEVELOPMENT MODE ENV:', devModeEnv);
     
-    // Force production mode if we have a valid token
-    const isDevelopmentMode = devModeEnv === 'true' || !zapiToken;
+    console.log('🔍 MODE CONFIGURATION:');
+    console.log(`  ZAPI_DEVELOPMENT_MODE: ${devModeEnv || 'NULL/UNDEFINED'}`);
+    console.log(`  ZAPI_FORCE_PRODUCTION: ${forceProduction ? 'true' : 'false'}`);
+    
+    // Enhanced mode decision: Force production if token exists OR if explicitly forced
+    const isDevelopmentMode = (devModeEnv === 'true') && !forceProduction && !zapiToken;
     console.log('🎯 FINAL MODE DECISION:', { 
       isDevelopmentMode, 
       hasToken: !!zapiToken, 
