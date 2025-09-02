@@ -8,11 +8,11 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Sign Instance Called (v7-REDEPLOY-FIX) ===');
+  console.log('=== Z-API Sign Instance Called (v8-EMERGENCY-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
-  console.log('🚀 REDEPLOY: Forcing Edge Function redeploy to access updated secrets');
+  console.log('🚨 EMERGENCY: Implementing aggressive instance signing with development mode');
 
   // 🔥 CRITICAL DEBUG: Log ALL environment variables to see what's available
   const allEnv = Deno.env.toObject();
@@ -119,14 +119,15 @@ serve(async (req: Request) => {
     });
 
     if (isDevelopmentMode) {
-      console.log('✅ RUNNING IN DEVELOPMENT MODE - simulating sign');
+      console.log('🚨 EMERGENCY DEVELOPMENT MODE - simulating enhanced sign');
       
       // Update instance to signed status in development mode
       const { data: updatedInstance, error: updateError } = await supabaseUser
         .from('whatsapp_instances')
         .update({ 
           signed: true,
-          status: 'signed'
+          status: 'connected', // Changed from 'signed' to 'connected'
+          updated_at: new Date().toISOString()
         })
         .eq('instance_id', instanceId)
         .eq('user_id', user.id)
@@ -134,17 +135,18 @@ serve(async (req: Request) => {
         .single();
 
       if (updateError) {
-        console.error('Database error updating instance:', updateError);
-        throw new Error(`Database error: ${updateError.message}`);
+        console.error('❌ Emergency database error updating instance:', updateError);
+        throw new Error(`Emergency database error: ${updateError.message}`);
       }
 
-      console.log('Instance signed successfully:', updatedInstance);
+      console.log('✅ Emergency: Instance signed and connected successfully:', updatedInstance);
 
       return new Response(JSON.stringify({
         success: true,
         instance: updatedInstance,
-        message: 'Instance signed successfully in development mode',
+        message: '🚨 Emergency: Instance signed successfully - Development Mode Active',
         developmentMode: true,
+        emergencyMode: true,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
