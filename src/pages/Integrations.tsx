@@ -255,6 +255,14 @@ const Integrations = () => {
             <h1 className="text-3xl font-bold text-gray-900">Integrações</h1>
             <p className="text-gray-600 mt-2">Conecte seus canais de comunicação</p>
           </div>
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/integrations/diagnostics')}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            🔧 Diagnóstico de Secrets
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

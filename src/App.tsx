@@ -23,6 +23,7 @@ import Demo from '@/pages/Demo';
 import AffiliateLanding from '@/pages/AffiliateLanding';
 import ConfirmationPage from '@/pages/ConfirmationPage';
 import ZApiManagement from '@/pages/ZApiManagement';
+import SecretsDiagnostic from '@/pages/SecretsDiagnostic';
 import GeniusCampaign from '@/pages/GeniusCampaign';
 import Pricing from '@/pages/Pricing';
 
@@ -142,6 +143,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ZApiManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/integrations/diagnostics" 
+                element={
+                  <ProtectedRoute>
+                    <SecretsDiagnostic />
                   </ProtectedRoute>
                 } 
               />

@@ -40,31 +40,13 @@ serve(async (req: Request) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     
-    // 🔥 CRITICAL: Enhanced token detection with multiple strategies
-    let zapiToken = null;
-    const possibleTokenVars = [
-      'ZAPI_PARTNER_TOKEN',
-      'ZAPI_TOKEN', 
-      'Z_API_PARTNER_TOKEN',
-      'Z_API_TOKEN',
-      'PARTNER_TOKEN',
-      'ZAPI_API_TOKEN',
-      'Z_API_INTEGRATOR_TOKEN'
-    ];
+    console.log('🔍 ENHANCED ZAPI TOKEN DETECTION:');
     
-    console.log('🔍 SEARCHING FOR ZAPI TOKEN WITH ENHANCED DETECTION:');
-    for (const varName of possibleTokenVars) {
-      const value = Deno.env.get(varName);
-      if (value && value.trim()) {
-        console.log(`  ${varName}: FOUND [${value.length} chars] = ${value.substring(0, 20)}...`);
-        if (!zapiToken) {
-          zapiToken = value.trim();
-          console.log(`✅ SELECTED TOKEN FROM: ${varName}`);
-        }
-      } else {
-        console.log(`  ${varName}: NOT FOUND`);
-      }
-    }
+    // Primary token check with fail-fast approach
+    const zapiToken = Deno.env.get('ZAPI_PARTNER_TOKEN');
+    const hasToken = !!zapiToken && zapiToken.length > 0;
+    
+    console.log(`ZAPI_PARTNER_TOKEN: ${hasToken ? 'PRESENT' : 'ABSENT'}`);
     
     // Check for force production mode
     const forceProduction = Deno.env.get('ZAPI_FORCE_PRODUCTION') === 'true';
@@ -75,13 +57,40 @@ serve(async (req: Request) => {
     console.log(`  ZAPI_FORCE_PRODUCTION: ${forceProduction ? 'true' : 'false'}`);
     
     // Enhanced mode decision: Force production if token exists OR if explicitly forced
-    const isDevelopmentMode = (devModeEnv === 'true') && !forceProduction && !zapiToken;
+    const isDevelopmentMode = (devModeEnv === 'true') && !forceProduction && !hasToken;
     console.log('🎯 FINAL MODE DECISION:', { 
       isDevelopmentMode, 
-      hasToken: !!zapiToken, 
+      hasToken, 
       tokenLength: zapiToken?.length || 0,
       devModeEnv 
     });
+    
+    // Fail fast if no token is available in production mode
+    if (!hasToken && !isDevelopmentMode) {
+      console.error("❌ CRITICAL: ZAPI_PARTNER_TOKEN not accessible");
+      console.error("This indicates a secret configuration or deployment issue");
+      console.error("Run the env-check function to diagnose the problem");
+      
+      return new Response(JSON.stringify({
+        success: false,
+        error: "ZAPI_PARTNER_TOKEN not accessible",
+        isDevelopmentMode,
+        troubleshooting: {
+          message: "Secret not accessible in Edge Function runtime",
+          steps: [
+            "1. Verify secret is set: supabase secrets list --project-ref xekxewtggioememydenu",
+            "2. Set if missing: supabase secrets set ZAPI_PARTNER_TOKEN='your_token' --project-ref xekxewtggioememydenu", 
+            "3. Redeploy functions: supabase functions deploy --project-ref xekxewtggioememydenu",
+            "4. Test with env-check function"
+          ]
+        }
+      }), {
+        status: 500,
+        headers: corsHeaders
+      });
+    }
+    
+    const detectedToken = zapiToken;
     
     if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
       throw new Error('Missing required Supabase environment variables');
@@ -158,7 +167,7 @@ serve(async (req: Request) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': zapiToken,
+            'Authorization': detectedToken,
           },
           body: JSON.stringify(requestPayload),
         });
