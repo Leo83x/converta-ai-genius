@@ -12,8 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    console.log("=== ENV CHECK DIAGNOSTIC FUNCTION ===")
+    console.log("=== ENV CHECK DIAGNOSTIC FUNCTION (v7-REDEPLOY-FIX) ===")
     console.log(`Timestamp: ${new Date().toISOString()}`)
+    console.log("🚀 REDEPLOY: Forcing Edge Function redeploy to access updated secrets")
 
     // Check for ZAPI_PARTNER_TOKEN
     const zapiToken = Deno.env.get('ZAPI_PARTNER_TOKEN')

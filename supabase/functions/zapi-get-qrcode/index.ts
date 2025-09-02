@@ -8,10 +8,11 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Get QR Code Called (v6-FINAL-TOKEN-FIX) ===');
+  console.log('=== Z-API Get QR Code Called (v7-REDEPLOY-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
+  console.log('🚀 REDEPLOY: Forcing Edge Function redeploy to access updated secrets');
 
   // 🔥 CRITICAL DEBUG: Log ALL environment variables to see what's available
   const allEnv = Deno.env.toObject();

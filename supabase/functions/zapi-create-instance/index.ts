@@ -8,10 +8,11 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  console.log('=== Z-API Create Instance Called (v6-FINAL-TOKEN-FIX) ===');
+  console.log('=== Z-API Create Instance Called (v7-REDEPLOY-FIX) ===');
   console.log('Method:', req.method);
   console.log('URL:', req.url);
   console.log('Timestamp:', new Date().toISOString());
+  console.log('🚀 REDEPLOY: Forcing Edge Function redeploy to access updated secrets');
   console.log('Headers:', Object.fromEntries(req.headers.entries()));
 
   // 🔥 CRITICAL DEBUG: Log ALL environment variables to see what's available
