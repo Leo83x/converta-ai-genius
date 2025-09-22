@@ -1,11 +1,25 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
-import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign, Brain } from 'lucide-react';
+import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign, Brain, TrendingUp, Eye } from 'lucide-react';
+import { useState } from 'react';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    area: '',
+    product: '',
+    objective: '',
+    email: '',
+    phone: ''
+  });
 
   const features = [
     {
@@ -20,8 +34,8 @@ const Index = () => {
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-blue-400" />,
-      title: "Dashboard Inteligente",
-      description: "Métricas avançadas e insights para otimizar sua conversão de leads"
+      title: "Análise de Conversas com IA",
+      description: "Análise completa de todas as conversas realizadas pelo seu Atendente de IA, gerando insights poderosos para vendas e otimização contínua"
     },
     {
       icon: <Zap className="h-8 w-8 text-yellow-400" />,
@@ -34,9 +48,9 @@ const Index = () => {
       description: "Gerencie todos os seus leads em um funil de vendas organizado"
     },
     {
-      icon: <Brain className="h-8 w-8 text-indigo-400" />,
-      title: "Assistente Inteligente",
-      description: "IA que analisa performance e oferece insights estratégicos para otimização contínua"
+      icon: <TrendingUp className="h-8 w-8 text-indigo-400" />,
+      title: "Insights de Performance",
+      description: "Dashboards avançados com métricas que ajudam a vender mais, anunciar melhor e aprimorar continuamente seu atendimento"
     }
   ];
 
@@ -57,12 +71,33 @@ const Index = () => {
     }, 100);
   };
 
+  const handleTestAgentClick = () => {
+    if (!formData.name || !formData.company || !formData.phone) {
+      alert('Por favor, preencha o formulário antes de testar o agente IA');
+      return;
+    }
+    
+    const message = `Olá! Meu nome é ${formData.name}, da empresa ${formData.company}. 
+Área de atuação: ${formData.area}
+Produto/Serviço: ${formData.product}
+Objetivo: ${formData.objective}
+Email: ${formData.email}
+
+Gostaria de testar um agente IA personalizado para meu negócio!`;
+
+    const whatsappUrl = `https://wa.me/5511999999999?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleAffiliateClick = () => {
     navigate('/afiliados');
-    // Scroll to top after navigation
     setTimeout(() => {
       window.scrollTo(0, 0);
     }, 100);
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -72,7 +107,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-1">
             <img 
-              src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
+              src="/lovable-uploads/logo-c-v2.png" 
               alt="Converta+" 
               className="h-10 w-10 mb-0.5"
             />
@@ -91,12 +126,13 @@ const Index = () => {
               Ver Demo
             </Button>
             <Button
-              onClick={handleAffiliateClick}
+              onClick={handleTestAgentClick}
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
-              <span className="hidden sm:inline">Torne-se um Representante</span>
-              <span className="sm:hidden">Torne-se Representante</span>
+              <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Teste seu Agente IA</span>
+              <span className="sm:hidden">Teste IA</span>
             </Button>
           </div>
         </div>
@@ -112,9 +148,97 @@ const Index = () => {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Transforme visitantes em clientes com agentes de inteligência artificial que trabalham 24/7 
-            para captar, qualificar e converter seus leads automaticamente.
+            Transforme visitantes em clientes com agentes de IA que trabalham 24/7. Análise completa de conversas 
+            gera insights poderosos para vender mais, anunciar melhor e aprimorar continuamente seu atendimento.
           </p>
+          
+          {/* Formulário de Captação */}
+          <div className="max-w-2xl mx-auto bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg border border-purple-500/20 mb-8">
+            <h3 className="text-2xl font-bold text-white mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-gray-300">Nome Completo *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleFormChange('name', e.target.value)}
+                  placeholder="Seu nome completo"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company" className="text-gray-300">Nome da Empresa *</Label>
+                <Input
+                  id="company"
+                  value={formData.company}
+                  onChange={(e) => handleFormChange('company', e.target.value)}
+                  placeholder="Nome da sua empresa"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="area" className="text-gray-300">Área de Atuação</Label>
+                <Select onValueChange={(value) => handleFormChange('area', value)}>
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectValue placeholder="Selecione sua área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ecommerce">E-commerce</SelectItem>
+                    <SelectItem value="servicos">Prestação de Serviços</SelectItem>
+                    <SelectItem value="consultoria">Consultoria</SelectItem>
+                    <SelectItem value="educacao">Educação</SelectItem>
+                    <SelectItem value="saude">Saúde e Bem-estar</SelectItem>
+                    <SelectItem value="tecnologia">Tecnologia</SelectItem>
+                    <SelectItem value="imobiliario">Imobiliário</SelectItem>
+                    <SelectItem value="outros">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-gray-300">WhatsApp *</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleFormChange('phone', e.target.value)}
+                  placeholder="(11) 99999-9999"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="product" className="text-gray-300">Produto / Serviço</Label>
+                <Input
+                  id="product"
+                  value={formData.product}
+                  onChange={(e) => handleFormChange('product', e.target.value)}
+                  placeholder="Descreva seu principal produto ou serviço"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="objective" className="text-gray-300">Objetivo do Agente IA</Label>
+                <Textarea
+                  id="objective"
+                  value={formData.objective}
+                  onChange={(e) => handleFormChange('objective', e.target.value)}
+                  placeholder="Ex: Captar leads, qualificar clientes, agendar reuniões, suporte ao cliente..."
+                  className="bg-gray-700 border-gray-600 text-white"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="email" className="text-gray-300">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleFormChange('email', e.target.value)}
+                  placeholder="seu@email.com"
+                  className="bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
               size="lg"
@@ -126,11 +250,11 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={handleAffiliateClick}
+              onClick={handleTestAgentClick}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
             >
-              Torne-se um Representante
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <Eye className="mr-2 h-5 w-5" />
+              Teste seu Agente IA Agora
             </Button>
           </div>
         </div>
@@ -299,11 +423,11 @@ const Index = () => {
             </Button>
             <Button
               size="lg"
-              onClick={handleAffiliateClick}
+              onClick={handleTestAgentClick}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white font-semibold"
             >
-              Torne-se um Representante
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <Eye className="mr-2 h-5 w-5" />
+              Experimente seu Agente IA Personalizado
             </Button>
           </div>
         </div>
@@ -315,7 +439,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-1 mb-4 md:mb-0">
               <img 
-                src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
+                src="/lovable-uploads/logo-c-v2.png" 
                 alt="Converta+" 
                 className="h-8 w-8 mb-0.5"
               />

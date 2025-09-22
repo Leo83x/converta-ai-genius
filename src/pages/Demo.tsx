@@ -507,7 +507,7 @@ const Demo = () => {
           <div className="flex items-center justify-between">
             <div className={`flex items-center space-x-1 ${!sidebarOpen && 'justify-center'}`}>
               <img 
-                src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
+                src="/lovable-uploads/logo-c-v2.png" 
                 alt="Converta+" 
                 className="h-8 w-8 mb-0.5"
               />
