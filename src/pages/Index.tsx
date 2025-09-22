@@ -32,7 +32,8 @@ const Index = () => {
     {
       icon: <MessageSquare className="h-8 w-8 text-green-400" />,
       title: "Multi-Canal",
-      description: "WhatsApp, Instagram, Messenger e Widget - tudo integrado em uma plataforma"
+      description: "Instagram, Facebook, Telegram e muito mais",
+      comingSoon: true
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-blue-400" />,
@@ -83,7 +84,6 @@ const Index = () => {
 Área de atuação: ${formData.area}
 Produto/Serviço: ${formData.product}
 Objetivo: ${formData.objective}
-Email: ${formData.email}
 
 Gostaria de testar um agente IA personalizado para meu negócio!`;
 
@@ -237,17 +237,6 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                       rows={3}
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="email" className="text-gray-300">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleFormChange('email', e.target.value)}
-                      placeholder="seu@email.com"
-                      className="bg-gray-700 border-gray-600 text-white"
-                    />
-                  </div>
                   <div className="md:col-span-2 flex justify-center mt-4">
                     <Button
                       onClick={handleTestAgentClick}
@@ -262,22 +251,14 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
             </DialogContent>
           </Dialog>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button
-              size="lg"
-              onClick={handleDemoClick}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-4 text-lg text-white"
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Ver Demo
-            </Button>
+          <div className="flex justify-center mb-16">
             <Button
               size="lg"
               onClick={handleTestAgentClick}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
             >
               <Eye className="mr-2 h-5 w-5" />
-              Teste seu Agente IA Agora
+              Experimente seu Agente IA Personalizado
             </Button>
           </div>
         </div>
@@ -324,7 +305,14 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
+              <Card key={index} className={`bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 ${feature.comingSoon ? 'relative' : ''}`}>
+                {feature.comingSoon && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
+                      em breve
+                    </span>
+                  </div>
+                )}
                 <CardHeader className="text-center pb-4">
                   <div className="flex justify-center mb-4">
                     {feature.icon}

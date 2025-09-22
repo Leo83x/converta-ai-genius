@@ -20,7 +20,7 @@ const Demo = () => {
     { id: 'dashboard', name: 'Dashboard', icon: Home, color: 'text-blue-500' },
     { id: 'agents', name: 'Agentes IA', icon: Bot, color: 'text-green-500' },
     { id: 'conversations', name: 'Conversas', icon: MessageSquare, color: 'text-purple-500' },
-    { id: 'crm', name: 'CRM', icon: Users, color: 'text-orange-500' },
+    { id: 'leads', name: 'Leads', icon: Users, color: 'text-cyan-500' },
     { id: 'analytics', name: 'Analytics', icon: BarChart, color: 'text-yellow-500' },
     { id: 'affiliate', name: 'Painel Rep.', icon: Target, color: 'text-pink-500' },
     { id: 'settings', name: 'Configurações', icon: Settings, color: 'text-gray-500' },
