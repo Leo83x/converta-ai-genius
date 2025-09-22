@@ -478,6 +478,126 @@ const Demo = () => {
           </div>
         );
 
+      case 'leads':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">Leads</h2>
+              <p className="text-gray-400">Todos os leads captados e qualificados</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">Total de Leads</p>
+                    <p className="text-2xl font-bold text-white">3,247</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <TrendingUp className="h-8 w-8 text-green-400 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">Qualificados</p>
+                    <p className="text-2xl font-bold text-white">2,156</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <DollarSign className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">Convertidos</p>
+                    <p className="text-2xl font-bold text-white">892</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <Target className="h-8 w-8 text-purple-400 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">Taxa Conversão</p>
+                    <p className="text-2xl font-bold text-white">27.5%</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Lista de Leads</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { name: 'Carlos Eduardo Silva', company: 'Tech Solutions Ltda', phone: '(11) 99876-5432', score: 95, stage: 'Proposta', value: 'R$ 4.500', source: 'WhatsApp' },
+                    { name: 'Marina Costa Santos', company: 'Digital Marketing Pro', phone: '(21) 98765-4321', score: 88, stage: 'Qualificado', value: 'R$ 2.800', source: 'Instagram' },
+                    { name: 'Roberto Oliveira', company: 'Consultoria Empresarial', phone: '(31) 97654-3210', score: 92, stage: 'Negociação', value: 'R$ 3.600', source: 'Website' },
+                    { name: 'Fernanda Lima', company: 'E-commerce Plus', phone: '(41) 96543-2109', score: 78, stage: 'Interessado', value: 'R$ 1.900', source: 'WhatsApp' },
+                    { name: 'André Pereira', company: 'Agência Creative', phone: '(51) 95432-1098', score: 85, stage: 'Proposta', value: 'R$ 5.200', source: 'Instagram' },
+                    { name: 'Juliana Santos', company: 'Startup Inovação', phone: '(61) 94321-0987', score: 90, stage: 'Fechamento', value: 'R$ 6.800', source: 'LinkedIn' },
+                  ].map((lead, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-lg">{lead.name[0]}</span>
+                          </div>
+                          <div>
+                            <h3 className="text-white font-semibold">{lead.name}</h3>
+                            <p className="text-gray-400 text-sm">{lead.company}</p>
+                            <p className="text-gray-500 text-xs">{lead.phone}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-6">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400">Score</p>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-yellow-400 font-bold">{lead.score}</span>
+                            <div className={`w-2 h-2 rounded-full ${
+                              lead.score >= 90 ? 'bg-red-500' : 
+                              lead.score >= 80 ? 'bg-yellow-500' : 'bg-blue-500'
+                            }`}></div>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400">Estágio</p>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            lead.stage === 'Fechamento' ? 'bg-green-900 text-green-300' :
+                            lead.stage === 'Proposta' ? 'bg-blue-900 text-blue-300' :
+                            lead.stage === 'Negociação' ? 'bg-orange-900 text-orange-300' :
+                            lead.stage === 'Qualificado' ? 'bg-purple-900 text-purple-300' :
+                            'bg-gray-900 text-gray-300'
+                          }`}>
+                            {lead.stage}
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400">Valor</p>
+                          <p className="text-white font-bold">{lead.value}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-400">Origem</p>
+                          <p className="text-gray-300 text-sm">{lead.source}</p>
+                        </div>
+                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                          Ver Detalhes
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-6">

@@ -19,7 +19,6 @@ const Index = () => {
     area: '',
     product: '',
     objective: '',
-    email: '',
     phone: ''
   });
 
@@ -28,12 +27,6 @@ const Index = () => {
       icon: <Bot className="h-8 w-8 text-purple-400" />,
       title: "Agentes de IA Personalizados",
       description: "Crie agentes inteligentes especializados no seu negócio para atendimento automatizado"
-    },
-    {
-      icon: <MessageSquare className="h-8 w-8 text-green-400" />,
-      title: "Multi-Canal",
-      description: "Instagram, Facebook, Telegram e muito mais",
-      comingSoon: true
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-blue-400" />,
@@ -54,6 +47,12 @@ const Index = () => {
       icon: <TrendingUp className="h-8 w-8 text-indigo-400" />,
       title: "Insights de Performance",
       description: "Dashboards avançados com métricas que ajudam a vender mais, anunciar melhor e aprimorar continuamente seu atendimento"
+    },
+    {
+      icon: <MessageSquare className="h-8 w-8 text-green-400" />,
+      title: "Multi-Canal",
+      description: "Instagram, Facebook, Telegram e muito mais",
+      comingSoon: true
     }
   ];
 
@@ -254,11 +253,11 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
           <div className="flex justify-center mb-16">
             <Button
               size="lg"
-              onClick={handleTestAgentClick}
+              onClick={handleDemoClick}
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
             >
               <Eye className="mr-2 h-5 w-5" />
-              Experimente seu Agente IA Personalizado
+              Ver Demo
             </Button>
           </div>
         </div>
