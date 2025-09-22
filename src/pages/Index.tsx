@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign, Brain, TrendingUp, Eye } from 'lucide-react';
 import { useState } from 'react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -59,7 +61,7 @@ const Index = () => {
     "Reduza custos operacionais em 70%",
     "Atendimento 24/7 sem pausas",
     "Qualificação automática de leads",
-    "Integração com suas ferramentas existentes",
+    "Relatórios inteligentes e métricas avançadas",
     "Suporte técnico especializado"
   ];
 
@@ -73,7 +75,7 @@ const Index = () => {
 
   const handleTestAgentClick = () => {
     if (!formData.name || !formData.company || !formData.phone) {
-      alert('Por favor, preencha o formulário antes de testar o agente IA');
+      setIsFormOpen(true);
       return;
     }
     
@@ -87,6 +89,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
 
     const whatsappUrl = `https://wa.me/5511999999999?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+    setIsFormOpen(false);
   };
 
   const handleAffiliateClick = () => {
@@ -105,15 +108,12 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
       {/* Header */}
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center">
             <img 
               src="/lovable-uploads/logo-c-v2.png" 
-              alt="Converta+" 
-              className="h-10 w-10 mb-0.5"
+              alt="Logo" 
+              className="h-12 w-auto"
             />
-            <span className="text-2xl font-bold text-white">
-              Converta+
-            </span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
@@ -148,96 +148,119 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Transforme visitantes em clientes com agentes de IA que trabalham 24/7. Análise completa de conversas 
-            gera insights poderosos para vender mais, anunciar melhor e aprimorar continuamente seu atendimento.
+            Crie em segundos seu próprio Atendente de IA no WhatsApp que trabalha 24h/7d. 
+            <br /><br />
+            Seus leads ainda são qualificados no CRM automaticamente e cada conversa se transforma em inteligência de mercado. 
+            <br /><br />
+            Ajudando você a vender mais, anunciar melhor e evoluir seu atendimento continuamente.
           </p>
           
-          {/* Formulário de Captação */}
-          <div className="max-w-2xl mx-auto bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg border border-purple-500/20 mb-8">
-            <h3 className="text-2xl font-bold text-white mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-gray-300">Nome Completo *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleFormChange('name', e.target.value)}
-                  placeholder="Seu nome completo"
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogTrigger asChild>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white mb-8"
+              >
+                Teste Grátis seu Agente IA
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl bg-gray-800 border-purple-500/30">
+              <div className="p-6">
+                <h3 className="text-2xl font-bold text-white mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-gray-300">Nome Completo *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => handleFormChange('name', e.target.value)}
+                      placeholder="Seu nome completo"
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company" className="text-gray-300">Nome da Empresa *</Label>
+                    <Input
+                      id="company"
+                      value={formData.company}
+                      onChange={(e) => handleFormChange('company', e.target.value)}
+                      placeholder="Nome da sua empresa"
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="area" className="text-gray-300">Área de Atuação</Label>
+                    <Select onValueChange={(value) => handleFormChange('area', value)}>
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue placeholder="Selecione sua área" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ecommerce">E-commerce</SelectItem>
+                        <SelectItem value="servicos">Prestação de Serviços</SelectItem>
+                        <SelectItem value="consultoria">Consultoria</SelectItem>
+                        <SelectItem value="educacao">Educação</SelectItem>
+                        <SelectItem value="saude">Saúde e Bem-estar</SelectItem>
+                        <SelectItem value="tecnologia">Tecnologia</SelectItem>
+                        <SelectItem value="imobiliario">Imobiliário</SelectItem>
+                        <SelectItem value="outros">Outros</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-gray-300">WhatsApp *</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => handleFormChange('phone', e.target.value)}
+                      placeholder="(11) 99999-9999"
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="product" className="text-gray-300">Produto / Serviço</Label>
+                    <Input
+                      id="product"
+                      value={formData.product}
+                      onChange={(e) => handleFormChange('product', e.target.value)}
+                      placeholder="Descreva seu principal produto ou serviço"
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="objective" className="text-gray-300">Objetivo do Agente IA</Label>
+                    <Textarea
+                      id="objective"
+                      value={formData.objective}
+                      onChange={(e) => handleFormChange('objective', e.target.value)}
+                      placeholder="Ex: Captar leads, qualificar clientes, agendar reuniões, suporte ao cliente..."
+                      className="bg-gray-700 border-gray-600 text-white"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="email" className="text-gray-300">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleFormChange('email', e.target.value)}
+                      placeholder="seu@email.com"
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex justify-center mt-4">
+                    <Button
+                      onClick={handleTestAgentClick}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 text-white"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Testar no WhatsApp
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="company" className="text-gray-300">Nome da Empresa *</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) => handleFormChange('company', e.target.value)}
-                  placeholder="Nome da sua empresa"
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="area" className="text-gray-300">Área de Atuação</Label>
-                <Select onValueChange={(value) => handleFormChange('area', value)}>
-                  <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                    <SelectValue placeholder="Selecione sua área" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ecommerce">E-commerce</SelectItem>
-                    <SelectItem value="servicos">Prestação de Serviços</SelectItem>
-                    <SelectItem value="consultoria">Consultoria</SelectItem>
-                    <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="saude">Saúde e Bem-estar</SelectItem>
-                    <SelectItem value="tecnologia">Tecnologia</SelectItem>
-                    <SelectItem value="imobiliario">Imobiliário</SelectItem>
-                    <SelectItem value="outros">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-gray-300">WhatsApp *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleFormChange('phone', e.target.value)}
-                  placeholder="(11) 99999-9999"
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="product" className="text-gray-300">Produto / Serviço</Label>
-                <Input
-                  id="product"
-                  value={formData.product}
-                  onChange={(e) => handleFormChange('product', e.target.value)}
-                  placeholder="Descreva seu principal produto ou serviço"
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="objective" className="text-gray-300">Objetivo do Agente IA</Label>
-                <Textarea
-                  id="objective"
-                  value={formData.objective}
-                  onChange={(e) => handleFormChange('objective', e.target.value)}
-                  placeholder="Ex: Captar leads, qualificar clientes, agendar reuniões, suporte ao cliente..."
-                  className="bg-gray-700 border-gray-600 text-white"
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="email" className="text-gray-300">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleFormChange('email', e.target.value)}
-                  placeholder="seu@email.com"
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-            </div>
-          </div>
+            </DialogContent>
+          </Dialog>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Button
@@ -339,9 +362,10 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Plano Mensal</CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Plano Básico</CardTitle>
+                <p className="text-gray-600 mb-4">Perfeito para começar</p>
                 <div className="text-center">
-                  <span className="text-4xl font-bold text-purple-600">R$ 129</span>
+                  <span className="text-4xl font-bold text-purple-600">R$ 197</span>
                   <span className="text-gray-600">/mês</span>
                 </div>
               </CardHeader>
@@ -349,15 +373,27 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                 <ul className="space-y-3 text-gray-700">
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    Todas as funcionalidades
+                    1 Atendente de IA no WhatsApp
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    Suporte prioritário
+                    Atendimento automático 24/7
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    Atualizações gratuitas
+                    Qualificação básica de clientes
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    CRM integrado
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    Painel de controle
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    Suporte por chat
                   </li>
                 </ul>
               </CardContent>
@@ -370,18 +406,34 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                 </span>
               </div>
               <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold mb-2">Plano Anual</CardTitle>
+                <CardTitle className="text-2xl font-bold mb-2">Plano Premium</CardTitle>
+                <p className="text-purple-200 mb-4">Máxima performance para seu negócio</p>
                 <div className="text-center">
-                  <span className="text-4xl font-bold">R$ 1.297</span>
-                  <span className="text-purple-200">/ano</span>
+                  <span className="text-4xl font-bold">R$ 397</span>
+                  <span className="text-purple-200">/mês</span>
                 </div>
-                <p className="text-purple-200 text-sm">Economize R$ 251 por ano</p>
               </CardHeader>
               <CardContent className="text-center">
                 <ul className="space-y-3">
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-300" />
-                    Todas as funcionalidades
+                    3 Atendentes de IA no WhatsApp
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-300" />
+                    Atendimento automático 24/7
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-300" />
+                    Qualificação avançada de clientes
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-300" />
+                    Analytics detalhado
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-300" />
+                    CRM integrado
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-300" />
@@ -389,11 +441,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-300" />
-                    Atualizações gratuitas
-                  </li>
-                  <li className="flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-300" />
-                    2 meses grátis
+                    Configurações personalizadas
                   </li>
                 </ul>
               </CardContent>
@@ -437,13 +485,12 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
       <footer className="py-12 px-4 bg-black/40 w-full">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-1 mb-4 md:mb-0">
+            <div className="flex items-center mb-4 md:mb-0">
               <img 
                 src="/lovable-uploads/logo-c-v2.png" 
-                alt="Converta+" 
-                className="h-8 w-8 mb-0.5"
+                alt="Logo" 
+                className="h-10 w-auto"
               />
-              <span className="text-xl font-bold text-white">Converta+</span>
             </div>
             <div className="text-gray-400 text-center md:text-right">
               <p>&copy; 2025 Converta+. Todos os direitos reservados.</p>

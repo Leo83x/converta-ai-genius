@@ -505,15 +505,12 @@ const Demo = () => {
       <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 ${sidebarOpen ? 'fixed inset-y-0 left-0 z-50 md:relative' : 'hidden md:flex'}`}>
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center space-x-1 ${!sidebarOpen && 'justify-center'}`}>
+            <div className={`flex items-center ${!sidebarOpen && 'justify-center'}`}>
               <img 
-                src="/lovable-uploads/logo-c-v2.png" 
-                alt="Converta+" 
-                className="h-8 w-8 mb-0.5"
+                src="/lovable-uploads/favicon-c.png" 
+                alt="Logo" 
+                className="h-10 w-auto"
               />
-              {sidebarOpen && (
-                <span className="text-xl font-bold text-white">Converta+</span>
-              )}
             </div>
           </div>
         </div>
