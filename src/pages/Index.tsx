@@ -163,7 +163,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                 Teste Grátis seu Agente IA
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-gray-800 border-purple-500/30">
+            <DialogContent className="max-w-[95vw] md:max-w-2xl bg-gray-800 border-purple-500/30">
               <div className="p-6">
                 <h3 className="text-2xl font-bold text-white mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
