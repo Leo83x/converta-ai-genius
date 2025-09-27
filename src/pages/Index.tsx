@@ -18,8 +18,7 @@ const Index = () => {
     company: '',
     area: '',
     product: '',
-    objective: '',
-    phone: ''
+    objective: ''
   });
 
   const features = [
@@ -74,7 +73,7 @@ const Index = () => {
   };
 
   const handleTestAgentClick = () => {
-    if (!formData.name || !formData.company || !formData.phone) {
+    if (!formData.name || !formData.company) {
       setIsFormOpen(true);
       return;
     }
@@ -204,16 +203,6 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                         <SelectItem value="outros">Outros</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="phone" className="text-gray-300 text-xs md:text-sm">WhatsApp *</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleFormChange('phone', e.target.value)}
-                      placeholder="(11) 99999-9999"
-                      className="bg-gray-700 border-gray-600 text-white text-sm md:text-base h-8 md:h-10 px-2 md:px-3"
-                    />
                   </div>
                   <div className="space-y-1 md:space-y-2 md:col-span-2">
                     <Label htmlFor="product" className="text-gray-300 text-xs md:text-sm">Produto / Serviço</Label>
