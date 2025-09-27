@@ -168,7 +168,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                 <h3 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="name" className="text-gray-300 text-xs md:text-sm">Nome Completo *</Label>
+                    <Label htmlFor="name" className="text-gray-300 text-xs md:text-sm">Primeiro Nome: *</Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -178,7 +178,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                     />
                   </div>
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="company" className="text-gray-300 text-xs md:text-sm">Nome da Empresa *</Label>
+                    <Label htmlFor="company" className="text-gray-300 text-xs md:text-sm">Nome da Empresa/Negócio *</Label>
                     <Input
                       id="company"
                       value={formData.company}
