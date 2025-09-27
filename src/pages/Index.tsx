@@ -225,7 +225,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                       rows={3}
                     />
                   </div>
-                  <div className="md:col-span-2 flex justify-center mt-4">
+                  <div className="md:col-span-2 flex flex-col items-center mt-4">
                     <Button
                       onClick={handleTestAgentClick}
                       className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 text-white"
@@ -233,6 +233,9 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                       <Eye className="mr-2 h-4 w-4" />
                       Testar no WhatsApp
                     </Button>
+                    <p className="text-gray-400 text-xs mt-2 text-center">
+                      Tenha uma experiência de atendimento de IA como se fosse cliente do próprio negócio.
+                    </p>
                   </div>
                 </div>
               </div>
