@@ -164,33 +164,33 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] md:max-w-2xl bg-gray-800 border-purple-500/30">
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-white mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-300">Nome Completo *</Label>
+              <div className="p-3 md:p-6">
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4 text-center">Teste Grátis seu Agente IA Personalizado</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="name" className="text-gray-300 text-xs md:text-sm">Nome Completo *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => handleFormChange('name', e.target.value)}
                       placeholder="Seu nome completo"
-                      className="bg-gray-700 border-gray-600 text-white"
+                      className="bg-gray-700 border-gray-600 text-white text-sm md:text-base h-8 md:h-10 px-2 md:px-3"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company" className="text-gray-300">Nome da Empresa *</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="company" className="text-gray-300 text-xs md:text-sm">Nome da Empresa *</Label>
                     <Input
                       id="company"
                       value={formData.company}
                       onChange={(e) => handleFormChange('company', e.target.value)}
                       placeholder="Nome da sua empresa"
-                      className="bg-gray-700 border-gray-600 text-white"
+                      className="bg-gray-700 border-gray-600 text-white text-sm md:text-base h-8 md:h-10 px-2 md:px-3"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="area" className="text-gray-300">Área de Atuação</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="area" className="text-gray-300 text-xs md:text-sm">Área de Atuação</Label>
                     <Select onValueChange={(value) => handleFormChange('area', value)}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white text-sm md:text-base h-8 md:h-10 px-2 md:px-3">
                         <SelectValue placeholder="Selecione sua área" />
                       </SelectTrigger>
                       <SelectContent>
@@ -205,34 +205,34 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-gray-300">WhatsApp *</Label>
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="phone" className="text-gray-300 text-xs md:text-sm">WhatsApp *</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
                       onChange={(e) => handleFormChange('phone', e.target.value)}
                       placeholder="(11) 99999-9999"
-                      className="bg-gray-700 border-gray-600 text-white"
+                      className="bg-gray-700 border-gray-600 text-white text-sm md:text-base h-8 md:h-10 px-2 md:px-3"
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="product" className="text-gray-300">Produto / Serviço</Label>
+                  <div className="space-y-1 md:space-y-2 md:col-span-2">
+                    <Label htmlFor="product" className="text-gray-300 text-xs md:text-sm">Produto / Serviço</Label>
                     <Input
                       id="product"
                       value={formData.product}
                       onChange={(e) => handleFormChange('product', e.target.value)}
                       placeholder="Descreva seu principal produto ou serviço"
-                      className="bg-gray-700 border-gray-600 text-white"
+                      className="bg-gray-700 border-gray-600 text-white text-sm md:text-base h-8 md:h-10 px-2 md:px-3"
                     />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="objective" className="text-gray-300">Objetivo do Agente IA</Label>
+                  <div className="space-y-1 md:space-y-2 md:col-span-2">
+                    <Label htmlFor="objective" className="text-gray-300 text-xs md:text-sm">Objetivo do Agente IA</Label>
                     <Textarea
                       id="objective"
                       value={formData.objective}
                       onChange={(e) => handleFormChange('objective', e.target.value)}
                       placeholder="Ex: Captar leads, qualificar clientes, agendar reuniões, suporte ao cliente..."
-                      className="bg-gray-700 border-gray-600 text-white"
+                      className="bg-gray-700 border-gray-600 text-white text-sm md:text-base py-1.5 md:py-2 px-2 md:px-3 min-h-[60px] md:min-h-[80px]"
                       rows={3}
                     />
                   </div>
