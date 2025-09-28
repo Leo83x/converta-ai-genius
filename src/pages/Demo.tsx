@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Bot, MessageSquare, BarChart, Calendar, Clock, CheckCircle, AlertCircle, DollarSign, Target,
   Home, Settings, Menu, X, Phone, Mail, Star, TrendingUp, Zap, User, Building, MapPin,
-  Users, ArrowLeft, Bell, Plus, Search, Filter, MoreVertical, Download, RefreshCcw, ChevronDown
+  Users, ArrowLeft, Bell, Plus, Search, Filter, MoreVertical, Download, RefreshCcw, ChevronDown, Tag
 } from 'lucide-react';
 
 const Demo = () => {
@@ -407,6 +407,91 @@ const Demo = () => {
                 </Card>
               </div>
             </div>
+          </div>
+        );
+
+      case 'leads':
+        return (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">Leads</h2>
+                <p className="text-gray-400">Gerencie seus clientes em um só lugar</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar lead
+                </Button>
+                <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700">
+                  <Download className="mr-2 h-4 w-4" />
+                  Exportar leads
+                </Button>
+              </div>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Buscar..."
+                    className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-80"
+                  />
+                </div>
+                
+                <div className="relative">
+                  <select className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option>Atendente(s) IA</option>
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                </div>
+              </div>
+
+              <Button variant="ghost" className="text-gray-400 hover:text-white">
+                <Tag className="mr-2 h-4 w-4" />
+                Adicionar tags em massa
+              </Button>
+            </div>
+
+            {/* Table */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="border-b border-gray-700">
+                      <tr>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">
+                          <input type="checkbox" className="rounded border-gray-600 bg-gray-800" />
+                        </th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Nome</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Email</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Telefone</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Status</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Lead Score</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Tags</th>
+                        <th className="text-left py-4 px-6 text-gray-400 font-medium">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Empty state - no leads */}
+                      <tr>
+                        <td colSpan={8} className="text-center py-12">
+                          <div className="flex flex-col items-center">
+                            <Users className="h-12 w-12 text-gray-600 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-400 mb-2">Nenhum lead encontrado</h3>
+                            <p className="text-gray-500 text-sm">Comece adicionando seus primeiros leads</p>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
 
