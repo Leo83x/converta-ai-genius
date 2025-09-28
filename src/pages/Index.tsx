@@ -146,11 +146,7 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Crie em segundos seu próprio Atendente de IA no WhatsApp que trabalha 24h/7d. 
-            <br /><br />
-            Seus leads ainda são qualificados no CRM automaticamente e cada conversa se transforma em inteligência de mercado. 
-            <br /><br />
-            Ajudando você a vender mais, anunciar melhor e evoluir seu atendimento continuamente.
+            Crie seu Atendente de IA no WhatsApp em segundos. Ele atende 24h/7d, qualifica leads no CRM e transforma conversas em inteligência de mercado para vender mais e evoluir seu negócio.
           </p>
           
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
