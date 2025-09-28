@@ -68,11 +68,6 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
           const whatsappUrl = `https://wa.me/5521997962109?text=${encodeURIComponent(message)}`;
           window.open(whatsappUrl, '_blank');
           
-          // Redirect back to home after opening WhatsApp
-          setTimeout(() => {
-            navigate('/');
-          }, 1000);
-          
           return 0;
         }
         return prev - 1;
