@@ -451,10 +451,10 @@ Gostaria de testar um agente IA personalizado para meu negócio!`;
             <Button
               size="lg"
               onClick={handleTestAgentClick}
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white font-semibold"
+              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-4 md:px-8 py-3 md:py-4 text-sm md:text-lg text-white font-semibold w-full sm:w-auto"
             >
-              <Eye className="mr-2 h-5 w-5" />
-              Experimente seu Agente IA Personalizado
+              <Eye className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+              <span className="text-center">Experimente seu Agente de IA</span>
             </Button>
           </div>
         </div>
