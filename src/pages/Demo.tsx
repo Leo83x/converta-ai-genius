@@ -578,6 +578,82 @@ const Demo = () => {
           </div>
         );
 
+      case 'conversations':
+        return (
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">Conversas</h2>
+              <p className="text-gray-400">Acompanhe todas as conversas dos seus agentes</p>
+            </div>
+
+            {/* Filters Section */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  <h3 className="text-white font-medium">Filtros</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Search Field */}
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-2">Buscar</label>
+                    <input
+                      type="text"
+                      placeholder="Buscar por mensagem, agente ou lead..."
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Agent Dropdown */}
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-2">Agente</label>
+                    <div className="relative">
+                      <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option>Todos os agentes</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Period Selector */}
+                  <div>
+                    <label className="block text-gray-400 text-sm mb-2">Período</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Selecionar período"
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        readOnly
+                      />
+                      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="flex justify-end mt-4">
+                  <Button variant="ghost" className="text-gray-400 hover:text-white">
+                    Limpar Filtros
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Empty State */}
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-16 h-16 bg-gray-700 rounded-lg flex items-center justify-center mb-6">
+                <MessageSquare className="h-8 w-8 text-gray-500" />
+              </div>
+              <h3 className="text-xl font-medium text-white mb-2">Nenhuma conversa encontrada</h3>
+              <p className="text-gray-400 text-center">
+                Não há conversas que correspondam aos filtros aplicados.
+              </p>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="flex items-center justify-center h-64">
