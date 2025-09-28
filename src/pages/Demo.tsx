@@ -495,6 +495,89 @@ const Demo = () => {
           </div>
         );
 
+      case 'integrations':
+        return (
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">Integrações</h2>
+              <p className="text-gray-400">Gerencie suas integrações e conexões</p>
+            </div>
+
+            {/* WhatsApp Integration */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                      <MessageSquare className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Integração WhatsApp</h3>
+                      <p className="text-gray-400 text-sm">Conecte seus agentes ao WhatsApp para conversas automáticas</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-green-600 text-white px-3 py-1">
+                    Conectado
+                  </Badge>
+                </div>
+
+                {/* Success Message */}
+                <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                    <span className="text-green-400 font-medium">WhatsApp conectado com sucesso!</span>
+                  </div>
+                  <p className="text-green-300 text-sm mt-1">
+                    Seus agentes agora podem conversar automaticamente pelo WhatsApp.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-3">
+                  <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700">
+                    Desconectar
+                  </Button>
+                  <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                    Testar Conexão
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Advanced Settings */}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Configurações Avançadas</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-6">
+                    <h4 className="text-white font-medium mb-2">Timeout de Resposta</h4>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Tempo limite para resposta automática dos agentes
+                    </p>
+                    <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700">
+                      Configurar
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardContent className="p-6">
+                    <h4 className="text-white font-medium mb-2">Horário de Funcionamento</h4>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Define quando os agentes devem estar ativos
+                    </p>
+                    <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700">
+                      Configurar
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="flex items-center justify-center h-64">
