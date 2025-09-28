@@ -23,6 +23,9 @@ const InicioExperiencia = () => {
       'https://connect.facebook.net/en_US/fbevents.js');
       fbq('init', '988882763452042');
       fbq('track', 'PageView');
+      
+      // evento de conversão lead na página /inicio-experiencia
+      fbq('track', 'Lead');
     `;
     document.head.appendChild(script);
 
