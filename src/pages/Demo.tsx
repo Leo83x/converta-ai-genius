@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Bot, MessageSquare, BarChart, Calendar, Clock, CheckCircle, AlertCircle, DollarSign, Target,
   Home, Settings, Menu, X, Phone, Mail, Star, TrendingUp, Zap, User, Building, MapPin,
-  Users, ArrowLeft, Bell, Plus
+  Users, ArrowLeft, Bell, Plus, Search, Filter, MoreVertical
 } from 'lucide-react';
 
 const Demo = () => {
@@ -135,6 +135,92 @@ const Demo = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        );
+
+      case 'agents':
+        return (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">Meus Agentes</h2>
+                <p className="text-gray-400">Gerencie e monitore seus agentes de IA</p>
+              </div>
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Novo Agente
+              </Button>
+            </div>
+            
+            {/* Search and Filters */}
+            <div className="flex items-center space-x-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar agentes..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700">
+                <Filter className="mr-2 h-4 w-4" />
+                Filtros
+              </Button>
+            </div>
+
+            {/* Agent Card */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white mb-2">Agente ConvertaMais</h3>
+                      <Badge className="bg-green-600 text-white text-xs px-2 py-1">Ativo</Badge>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white p-1">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                    Seu objetivo é fazer com que os leads tenham uma experiência de atendimento de IA como se fossem leads do próprio negócio.
+                  </p>
+
+                  {/* Agent Stats */}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <Users className="h-4 w-4 text-green-500 mr-1" />
+                        <span className="text-white font-bold">0</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">Leads</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <MessageSquare className="h-4 w-4 text-blue-500 mr-1" />
+                        <span className="text-white font-bold">0</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">Conversas</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                        <span className="text-white font-bold">0%</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">Conversão</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <p className="text-gray-500 text-xs">Última atividade: 27-09-2025</p>
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                      Ver Detalhes
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         );
 
