@@ -78,15 +78,7 @@ const Index = () => {
       return;
     }
     
-    const message = `Olá! Meu nome é ${formData.name}, da empresa ${formData.company}. 
-Área de atuação: ${formData.area}
-Produto/Serviço: ${formData.product}
-Objetivo: ${formData.objective}
-
-Gostaria de testar um agente IA personalizado para meu negócio!`;
-
-    const whatsappUrl = `https://wa.me/5521997962109?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+    navigate('/inicio-experiencia', { state: { formData } });
     setIsFormOpen(false);
   };
 
