@@ -1,597 +1,137 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bot, MessageSquare, BarChart, Calendar, Clock, CheckCircle, AlertCircle, DollarSign, Target,
   Home, Settings, Menu, X, Phone, Mail, Star, TrendingUp, Zap, User, Building, MapPin,
-  Users, ArrowLeft
+  Users, ArrowLeft, Bell, Plus
 } from 'lucide-react';
 
 const Demo = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Iniciar fechado no mobile
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const sidebarItems = [
     { id: 'dashboard', name: 'Dashboard', icon: Home, color: 'text-blue-500' },
-    { id: 'agents', name: 'Agentes IA', icon: Bot, color: 'text-green-500' },
-    { id: 'conversations', name: 'Conversas', icon: MessageSquare, color: 'text-purple-500' },
+    { id: 'agents', name: 'Agentes', icon: Bot, color: 'text-green-500' },
+    { id: 'crm', name: 'CRM Automático', icon: Building, color: 'text-purple-500' },
     { id: 'leads', name: 'Leads', icon: Users, color: 'text-cyan-500' },
-    { id: 'analytics', name: 'Analytics', icon: BarChart, color: 'text-yellow-500' },
-    { id: 'affiliate', name: 'Painel Rep.', icon: Target, color: 'text-pink-500' },
-    { id: 'settings', name: 'Configurações', icon: Settings, color: 'text-gray-500' },
+    { id: 'conversations', name: 'Conversas', icon: MessageSquare, color: 'text-orange-500' },
+    { id: 'integrations', name: 'Integrações', icon: Zap, color: 'text-yellow-500' },
+    { id: 'affiliate', name: 'Seja Representante', icon: Target, color: 'text-pink-500' },
   ];
-
-  const mockData = {
-    stats: [
-      { title: 'Leads Captados', value: '1,247', change: '+12%', icon: Users },
-      { title: 'Taxa de Conversão', value: '68%', change: '+8%', icon: TrendingUp },
-      { title: 'Conversas Ativas', value: '89', change: '+23%', icon: MessageSquare },
-      { title: 'Agentes Ativos', value: '5', change: '0%', icon: Bot },
-    ],
-    leads: [
-      { name: 'João Silva', email: 'joao@email.com', phone: '(11) 99999-9999', score: 95, status: 'hot' },
-      { name: 'Maria Santos', email: 'maria@email.com', phone: '(11) 88888-8888', score: 78, status: 'warm' },
-      { name: 'Pedro Costa', email: 'pedro@email.com', phone: '(11) 77777-7777', score: 45, status: 'cold' },
-    ],
-    conversations: [
-      { contact: 'Ana Lima', lastMessage: 'Gostaria de saber mais sobre os preços...', time: '2 min', status: 'active' },
-      { contact: 'Carlos Souza', lastMessage: 'Quando podemos agendar uma demonstração?', time: '15 min', status: 'pending' },
-      { contact: 'Lucia Ferreira', lastMessage: 'Obrigada pelas informações!', time: '1h', status: 'completed' },
-    ],
-    crmData: [
-      { name: 'Roberto Silva', email: 'roberto@empresa.com', stage: 'Qualificado', value: 'R$ 2.500', source: 'WhatsApp' },
-      { name: 'Fernanda Costa', email: 'fernanda@negocio.com', stage: 'Proposta', value: 'R$ 1.800', source: 'Instagram' },
-      { name: 'Ricardo Santos', email: 'ricardo@startup.com', stage: 'Negociação', value: 'R$ 3.200', source: 'Website' },
-      { name: 'Patricia Lima', email: 'patricia@loja.com', stage: 'Fechamento', value: 'R$ 4.100', source: 'WhatsApp' },
-    ],
-    affiliateData: {
-      totalCommissions: 'R$ 8.450,00',
-      thisMonth: 'R$ 1.200,00',
-      sales: 23,
-      conversion: '15%',
-      recentSales: [
-        { client: 'Empresa ABC Ltda', plan: 'Anual', commission: 'R$ 389,10', date: '01/12/2024' },
-        { client: 'Consultoria XYZ', plan: 'Mensal', commission: 'R$ 38,70', date: '30/11/2024' },
-        { client: 'Loja Virtual 123', plan: 'Anual', commission: 'R$ 389,10', date: '28/11/2024' },
-      ]
-    }
-  };
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Dashboard</h2>
-              <p className="text-gray-400">Visão geral do seu desempenho</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {mockData.stats.map((stat, index) => (
-                <Card key={index} className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-400 text-sm">{stat.title}</p>
-                        <p className="text-2xl font-bold text-white">{stat.value}</p>
-                        <p className="text-green-400 text-sm">{stat.change}</p>
-                      </div>
-                      <stat.icon className="h-8 w-8 text-purple-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Leads Recentes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {mockData.leads.map((lead, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <div>
-                          <p className="text-white font-medium">{lead.name}</p>
-                          <p className="text-gray-400 text-sm">{lead.email}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-yellow-400 text-sm">Score: {lead.score}</span>
-                          <div className={`w-3 h-3 rounded-full ${
-                            lead.status === 'hot' ? 'bg-red-500' : 
-                            lead.status === 'warm' ? 'bg-yellow-500' : 'bg-blue-500'
-                          }`}></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Conversas Ativas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {mockData.conversations.map((conv, index) => (
-                      <div key={index} className="flex items-start space-x-3 p-3 bg-gray-700 rounded-lg">
-                        <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">{conv.contact[0]}</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-white font-medium">{conv.contact}</p>
-                          <p className="text-gray-400 text-sm">{conv.lastMessage}</p>
-                          <p className="text-gray-500 text-xs">{conv.time}</p>
-                        </div>
-                        <div className={`w-2 h-2 rounded-full ${
-                          conv.status === 'active' ? 'bg-green-500' : 
-                          conv.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-500'
-                        }`}></div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-
-      case 'crm':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">CRM</h2>
-              <p className="text-gray-400">Gerencie seus leads e oportunidades</p>
-            </div>
-            
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Pipeline de Vendas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockData.crmData.map((lead, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                      <div className="flex-1">
-                        <h3 className="text-white font-medium">{lead.name}</h3>
-                        <p className="text-gray-400 text-sm">{lead.email}</p>
-                        <p className="text-gray-500 text-xs">Origem: {lead.source}</p>
-                      </div>
-                      <div className="text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs ${
-                          lead.stage === 'Qualificado' ? 'bg-blue-900 text-blue-300' :
-                          lead.stage === 'Proposta' ? 'bg-yellow-900 text-yellow-300' :
-                          lead.stage === 'Negociação' ? 'bg-orange-900 text-orange-300' :
-                          'bg-green-900 text-green-300'
-                        }`}>
-                          {lead.stage}
-                        </span>
-                        <p className="text-white font-bold mt-1">{lead.value}</p>
-                      </div>
-                    </div>
-                  ))}
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold text-white mb-2">Dashboard</h2>
+                <p className="text-gray-400">Visão geral dos seus agentes de IA</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Bell className="h-4 w-4 text-gray-400" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'analytics':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Analytics</h2>
-              <p className="text-gray-400">Métricas detalhadas de performance</p>
+                <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Últimos 30 dias
+                </Button>
+                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Agente
+                </Button>
+              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <h3 className="text-white font-bold text-lg mb-2">Conversão por Canal</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">WhatsApp</span>
-                        <span className="text-green-400">72%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Instagram</span>
-                        <span className="text-yellow-400">58%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Website</span>
-                        <span className="text-blue-400">65%</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <h3 className="text-white font-bold text-lg mb-2">Horários de Pico</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">09h - 12h</span>
-                        <span className="text-green-400">45%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">14h - 17h</span>
-                        <span className="text-yellow-400">35%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">19h - 22h</span>
-                        <span className="text-blue-400">20%</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <h3 className="text-white font-bold text-lg mb-2">Tempo Médio de Resposta</h3>
-                    <div className="space-y-3">
-                      <div className="text-center">
-                        <span className="text-3xl font-bold text-purple-400">2.3</span>
-                        <p className="text-gray-400">segundos</p>
-                      </div>
-                      <div className="text-green-400 text-sm">
-                        ↑ 15% melhor que o mês anterior
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-
-      case 'affiliate':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Painel do Representante</h2>
-              <p className="text-gray-400">Suas comissões e vendas como representante</p>
-            </div>
-            
+            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <div className="text-center">
-                    <DollarSign className="h-8 w-8 text-green-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Total de Comissões</p>
-                    <p className="text-2xl font-bold text-white">{mockData.affiliateData.totalCommissions}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Total de Leads</p>
+                      <p className="text-4xl font-bold text-white">0</p>
+                      <p className="text-gray-500 text-sm mt-1">Leads captados nos últimos 30 dias</p>
+                      <p className="text-gray-500 text-sm mt-2">0% vs último período</p>
+                    </div>
+                    <Users className="h-8 w-8 text-green-500" />
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <div className="text-center">
-                    <Calendar className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Este Mês</p>
-                    <p className="text-2xl font-bold text-white">{mockData.affiliateData.thisMonth}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Mensagens</p>
+                      <p className="text-4xl font-bold text-white">0</p>
+                      <p className="text-gray-500 text-sm mt-1">Mensagens enviadas nos últimos 30 dias</p>
+                      <p className="text-gray-500 text-sm mt-2">0% vs último período</p>
+                    </div>
+                    <MessageSquare className="h-8 w-8 text-blue-500" />
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <div className="text-center">
-                    <Users className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Vendas Realizadas</p>
-                    <p className="text-2xl font-bold text-white">{mockData.affiliateData.sales}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Taxa de Conversão</p>
+                      <p className="text-4xl font-bold text-white">0%</p>
+                      <p className="text-gray-500 text-sm mt-1">Taxa média de conversão</p>
+                      <p className="text-gray-500 text-sm mt-2">0% vs último período</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-green-500" />
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <div className="text-center">
-                    <TrendingUp className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Taxa de Conversão</p>
-                    <p className="text-2xl font-bold text-white">{mockData.affiliateData.conversion}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Agentes Ativos</p>
+                      <p className="text-4xl font-bold text-white">0</p>
+                      <p className="text-gray-500 text-sm mt-1">Agentes em funcionamento</p>
+                    </div>
+                    <Bot className="h-8 w-8 text-purple-500" />
                   </div>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Análise Comparativa Section */}
             <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Vendas Recentes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockData.affiliateData.recentSales.map((sale, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                      <div>
-                        <h3 className="text-white font-medium">{sale.client}</h3>
-                        <p className="text-gray-400 text-sm">Plano {sale.plan}</p>
-                        <p className="text-gray-500 text-xs">{sale.date}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-green-400 font-bold">{sale.commission}</p>
-                        <p className="text-gray-400 text-sm">Comissão</p>
-                      </div>
+              <CardContent className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-white" />
                     </div>
-                  ))}
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Análise Comparativa de Segmento</h3>
+                      <p className="text-gray-400 text-sm">Inteligência do Genius AI com benchmarks dinâmicos do seu setor</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center text-gray-400 text-sm">
+                    <BarChart className="mr-2 h-4 w-4" />
+                    Atualização automática a cada 30s
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'settings':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Configurações</h2>
-              <p className="text-gray-400">Personalize sua experiência</p>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Configurações de Conta</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-gray-400 text-sm">Nome da Empresa</label>
-                    <p className="text-white bg-gray-700 p-2 rounded">Minha Empresa Ltda</p>
+                
+                <div className="flex items-center justify-center h-32">
+                  <div className="flex items-center space-x-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+                    <span className="text-gray-400">Processando interações do seu segmento...</span>
                   </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Email Principal</label>
-                    <p className="text-white bg-gray-700 p-2 rounded">admin@minhaempresa.com</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Plano Atual</label>
-                    <p className="text-purple-400 bg-gray-700 p-2 rounded">Plano Anual - R$ 1.297/ano</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Integrações</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                    <div>
-                      <p className="text-white font-medium">WhatsApp Business</p>
-                      <p className="text-gray-400 text-sm">Conectado</p>
-                    </div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                    <div>
-                      <p className="text-white font-medium">Instagram</p>
-                      <p className="text-gray-400 text-sm">Conectado</p>
-                    </div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                    <div>
-                      <p className="text-white font-medium">Messenger</p>
-                      <p className="text-gray-400 text-sm">Desconectado</p>
-                    </div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-
-      case 'agents':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Agentes de IA</h2>
-              <p className="text-gray-400">Gerencie seus agentes inteligentes</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { name: 'Agente Vendas', channel: 'WhatsApp', status: 'Ativo', conversations: 45 },
-                { name: 'Agente Suporte', channel: 'Instagram', status: 'Ativo', conversations: 23 },
-                { name: 'Agente Qualificação', channel: 'Website', status: 'Pausado', conversations: 12 },
-              ].map((agent, index) => (
-                <Card key={index} className="bg-gray-800 border-gray-700">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <Bot className="h-8 w-8 text-purple-400" />
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        agent.status === 'Ativo' ? 'bg-green-900 text-green-300' : 'bg-yellow-900 text-yellow-300'
-                      }`}>
-                        {agent.status}
-                      </span>
-                    </div>
-                    <h3 className="text-white font-bold text-lg mb-2">{agent.name}</h3>
-                    <p className="text-gray-400 mb-4">Canal: {agent.channel}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-300 text-sm">{agent.conversations} conversas</span>
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                        Configurar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'conversations':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Conversas</h2>
-              <p className="text-gray-400">Todas as interações com leads</p>
-            </div>
-            
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-0">
-                <div className="divide-y divide-gray-700">
-                  {[
-                    { name: 'Roberto Lima', message: 'Olá! Gostaria de conhecer melhor a solução...', time: '14:30', channel: 'WhatsApp', unread: true },
-                    { name: 'Fernanda Costa', message: 'Qual o valor do plano anual?', time: '14:15', channel: 'Instagram', unread: false },
-                    { name: 'Ricardo Santos', message: 'Podem me enviar mais informações por email?', time: '13:45', channel: 'Website', unread: false },
-                    { name: 'Julia Oliveira', message: 'Obrigada pelo atendimento!', time: '13:20', channel: 'WhatsApp', unread: false },
-                  ].map((conv, index) => (
-                    <div key={index} className="p-4 hover:bg-gray-700 cursor-pointer">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">{conv.name[0]}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-1">
-                            <h3 className={`font-medium ${conv.unread ? 'text-white' : 'text-gray-300'}`}>
-                              {conv.name}
-                            </h3>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-xs text-gray-500">{conv.time}</span>
-                              {conv.unread && <div className="w-2 h-2 bg-purple-500 rounded-full"></div>}
-                            </div>
-                          </div>
-                          <p className={`text-sm ${conv.unread ? 'text-gray-300' : 'text-gray-400'}`}>
-                            {conv.message}
-                          </p>
-                          <span className="text-xs text-purple-400 mt-1">{conv.channel}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
-      case 'leads':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Leads</h2>
-              <p className="text-gray-400">Todos os leads captados e qualificados</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <Users className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Total de Leads</p>
-                    <p className="text-2xl font-bold text-white">3,247</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <TrendingUp className="h-8 w-8 text-green-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Qualificados</p>
-                    <p className="text-2xl font-bold text-white">2,156</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <DollarSign className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Convertidos</p>
-                    <p className="text-2xl font-bold text-white">892</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <Target className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Taxa Conversão</p>
-                    <p className="text-2xl font-bold text-white">27.5%</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Lista de Leads</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { name: 'Carlos Eduardo Silva', company: 'Tech Solutions Ltda', phone: '(11) 99876-5432', score: 95, stage: 'Proposta', value: 'R$ 4.500', source: 'WhatsApp' },
-                    { name: 'Marina Costa Santos', company: 'Digital Marketing Pro', phone: '(21) 98765-4321', score: 88, stage: 'Qualificado', value: 'R$ 2.800', source: 'Instagram' },
-                    { name: 'Roberto Oliveira', company: 'Consultoria Empresarial', phone: '(31) 97654-3210', score: 92, stage: 'Negociação', value: 'R$ 3.600', source: 'Website' },
-                    { name: 'Fernanda Lima', company: 'E-commerce Plus', phone: '(41) 96543-2109', score: 78, stage: 'Interessado', value: 'R$ 1.900', source: 'WhatsApp' },
-                    { name: 'André Pereira', company: 'Agência Creative', phone: '(51) 95432-1098', score: 85, stage: 'Proposta', value: 'R$ 5.200', source: 'Instagram' },
-                    { name: 'Juliana Santos', company: 'Startup Inovação', phone: '(61) 94321-0987', score: 90, stage: 'Fechamento', value: 'R$ 6.800', source: 'LinkedIn' },
-                  ].map((lead, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">{lead.name[0]}</span>
-                          </div>
-                          <div>
-                            <h3 className="text-white font-semibold">{lead.name}</h3>
-                            <p className="text-gray-400 text-sm">{lead.company}</p>
-                            <p className="text-gray-500 text-xs">{lead.phone}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-6">
-                        <div className="text-center">
-                          <p className="text-xs text-gray-400">Score</p>
-                          <div className="flex items-center space-x-1">
-                            <span className="text-yellow-400 font-bold">{lead.score}</span>
-                            <div className={`w-2 h-2 rounded-full ${
-                              lead.score >= 90 ? 'bg-red-500' : 
-                              lead.score >= 80 ? 'bg-yellow-500' : 'bg-blue-500'
-                            }`}></div>
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-gray-400">Estágio</p>
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            lead.stage === 'Fechamento' ? 'bg-green-900 text-green-300' :
-                            lead.stage === 'Proposta' ? 'bg-blue-900 text-blue-300' :
-                            lead.stage === 'Negociação' ? 'bg-orange-900 text-orange-300' :
-                            lead.stage === 'Qualificado' ? 'bg-purple-900 text-purple-300' :
-                            'bg-gray-900 text-gray-300'
-                          }`}>
-                            {lead.stage}
-                          </span>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-gray-400">Valor</p>
-                          <p className="text-white font-bold">{lead.value}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-gray-400">Origem</p>
-                          <p className="text-gray-300 text-sm">{lead.source}</p>
-                        </div>
-                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                          Ver Detalhes
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -600,100 +140,113 @@ const Demo = () => {
 
       default:
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Em Breve</h2>
-              <p className="text-gray-400">Esta funcionalidade estará disponível em breve</p>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🚧</div>
+              <h3 className="text-2xl font-bold text-white mb-2">Em Breve</h3>
+              <p className="text-gray-400">Esta seção estará disponível em breve.</p>
             </div>
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-12 text-center">
-                <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Funcionalidade em Desenvolvimento</h3>
-                <p className="text-gray-400">Estamos trabalhando para trazer esta funcionalidade para você</p>
-              </CardContent>
-            </Card>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex w-full overflow-x-hidden">
+    <div className="min-h-screen bg-gray-900 flex">
+      {/* Top Demo Banner */}
+      <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-center py-2 z-50">
+        <p className="text-sm font-medium">MODO DEMONSTRAÇÃO - Todos os dados são fictícios para demonstração</p>
+      </div>
+
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 bg-gray-800 border-r border-gray-700 flex flex-col flex-shrink-0 ${sidebarOpen ? 'fixed inset-y-0 left-0 z-50 md:relative' : 'hidden md:flex'}`}>
-        <div className="p-4 border-b border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className={`flex items-center ${!sidebarOpen && 'justify-center'}`}>
-              <img 
-                src="/lovable-uploads/favicon-c.png" 
-                alt="Logo" 
-                className="h-10 w-auto"
-              />
+      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-gray-800 transition-transform duration-300 ease-in-out`}>
+        <div className="flex flex-col h-full pt-16"> {/* Added pt-16 to account for demo banner */}
+          {/* Logo */}
+          <div className="flex items-center px-6 py-4">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-lg">C</span>
+              </div>
+              <div>
+                <h1 className="text-white font-bold text-lg">Converta+</h1>
+                <p className="text-gray-400 text-xs">Agentes IA para Conversão</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-4 mt-6">
+            <ul className="space-y-2">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => setActiveTab(item.id)}
+                      className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-colors ${
+                        activeTab === item.id 
+                          ? 'bg-purple-600 text-white' 
+                          : 'text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      <Icon className={`mr-3 h-5 w-5 ${activeTab === item.id ? 'text-white' : item.color}`} />
+                      {item.name}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          {/* Dark mode toggle */}
+          <div className="px-4 py-4">
+            <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+              <span className="text-gray-300 text-sm">Modo Demonstração</span>
+              <div className="w-8 h-4 bg-purple-600 rounded-full flex items-center">
+                <div className="w-3 h-3 bg-white rounded-full ml-1"></div>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {sidebarItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center text-left px-3 py-2 rounded-lg transition-colors ${
-                    activeTab === item.id
-                      ? 'bg-purple-600 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  } ${!sidebarOpen ? 'justify-center' : 'gap-3'}`}
-                >
-                  <item.icon className={`h-5 w-5 flex-shrink-0 ${
-                    activeTab === item.id ? 'text-white' : item.color
-                  }`} />
-                  {sidebarOpen && <span className="text-sm truncate">{item.name}</span>}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        ></div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 lg:ml-0">
         {/* Header */}
-        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+        <header className="bg-gray-800 border-b border-gray-700 px-6 py-4 mt-12"> {/* Added mt-12 for demo banner */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               <Button
                 variant="ghost"
                 size="sm"
+                className="lg:hidden mr-4 text-gray-300 hover:text-white"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="text-gray-400 hover:text-white md:hidden"
               >
-                <Menu className="h-4 w-4" />
+                <Menu className="h-6 w-6" />
               </Button>
-              <h1 className="text-2xl font-bold text-white">Demo - Converta+</h1>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-300 hover:text-white"
+                onClick={() => navigate(-1)}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
             </div>
-            <Button
-              onClick={() => navigate('/')}
-              variant="outline"
-              size="sm"
-              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6">
           {renderContent()}
         </main>
       </div>
