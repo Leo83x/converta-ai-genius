@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Bot, MessageSquare, BarChart, Calendar, Clock, CheckCircle, AlertCircle, DollarSign, Target,
   Home, Settings, Menu, X, Phone, Mail, Star, TrendingUp, Zap, User, Building, MapPin,
-  Users, ArrowLeft, Bell, Plus, Search, Filter, MoreVertical
+  Users, ArrowLeft, Bell, Plus, Search, Filter, MoreVertical, Download, RefreshCcw, ChevronDown
 } from 'lucide-react';
 
 const Demo = () => {
@@ -220,6 +220,192 @@ const Demo = () => {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        );
+
+      case 'crm':
+        return (
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2">CRM</h2>
+              <p className="text-gray-400">Gerencie seus leads e conversas</p>
+            </div>
+            
+            {/* Search and Controls */}
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar leads..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div className="relative">
+                <select className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  <option>Todos os agentes</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-4">
+              <Button className="bg-gray-700 hover:bg-gray-600 text-white">
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Lead
+              </Button>
+              <Button className="bg-gray-700 hover:bg-gray-600 text-white">
+                <Download className="mr-2 h-4 w-4" />
+                Exportar
+              </Button>
+              <Button className="bg-gray-700 hover:bg-gray-600 text-white">
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Atualizar Posição dos Leads
+              </Button>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Total de Leads</p>
+                      <p className="text-4xl font-bold text-white">0</p>
+                      <p className="text-gray-500 text-sm mt-1">Leads cadastrados</p>
+                      <p className="text-red-400 text-sm mt-1">0%</p>
+                    </div>
+                    <Users className="h-8 w-8 text-blue-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Agentes</p>
+                      <p className="text-4xl font-bold text-white">1</p>
+                      <p className="text-gray-500 text-sm mt-1">Agentes cadastrados</p>
+                      <p className="text-red-400 text-sm mt-1">0%</p>
+                    </div>
+                    <Bot className="h-8 w-8 text-purple-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Mensagens</p>
+                      <p className="text-4xl font-bold text-white">0</p>
+                      <p className="text-gray-500 text-sm mt-1">Mensagens enviadas</p>
+                      <p className="text-red-400 text-sm mt-1">0%</p>
+                    </div>
+                    <MessageSquare className="h-8 w-8 text-green-500" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-gray-400 text-sm">Taxa de Conversão</p>
+                      <p className="text-4xl font-bold text-white">0%</p>
+                      <p className="text-gray-500 text-sm mt-1">Média geral</p>
+                      <p className="text-red-400 text-sm mt-1">0%</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-orange-500" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Pipeline Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Funil CP ConvertaMais</h3>
+                  <p className="text-gray-400 text-sm">Gerencie seus leads através dos estágios do funil</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Button className="bg-purple-600 hover:bg-purple-700 text-white text-sm">
+                    Modelo Padrão
+                  </Button>
+                  <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-700 text-sm">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Personalizar Estágios
+                  </Button>
+                </div>
+              </div>
+
+              {/* Pipeline Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <Card className="bg-gray-800 border-gray-700 border-t-4 border-t-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-white font-semibold">Leads</h4>
+                      <span className="text-2xl font-bold text-white">0</span>
+                    </div>
+                    <p className="text-gray-400 text-xs leading-relaxed">
+                      Primeiro contato com leads frios aguardando abordagem inicial
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800 border-gray-700 border-t-4 border-t-orange-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-white font-semibold">Contatados</h4>
+                      <span className="text-2xl font-bold text-white">0</span>
+                    </div>
+                    <p className="text-gray-400 text-xs leading-relaxed">
+                      Leads que já responderam e demonstraram interesse inicial nas soluções
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800 border-gray-700 border-t-4 border-t-green-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-white font-semibold">Qualificados</h4>
+                      <span className="text-2xl font-bold text-white">0</span>
+                    </div>
+                    <p className="text-gray-400 text-xs leading-relaxed">
+                      Oportunidades com perfil alinhado e informações completas para avançar
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800 border-gray-700 border-t-4 border-t-purple-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-white font-semibold">Proposta</h4>
+                      <span className="text-2xl font-bold text-white">0</span>
+                    </div>
+                    <p className="text-gray-400 text-xs leading-relaxed">
+                      Negociação ativa com envio de proposta ou condições comerciais definidas
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800 border-gray-700 border-t-4 border-t-indigo-600">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-white font-semibold">Convertidos</h4>
+                      <span className="text-2xl font-bold text-white">0</span>
+                    </div>
+                    <p className="text-gray-400 text-xs leading-relaxed">
+                      Clientes fechados ou oportunidades concluídas aguardando onboarding
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         );
