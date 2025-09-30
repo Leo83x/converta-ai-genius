@@ -7,12 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign, Brain, TrendingUp, Eye } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 const Index = () => {
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showMobileCTA, setShowMobileCTA] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -20,6 +21,16 @@ const Index = () => {
     product: '',
     objective: ''
   });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button after scrolling past hero section (approximately 600px)
+      setShowMobileCTA(window.scrollY > 600);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const features = [
     {
@@ -450,6 +461,19 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Mobile Fixed CTA Button */}
+      {showMobileCTA && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 to-transparent md:hidden z-50">
+          <Button
+            onClick={handleTestAgentClick}
+            size="lg"
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg"
+          >
+            Experimente Grátis Agora
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
