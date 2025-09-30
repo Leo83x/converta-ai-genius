@@ -259,7 +259,7 @@ const Index = () => {
               </span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Tudo que você precisa para automatizar e escalar seu processo de atendimento e vendas
+              Tudo que você precisa para automatizar e escalar seu atendimento e vendas
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
