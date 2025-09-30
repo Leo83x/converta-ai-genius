@@ -35,8 +35,8 @@ const Index = () => {
   const features = [
     {
       icon: <Bot className="h-8 w-8 text-purple-400" />,
-      title: "Agentes de IA Personalizados",
-      description: "Crie agentes inteligentes especializados no seu negócio para atendimento automatizado"
+      title: "Atendentes de IA Personalizados",
+      description: "Crie seu agente de IA personalizado e humanizado em poucos segundos e conecte ao seu WhatsApp Business, escaneando o QR Code"
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-blue-400" />,
