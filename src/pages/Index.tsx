@@ -137,7 +137,7 @@ const Index = () => {
                 size="lg"
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white mb-8"
               >
-                Teste Grátis seu Agente IA
+                Experimente Grátis
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] md:max-w-2xl bg-gray-800 border-purple-500/30">
@@ -209,7 +209,7 @@ const Index = () => {
                       className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 text-white"
                     >
                       <Eye className="mr-2 h-4 w-4" />
-                      Testar no WhatsApp
+                      Experimente Grátis
                     </Button>
                     <p className="text-gray-400 text-xs mt-2 text-center">
                       Tenha uma experiência de atendimento de IA como se fosse cliente do próprio negócio.
@@ -414,7 +414,7 @@ const Index = () => {
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-4 text-lg text-white font-semibold"
             >
               <Play className="mr-2 h-5 w-5" />
-              Ver Demo
+              Experimente Grátis
             </Button>
             <Button
               size="lg"
@@ -422,7 +422,7 @@ const Index = () => {
               className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-4 md:px-8 py-3 md:py-4 text-sm md:text-lg text-white font-semibold w-full sm:w-auto"
             >
               <Eye className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-              <span className="text-center">Experimente seu Agente de IA</span>
+              <span className="text-center">Experimente Grátis</span>
             </Button>
           </div>
         </div>
