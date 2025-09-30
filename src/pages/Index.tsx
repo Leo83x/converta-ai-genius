@@ -321,11 +321,15 @@ const Index = () => {
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    Qualificação básica de clientes
+                    Qualificação automática de clientes
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    CRM integrado
+                    CRM Automático
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    Genius IA
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
@@ -379,7 +383,11 @@ const Index = () => {
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-300" />
-                    CRM integrado
+                    CRM Automático
+                  </li>
+                  <li className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-300" />
+                    Genius IA
                   </li>
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-300" />
