@@ -61,7 +61,7 @@ const Index = () => {
     {
       icon: <Brain className="h-8 w-8 text-green-400" />,
       title: "Genius IA",
-      description: "Conte com seu analista de IA na plataforma para gerar insights e análise comparativa de mercado. Você sempre a frente dos concorrentes."
+      description: "Conte com um analista de IA na plataforma para gerar insights e análise comparativa de mercado. Você sempre a frente dos concorrentes!"
     }
   ];
 
