@@ -220,6 +220,21 @@ const Index = () => {
             </DialogContent>
           </Dialog>
 
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-4 text-gray-300">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              <span className="text-sm">Se adapta ao seu negócio</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              <span className="text-sm">Atende e vende 24/7</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              <span className="text-sm">Conversas humanizadas</span>
+            </div>
+          </div>
+
         </div>
       </section>
 
