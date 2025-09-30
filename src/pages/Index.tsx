@@ -72,7 +72,7 @@ const Index = () => {
     "Atendimento 24/7 sem pausas",
     "Qualificação automática de leads",
     "Relatórios inteligentes e métricas avançadas",
-    "Suporte técnico especializado"
+    "Acompanhe Resultados: Visualize leads, conversas e métricas em tempo real no painel"
   ];
 
   const handleDemoClick = () => {
