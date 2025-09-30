@@ -413,13 +413,13 @@ const Index = () => {
       <section className="py-20 px-4 w-full">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
-            Pronto para Revolucionar suas Vendas?
+            Pronto para atender melhor e vender mais?
           </h2>
           <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Conheça o sistema na prática ou torne-se um representante oficial e comece a faturar
+            Acesse agora o sistema, crie e teste seu Atendente de IA em poucos cliques.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button
               size="lg"
               onClick={handleDemoClick}
@@ -427,14 +427,6 @@ const Index = () => {
             >
               <Play className="mr-2 h-5 w-5" />
               Experimente Grátis
-            </Button>
-            <Button
-              size="lg"
-              onClick={handleTestAgentClick}
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-4 md:px-8 py-3 md:py-4 text-sm md:text-lg text-white font-semibold w-full sm:w-auto"
-            >
-              <Eye className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-              <span className="text-center">Experimente Grátis</span>
             </Button>
           </div>
         </div>
