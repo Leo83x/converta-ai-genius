@@ -61,8 +61,7 @@ const Index = () => {
     {
       icon: <Brain className="h-8 w-8 text-green-400" />,
       title: "Genius IA",
-      description: "Conte com seu analista de IA na plataforma para gerar insights e análise comparativa de mercado. Você sempre a frente dos concorrentes.",
-      comingSoon: true
+      description: "Conte com seu analista de IA na plataforma para gerar insights e análise comparativa de mercado. Você sempre a frente dos concorrentes."
     }
   ];
 
@@ -265,14 +264,7 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className={`bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 ${feature.comingSoon ? 'relative' : ''}`}>
-                {feature.comingSoon && (
-                  <div className="absolute top-2 right-2 z-10">
-                    <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
-                      em breve
-                    </span>
-                  </div>
-                )}
+              <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
                 <CardHeader className="text-center pb-4">
                   <div className="flex justify-center mb-4">
                     {feature.icon}
