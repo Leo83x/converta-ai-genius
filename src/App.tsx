@@ -48,7 +48,8 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <AuthProvider>
-          <BrowserRouter>
+		{/* ✅ basename garante que tudo funcione dentro de /experiencia */}
+          <BrowserRouter basename="/experiencia">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/demo" element={<Demo />} />
