@@ -59,9 +59,9 @@ const Index = () => {
       description: "Dashboards avançados com métricas que ajudam a vender mais, anunciar melhor e aprimorar continuamente seu atendimento"
     },
     {
-      icon: <MessageSquare className="h-8 w-8 text-green-400" />,
-      title: "Multi-Canal",
-      description: "Instagram, Facebook, Telegram e muito mais",
+      icon: <Brain className="h-8 w-8 text-green-400" />,
+      title: "Genius IA",
+      description: "Conte com seu analista de IA na plataforma para gerar insights e análise comparativa de mercado. Você sempre a frente dos concorrentes.",
       comingSoon: true
     }
   ];
