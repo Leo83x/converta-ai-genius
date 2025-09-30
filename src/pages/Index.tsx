@@ -40,8 +40,8 @@ const Index = () => {
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-blue-400" />,
-      title: "Análise de Conversas com IA",
-      description: "Análise completa de todas as conversas realizadas pelo seu Atendente de IA, gerando insights poderosos para vendas e otimização contínua"
+      title: "Análise de Conversas",
+      description: "Analise todas as conversas que seu Atendente teve com seus clientes e assuma o controle da comunicação se quiser e quando quiser"
     },
     {
       icon: <Zap className="h-8 w-8 text-yellow-400" />,
