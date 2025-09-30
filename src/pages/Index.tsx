@@ -317,7 +317,7 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent className="text-center">
-                <ul className="space-y-3 text-gray-700">
+                <ul className="space-y-3 text-gray-700 mb-6">
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     1 Atendente de IA no WhatsApp
@@ -343,6 +343,12 @@ const Index = () => {
                     Suporte por chat
                   </li>
                 </ul>
+                <Button
+                  onClick={handleTestAgentClick}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                >
+                  Experimente Grátis
+                </Button>
               </CardContent>
             </Card>
 
@@ -361,7 +367,7 @@ const Index = () => {
                 </div>
               </CardHeader>
               <CardContent className="text-center">
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   <li className="flex items-center justify-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-300" />
                     3 Atendentes de IA no WhatsApp
@@ -391,6 +397,12 @@ const Index = () => {
                     Configurações personalizadas
                   </li>
                 </ul>
+                <Button
+                  onClick={handleTestAgentClick}
+                  className="w-full bg-white text-purple-600 hover:bg-gray-100"
+                >
+                  Experimente Grátis
+                </Button>
               </CardContent>
             </Card>
           </div>
