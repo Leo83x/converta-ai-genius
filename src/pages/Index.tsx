@@ -76,21 +76,11 @@ const Index = () => {
   ];
 
   const handleDemoClick = () => {
-    navigate('/demo');
-    // Scroll to top after navigation
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 100);
+    window.location.href = 'https://convertamais.online/app/auth';
   };
 
   const handleTestAgentClick = () => {
-    if (!formData.name || !formData.company) {
-      setIsFormOpen(true);
-      return;
-    }
-    
-    navigate('/inicio-experiencia', { state: { formData } });
-    setIsFormOpen(false);
+    window.location.href = 'https://convertamais.online/app/auth';
   };
 
   const handleAffiliateClick = () => {
