@@ -50,8 +50,8 @@ const Index = () => {
     },
     {
       icon: <Users className="h-8 w-8 text-red-400" />,
-      title: "CRM Integrado",
-      description: "Gerencie todos os seus leads em um funil de vendas organizado"
+      title: "CRM Automático",
+      description: "Seu Funcionário de IA atende seus leads e qualifica automaticamente em estágios no CRM Inteligente. Você ainda pode personalizar estes estágios de acordo com seu negócio e acompanhar em tempo real a evolução dos seus clientes."
     },
     {
       icon: <TrendingUp className="h-8 w-8 text-indigo-400" />,
