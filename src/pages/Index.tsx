@@ -123,13 +123,12 @@ const Index = () => {
       <section className="pt-16 pb-24 px-4 w-full">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Automação Inteligente de
             <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Leads com IA
+              Para de perder clientes com seu atendimento atual
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Crie seu Atendente de IA no WhatsApp em segundos. Ele atende 24h/7d, qualifica leads no CRM e transforma conversas em inteligência de mercado para vender mais e evoluir seu negócio.
+            Crie seu próprio Atendente de IA, em segundos na Converta+, sem precisar programar.
           </p>
           
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
