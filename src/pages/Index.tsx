@@ -99,11 +99,11 @@ const Index = () => {
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/logo-c-v2.png" 
-              alt="Logo" 
+           <img
+              src={`${import.meta.env.BASE_URL}lovable-uploads/logo-c-v2.png`}
+              alt="Logo"
               className="h-12 w-auto"
-            />
+             />
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
@@ -453,9 +453,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <img 
-                src="/lovable-uploads/logo-c-v2.png" 
-                alt="Logo" 
+              <img
+                src={`${import.meta.env.BASE_URL}lovable-uploads/logo-c-v2.png`}
+                alt="Logo"
                 className="h-10 w-auto"
               />
             </div>
