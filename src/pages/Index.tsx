@@ -107,15 +107,6 @@ const Index = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
-              onClick={handleDemoClick}
-              variant="outline"
-              size="sm"
-              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white text-xs sm:text-sm px-3 py-2"
-            >
-              <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Ver Demo
-            </Button>
-            <Button
               onClick={handleTestAgentClick}
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
@@ -230,16 +221,6 @@ const Index = () => {
             </DialogContent>
           </Dialog>
 
-          <div className="flex justify-center mb-16">
-            <Button
-              size="lg"
-              onClick={handleDemoClick}
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 px-8 py-4 text-lg text-white"
-            >
-              <Eye className="mr-2 h-5 w-5" />
-              Ver Demo
-            </Button>
-          </div>
         </div>
       </section>
 
