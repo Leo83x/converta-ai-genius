@@ -45,8 +45,8 @@ const Index = () => {
     },
     {
       icon: <Zap className="h-8 w-8 text-yellow-400" />,
-      title: "Automação Completa",
-      description: "Captação, qualificação e atendimento 24/7 sem intervenção manual"
+      title: "Atendimento 24/7",
+      description: "Atendimento contínuo 24/7 sem pausas, garantindo que nenhum cliente seja perdido"
     },
     {
       icon: <Users className="h-8 w-8 text-red-400" />,
