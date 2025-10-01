@@ -30,7 +30,7 @@ const Apresentacao = () => {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Crie seu próprio Atendente de IA, em segundos na Converta+, sem precisar programar.
+            Veja no vídeo abaixo como é fácil criar seu próprio Atendente de IA, em segundos, sem precisar programar.
           </p>
           
           {/* Video Container */}
