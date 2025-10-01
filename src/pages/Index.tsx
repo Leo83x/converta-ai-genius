@@ -74,12 +74,8 @@ const Index = () => {
     "Acompanhe Resultados: Visualize leads, conversas e métricas em tempo real no painel"
   ];
 
-  const handleDemoClick = () => {
-    window.location.href = 'https://convertamais.online/app/auth';
-  };
-
-  const handleTestAgentClick = () => {
-    window.location.href = 'https://convertamais.online/app/auth';
+  const handleWhatsAppClick = () => {
+    window.open('https://wa.me/5521997962109?text=Quero%20ver%20a%20demonstra%C3%A7%C3%A3o%20da%20plataforma', '_blank');
   };
 
   const handleAffiliateClick = () => {
@@ -107,13 +103,12 @@ const Index = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
-              onClick={handleTestAgentClick}
+              onClick={handleWhatsAppClick}
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
               <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Teste seu Agente IA</span>
-              <span className="sm:hidden">Teste IA</span>
+              Veja a Demonstração
             </Button>
           </div>
         </div>
@@ -131,14 +126,17 @@ const Index = () => {
             Crie seu próprio Atendente de IA, em segundos na Converta+, sem precisar programar.
           </p>
           
+          <Button
+            onClick={handleWhatsAppClick}
+            size="lg"
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white mb-8"
+          >
+            Veja a Demonstração
+          </Button>
+
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white mb-8"
-              >
-                Experimente Grátis
-              </Button>
+              <div className="hidden"></div>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] md:max-w-2xl bg-gray-800 border-purple-500/30">
               <div className="p-3 md:p-6">
@@ -205,11 +203,11 @@ const Index = () => {
                   </div>
                   <div className="md:col-span-2 flex flex-col items-center mt-4">
                     <Button
-                      onClick={handleTestAgentClick}
+                      onClick={handleWhatsAppClick}
                       className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 text-white"
                     >
                       <Eye className="mr-2 h-4 w-4" />
-                      Experimente Grátis
+                      Veja a Demonstração
                     </Button>
                     <p className="text-gray-400 text-xs mt-2 text-center">
                       Tenha uma experiência de atendimento de IA como se fosse cliente do próprio negócio.
@@ -356,10 +354,10 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={handleTestAgentClick}
+                  onClick={handleWhatsAppClick}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                 >
-                  Experimente Grátis
+                  Veja a Demonstração
                 </Button>
               </CardContent>
             </Card>
@@ -414,10 +412,10 @@ const Index = () => {
                   </li>
                 </ul>
                 <Button
-                  onClick={handleTestAgentClick}
+                  onClick={handleWhatsAppClick}
                   className="w-full bg-white text-purple-600 hover:bg-gray-100"
                 >
-                  Experimente Grátis
+                  Veja a Demonstração
                 </Button>
               </CardContent>
             </Card>
@@ -438,11 +436,11 @@ const Index = () => {
           <div className="flex justify-center">
             <Button
               size="lg"
-              onClick={handleDemoClick}
+              onClick={handleWhatsAppClick}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-4 text-lg text-white font-semibold"
             >
               <Play className="mr-2 h-5 w-5" />
-              Experimente Grátis
+              Veja a Demonstração
             </Button>
           </div>
         </div>
@@ -471,11 +469,11 @@ const Index = () => {
       {showMobileCTA && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 to-transparent md:hidden z-50">
           <Button
-            onClick={handleTestAgentClick}
+            onClick={handleWhatsAppClick}
             size="lg"
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg"
           >
-            Experimente Grátis Agora
+            Veja a Demonstração
           </Button>
         </div>
       )}
