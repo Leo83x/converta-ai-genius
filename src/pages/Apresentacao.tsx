@@ -12,7 +12,7 @@ const Apresentacao = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={`${import.meta.env.BASE_URL}lovable-uploads/logo-c-v2.png`}
+              src="/lovable-uploads/logo-c-v2.png"
               alt="Logo"
               className="h-12 w-auto"
             />
