@@ -9,20 +9,20 @@ const Apresentacao = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 w-full overflow-x-hidden">
       {/* Header */}
-      <header className="px-4 py-6 w-full">
+      <header className="px-4 py-4 md:py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
             <img
               src="/lovable-uploads/logo-c-v2.png"
               alt="Logo"
-              className="h-12 w-auto"
+              className="h-10 md:h-12 w-auto"
             />
           </div>
         </div>
       </header>
 
       {/* Hero Section with Video */}
-      <section className="pt-16 pb-24 px-4 w-full">
+      <section className="pt-4 md:pt-16 pb-24 px-4 w-full">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
