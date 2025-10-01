@@ -27,6 +27,7 @@ import SecretsDiagnostic from '@/pages/SecretsDiagnostic';
 import GeniusCampaign from '@/pages/GeniusCampaign';
 import Pricing from '@/pages/Pricing';
 import InicioExperiencia from '@/pages/InicioExperiencia';
+import Apresentacao from '@/pages/Apresentacao';
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/demo" element={<Demo />} />
               <Route path="/inicio-experiencia" element={<InicioExperiencia />} />
+              <Route path="/apresentacao" element={<Apresentacao />} />
               <Route path="/afiliados" element={<AffiliateLanding />} />
               <Route path="/confirmado" element={<ConfirmationPage />} />
               <Route path="/login" element={<Login />} />
