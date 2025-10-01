@@ -75,7 +75,7 @@ const Index = () => {
   ];
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/5521997962109?text=Quero%20ver%20a%20demonstra%C3%A7%C3%A3o%20da%20plataforma', '_blank');
+    window.open('https://api.whatsapp.com/send/?phone=5521997962109&text=Quero+ver+a+demonstra%C3%A7%C3%A3o+da+plataforma.&type=phone_number&app_absent=0', '_blank');
   };
 
   const handleAffiliateClick = () => {
