@@ -316,6 +316,7 @@ const Index = () => {
             <Card className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl font-bold text-gray-900 mb-2">Plano Básico</CardTitle>
+                <p className="text-sm text-purple-600 font-semibold mb-2">Experimente 2 dias Grátis</p>
                 <p className="text-gray-600 mb-4">Perfeito para começar</p>
                 <div className="text-center">
                   <span className="text-4xl font-bold text-purple-600">R$ 197</span>
@@ -370,6 +371,7 @@ const Index = () => {
               </div>
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl font-bold mb-2">Plano Premium</CardTitle>
+                <p className="text-sm text-white font-semibold mb-2">Experimente 2 dias Grátis</p>
                 <p className="text-purple-200 mb-4">Máxima performance para seu negócio</p>
                 <div className="text-center">
                   <span className="text-4xl font-bold">R$ 397</span>
