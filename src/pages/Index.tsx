@@ -117,7 +117,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-16 pb-24 px-4 w-full">
+      <section className="pt-8 md:pt-16 pb-24 px-4 w-full">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
