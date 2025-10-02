@@ -77,7 +77,7 @@ const Index = () => {
   ];
 
   const handleWhatsAppClick = () => {
-    window.location.href = 'https://convertamais.online/app/auth';
+    window.open('https://wa.me/5521997962109?text=Quero%20experimentar%20gratuitamente%20a%20plataforma.', '_blank');
   };
 
   const handleAffiliateClick = () => {
