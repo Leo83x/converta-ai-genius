@@ -128,29 +128,31 @@ const Index = () => {
             Na Converta+, você ativa em poucos cliques um Atendente de IA que conversa de forma humanizada, qualifica leads e gera vendas automáticas todos os dias.
           </p>
           
-          {/* Video Play Button */}
-          <button
-            onClick={() => {
-              setIsVideoOpen(true);
-              setHasPlayedOnce(true);
-            }}
-            className="mx-auto mb-6 group"
-          >
-            <div className={`relative w-20 h-20 ${!hasPlayedOnce ? 'animate-pulse' : ''}`}>
-              <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl group-hover:bg-purple-400/40 transition-all"></div>
-              <div className="relative w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:from-purple-500 group-hover:to-pink-500 transition-all">
-                <Play className="w-10 h-10 text-white fill-white ml-1" />
+          {/* Video Play Button and CTA */}
+          <div className="flex flex-col items-center gap-6 mb-8">
+            <button
+              onClick={() => {
+                setIsVideoOpen(true);
+                setHasPlayedOnce(true);
+              }}
+              className="group"
+            >
+              <div className={`relative w-20 h-20 ${!hasPlayedOnce ? 'animate-pulse' : ''}`}>
+                <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl group-hover:bg-purple-400/40 transition-all"></div>
+                <div className="relative w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:from-purple-500 group-hover:to-pink-500 transition-all">
+                  <Play className="w-10 h-10 text-white fill-white ml-1" />
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
 
-          <Button
-            onClick={handleWhatsAppClick}
-            size="lg"
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white mb-8"
-          >
-            Experimentar Grátis
-          </Button>
+            <Button
+              onClick={handleWhatsAppClick}
+              size="lg"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white"
+            >
+              Experimentar Grátis
+            </Button>
+          </div>
 
           {/* Video Modal */}
           <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
