@@ -77,7 +77,7 @@ const Index = () => {
   ];
 
   const handleWhatsAppClick = () => {
-    window.open('https://api.whatsapp.com/send/?phone=5521997962109&text=Quero+ver+a+demonstra%C3%A7%C3%A3o+da+plataforma.&type=phone_number&app_absent=0', '_blank');
+    window.location.href = 'https://convertamais.online/app/auth';
   };
 
   const handleAffiliateClick = () => {
