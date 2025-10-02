@@ -14,6 +14,8 @@ const Index = () => {
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showMobileCTA, setShowMobileCTA] = useState(false);
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -93,7 +95,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 w-full overflow-x-hidden">
       {/* Header */}
       <header className="px-4 py-6 w-full">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-center md:justify-between">
           <div className="flex items-center">
            <img
               src={`${import.meta.env.BASE_URL}lovable-uploads/logo-c-v2.png`}
@@ -101,14 +103,14 @@ const Index = () => {
               className="h-12 w-auto"
              />
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          <div className="hidden md:flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button
               onClick={handleWhatsAppClick}
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs sm:text-sm px-3 py-2"
             >
               <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Veja a Demonstração
+              Experimentar Grátis
             </Button>
           </div>
         </div>
@@ -119,20 +121,54 @@ const Index = () => {
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Para de perder clientes com seu atendimento atual
+              Transforme o WhatsApp do seu Negócio em uma Máquina de Vendas 24/7
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Crie seu próprio Atendente de IA, em segundos na Converta+, sem precisar programar.
+            Na Converta+, você ativa em poucos cliques um Atendente de IA que conversa de forma humanizada, qualifica leads e gera vendas automáticas todos os dias.
           </p>
           
+          {/* Video Play Button */}
+          <button
+            onClick={() => {
+              setIsVideoOpen(true);
+              setHasPlayedOnce(true);
+            }}
+            className="mx-auto mb-6 group"
+          >
+            <div className={`relative w-20 h-20 ${!hasPlayedOnce ? 'animate-pulse' : ''}`}>
+              <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl group-hover:bg-purple-400/40 transition-all"></div>
+              <div className="relative w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:from-purple-500 group-hover:to-pink-500 transition-all">
+                <Play className="w-10 h-10 text-white fill-white ml-1" />
+              </div>
+            </div>
+          </button>
+
           <Button
             onClick={handleWhatsAppClick}
             size="lg"
             className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white mb-8"
           >
-            Veja a Demonstração
+            Experimentar Grátis
           </Button>
+
+          {/* Video Modal */}
+          <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+            <DialogContent className="max-w-4xl bg-gray-900 border-2 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+              <div className="aspect-video w-full">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/WaYx2aP4B5I"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="rounded-lg"
+                ></iframe>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
@@ -207,7 +243,7 @@ const Index = () => {
                       className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-3 text-white"
                     >
                       <Eye className="mr-2 h-4 w-4" />
-                      Veja a Demonstração
+                      Experimentar Grátis
                     </Button>
                     <p className="text-gray-400 text-xs mt-2 text-center">
                       Tenha uma experiência de atendimento de IA como se fosse cliente do próprio negócio.
@@ -358,7 +394,7 @@ const Index = () => {
                   onClick={handleWhatsAppClick}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                 >
-                  Veja a Demonstração
+                  Experimentar Grátis
                 </Button>
               </CardContent>
             </Card>
@@ -417,7 +453,7 @@ const Index = () => {
                   onClick={handleWhatsAppClick}
                   className="w-full bg-white text-purple-600 hover:bg-gray-100"
                 >
-                  Veja a Demonstração
+                  Experimentar Grátis
                 </Button>
               </CardContent>
             </Card>
@@ -442,7 +478,7 @@ const Index = () => {
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-8 py-4 text-lg text-white font-semibold"
             >
               <Play className="mr-2 h-5 w-5" />
-              Veja a Demonstração
+              Experimentar Grátis
             </Button>
           </div>
         </div>
@@ -475,7 +511,7 @@ const Index = () => {
             size="lg"
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg"
           >
-            Veja a Demonstração
+            Experimentar Grátis
           </Button>
         </div>
       )}
