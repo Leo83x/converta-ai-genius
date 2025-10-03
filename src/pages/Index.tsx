@@ -189,7 +189,7 @@ const Index = () => {
             <Button
               onClick={handleWhatsAppClick}
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white animate-[pulse_3s_ease-in-out_infinite] hover:animate-none"
             >
               Experimentar Grátis
             </Button>
