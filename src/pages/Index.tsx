@@ -144,7 +144,7 @@ const Index = () => {
                   className="group relative"
                 >
                   {/* Video Thumbnail Container */}
-                  <div className="relative w-[400px] h-[225px] md:w-[560px] md:h-[315px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:shadow-[0_0_50px_rgba(168,85,247,0.5)]">
+                  <div className="relative w-full max-w-[90vw] aspect-video md:max-w-[560px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:shadow-[0_0_50px_rgba(168,85,247,0.5)]">
                     {/* Video Thumbnail Image */}
                     <img 
                       src={videoThumb} 
@@ -171,7 +171,7 @@ const Index = () => {
                   </div>
                 </button>
               ) : (
-                <div className="relative w-[400px] h-[225px] md:w-[560px] md:h-[315px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+                <div className="relative w-full max-w-[90vw] aspect-video md:max-w-[560px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
                   <iframe
                     width="100%"
                     height="100%"
