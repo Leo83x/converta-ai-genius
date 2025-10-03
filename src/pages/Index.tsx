@@ -132,39 +132,54 @@ const Index = () => {
             Na Converta+, você ativa em poucos cliques um Atendente de IA que conversa de forma humanizada, qualifica leads e gera vendas automáticas todos os dias.
           </p>
           
-          {/* Video Thumbnail with Play Button */}
+          {/* Video Section */}
           <div className="flex flex-col items-center gap-6 mb-8">
             <div className="flex flex-col items-center gap-4">
-              <button
-                onClick={() => {
-                  setIsVideoOpen(true);
-                  setHasPlayedOnce(true);
-                }}
-                className="group relative"
-              >
-                {/* Video Thumbnail Container */}
-                <div className="relative w-[400px] h-[225px] md:w-[560px] md:h-[315px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:shadow-[0_0_50px_rgba(168,85,247,0.5)]">
-                  {/* Gradient Background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-purple-500/60 to-pink-600/80" />
-                  
-                  {/* Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className={`relative ${!hasPlayedOnce ? 'animate-pulse' : ''}`}>
-                      <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl scale-150" />
-                      <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
-                        <Play className="w-10 h-10 md:w-12 md:h-12 text-white fill-white ml-1" />
+              {!isVideoOpen ? (
+                <button
+                  onClick={() => {
+                    setIsVideoOpen(true);
+                    setHasPlayedOnce(true);
+                  }}
+                  className="group relative"
+                >
+                  {/* Video Thumbnail Container */}
+                  <div className="relative w-[400px] h-[225px] md:w-[560px] md:h-[315px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:shadow-[0_0_50px_rgba(168,85,247,0.5)]">
+                    {/* Gradient Background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-purple-500/60 to-pink-600/80" />
+                    
+                    {/* Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className={`relative ${!hasPlayedOnce ? 'animate-pulse' : ''}`}>
+                        <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl scale-150" />
+                        <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                          <Play className="w-10 h-10 md:w-12 md:h-12 text-white fill-white ml-1" />
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Overlay Text */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                    <p className="text-white text-lg md:text-xl font-semibold text-center">
-                      Veja a plataforma em funcionamento
-                    </p>
+                    {/* Overlay Text */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                      <p className="text-white text-lg md:text-xl font-semibold text-center">
+                        Veja a plataforma em funcionamento
+                      </p>
+                    </div>
                   </div>
+                </button>
+              ) : (
+                <div className="relative w-[400px] h-[225px] md:w-[560px] md:h-[315px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/WaYx2aP4B5I?autoplay=1"
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="rounded-2xl"
+                  ></iframe>
                 </div>
-              </button>
+              )}
             </div>
 
             <Button
@@ -175,24 +190,6 @@ const Index = () => {
               Experimentar Grátis
             </Button>
           </div>
-
-          {/* Video Modal */}
-          <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
-            <DialogContent className="max-w-4xl bg-gray-900 border-2 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
-              <div className="aspect-video w-full">
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src="https://www.youtube.com/embed/WaYx2aP4B5I"
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="rounded-lg"
-                ></iframe>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
