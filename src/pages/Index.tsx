@@ -16,6 +16,7 @@ const Index = () => {
   const [showMobileCTA, setShowMobileCTA] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
+  const [isPulsing, setIsPulsing] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -31,7 +32,16 @@ const Index = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Stop pulsing after 1.5 seconds (3 pulses of 0.5s each)
+    const pulseTimer = setTimeout(() => {
+      setIsPulsing(false);
+    }, 1500);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(pulseTimer);
+    };
   }, []);
 
   const features = [
@@ -189,7 +199,7 @@ const Index = () => {
             <Button
               onClick={handleWhatsAppClick}
               size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white animate-[pulse_3s_ease-in-out_infinite] hover:animate-none"
+              className={`bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white ${isPulsing ? 'animate-[pulse_0.5s_ease-in-out_3]' : ''}`}
             >
               Experimentar Grátis
             </Button>
