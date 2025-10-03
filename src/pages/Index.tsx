@@ -81,7 +81,7 @@ const Index = () => {
     if ((window as any).fbq) {
       (window as any).fbq('track', 'Lead');
     }
-    window.open('https://wa.me/5521997962109?text=Quero%20experimentar%20gratuitamente%20a%20plataforma.', '_blank');
+    window.location.href = 'https://convertamais.online/app/auth?tab=signup';
   };
 
   const handleAffiliateClick = () => {
