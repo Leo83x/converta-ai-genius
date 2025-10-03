@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bot, MessageSquare, BarChart3, Zap, Users, Shield, ArrowRight, CheckCircle, Play, DollarSign, Brain, TrendingUp, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import videoThumb from '@/assets/video-thumb.png';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -145,8 +145,12 @@ const Index = () => {
                 >
                   {/* Video Thumbnail Container */}
                   <div className="relative w-[400px] h-[225px] md:w-[560px] md:h-[315px] rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:shadow-[0_0_50px_rgba(168,85,247,0.5)]">
-                    {/* Gradient Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-purple-500/60 to-pink-600/80" />
+                    {/* Video Thumbnail Image */}
+                    <img 
+                      src={videoThumb} 
+                      alt="Veja a plataforma em funcionamento" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
                     
                     {/* Play Button */}
                     <div className="absolute inset-0 flex items-center justify-center">
