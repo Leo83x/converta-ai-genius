@@ -163,8 +163,8 @@ const Index = () => {
                     </div>
 
                     {/* Overlay Text */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                      <p className="text-white text-lg md:text-xl font-semibold text-center">
+                    <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
+                      <p className="text-white text-sm md:text-xl font-semibold text-center whitespace-nowrap">
                         Veja a plataforma em funcionamento
                       </p>
                     </div>
