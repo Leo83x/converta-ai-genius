@@ -28,6 +28,7 @@ import GeniusCampaign from '@/pages/GeniusCampaign';
 import Pricing from '@/pages/Pricing';
 import InicioExperiencia from '@/pages/InicioExperiencia';
 import Apresentacao from '@/pages/Apresentacao';
+import GeniusMarketing from '@/pages/GeniusMarketing';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ function App() {
               <Route path="/demo" element={<Demo />} />
               <Route path="/inicio-experiencia" element={<InicioExperiencia />} />
               <Route path="/apresentacao" element={<Apresentacao />} />
+              <Route path="/genius-marketing" element={<GeniusMarketing />} />
               <Route path="/afiliados" element={<AffiliateLanding />} />
               <Route path="/confirmado" element={<ConfirmationPage />} />
               <Route path="/login" element={<Login />} />
