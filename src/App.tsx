@@ -22,6 +22,7 @@ import AffiliatePanel from './pages/AffiliatePanel';
 import Demo from '@/pages/Demo';
 import AffiliateLanding from '@/pages/AffiliateLanding';
 import ConfirmationPage from '@/pages/ConfirmationPage';
+import AffiliateConfirmation from '@/pages/AffiliateConfirmation';
 import ZApiManagement from '@/pages/ZApiManagement';
 import SecretsDiagnostic from '@/pages/SecretsDiagnostic';
 import GeniusCampaign from '@/pages/GeniusCampaign';
@@ -59,6 +60,7 @@ function App() {
               <Route path="/genius-marketing" element={<GeniusMarketing />} />
               <Route path="/afiliados" element={<AffiliateLanding />} />
               <Route path="/confirmado" element={<ConfirmationPage />} />
+              <Route path="/afiliado-confirmado" element={<AffiliateConfirmation />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
