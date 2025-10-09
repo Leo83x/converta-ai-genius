@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3, Brain } from 'lucide-react';
+import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3, Brain, Store, Utensils, Dumbbell, ShoppingBag, Home, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import logoConverta from '@/assets/logo-converta.png';
 
 const AffiliateLanding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -224,16 +225,12 @@ const AffiliateLanding = () => {
       {/* Header */}
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-center">
-          <div className="flex items-center space-x-1">
-            <img 
-              src="/lovable-uploads/ed994187-ef8e-434c-9a61-b934609ad228.png" 
-              alt="Converta+" 
-              className="h-10 w-10 mb-0.5"
-            />
-            <span className="text-2xl font-bold text-white">
-              Converta+
-            </span>
-          </div>
+          <img 
+            src={logoConverta} 
+            alt="Converta+" 
+            className="h-10 cursor-pointer"
+            onClick={() => navigate("/")}
+          />
         </div>
       </header>
 
@@ -390,7 +387,7 @@ const AffiliateLanding = () => {
               {
                 icon: Gift,
                 title: 'Sistema Gratuito',
-                description: 'Use o Converta+ por 1 ano completo (valor de R$ 127/mês) sem pagar nada.'
+                description: 'Use o Converta+ por 1 ano completo (valor de R$ 197/mês) sem pagar nada.'
               },
               {
                 icon: Shield,
@@ -432,7 +429,7 @@ const AffiliateLanding = () => {
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Converta+ por 1 ano (R$ 1.524)</span>
+                    <span className="text-gray-300">Converta+ por 1 ano (R$ 2.364)</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
@@ -503,6 +500,146 @@ const AffiliateLanding = () => {
         </div>
       </section>
 
+      {/* How to Promote & Monetize Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Como Divulgar e{' '}
+              <span className="bg-gradient-to-r from-pink-400 to-purple-300 bg-clip-text text-transparent">
+                Rentabilizar Facilmente
+              </span>
+            </h2>
+            <p className="text-xl text-purple-100 max-w-3xl mx-auto">
+              O mercado está cheio de oportunidades. Veja como é fácil encontrar clientes e começar a lucrar.
+            </p>
+          </div>
+
+          {/* Addressable Market */}
+          <div className="mb-16">
+            <h3 className="text-3xl font-bold text-white text-center mb-12">
+              Público Endereçável: Praticamente Todo Tipo de Negócio
+            </h3>
+            
+            <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+              {[
+                { icon: Store, name: 'E-commerce', color: 'text-blue-400' },
+                { icon: Utensils, name: 'Restaurantes', color: 'text-orange-400' },
+                { icon: Dumbbell, name: 'Academias', color: 'text-red-400' },
+                { icon: ShoppingBag, name: 'Varejo', color: 'text-green-400' },
+                { icon: Home, name: 'Imobiliárias', color: 'text-yellow-400' },
+                { icon: Scissors, name: 'Salões', color: 'text-pink-400' }
+              ].map((segment, index) => (
+                <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+                  <CardContent className="p-6 text-center">
+                    <segment.icon className={`w-12 h-12 ${segment.color} mx-auto mb-3`} />
+                    <p className="text-white font-semibold">{segment.name}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8 text-center">
+              <p className="text-xl text-white mb-4">
+                <strong className="text-2xl text-pink-400">Qualquer empresa que vende</strong> precisa do Converta+
+              </p>
+              <p className="text-lg text-purple-100">
+                De pequenos negócios locais a grandes empresas. Todos querem vender mais via WhatsApp com IA.
+              </p>
+            </div>
+          </div>
+
+          {/* How to Promote Examples */}
+          <div className="mb-16">
+            <h3 className="text-3xl font-bold text-white text-center mb-12">
+              Formas Simples de Divulgar
+            </h3>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {[
+                {
+                  title: '📱 Redes Sociais',
+                  description: 'Poste sobre automação com IA, mostre cases de sucesso, crie conteúdo educativo sobre vendas no WhatsApp.',
+                  example: '"Conheça o sistema que está revolucionando as vendas no WhatsApp com IA"'
+                },
+                {
+                  title: '💬 Grupos e Comunidades',
+                  description: 'Entre em grupos de empreendedores, lojistas e empresários no WhatsApp, Facebook e LinkedIn.',
+                  example: 'Participe oferecendo valor e apresentando a solução quando apropriado'
+                },
+                {
+                  title: '🎯 Indicação Direta',
+                  description: 'Converse com donos de negócios que você conhece, amigos e familiares empreendedores.',
+                  example: '"Você sabia que já existe IA para atender clientes no WhatsApp automaticamente?"'
+                },
+                {
+                  title: '📧 E-mail Marketing',
+                  description: 'Se você tem uma lista de contatos, envie materiais explicativos sobre o Converta+.',
+                  example: 'Use os templates que fornecemos prontos para adaptar e enviar'
+                }
+              ].map((method, index) => (
+                <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+                  <CardContent className="p-6">
+                    <h4 className="text-xl font-bold text-white mb-3">{method.title}</h4>
+                    <p className="text-purple-100 mb-4">{method.description}</p>
+                    <div className="bg-purple-900/50 rounded-lg p-3 border-l-4 border-pink-400">
+                      <p className="text-sm text-purple-200 italic">{method.example}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Profit Potential */}
+          <div>
+            <h3 className="text-3xl font-bold text-white text-center mb-12">
+              Potencial de Rentabilização
+            </h3>
+
+            <Card className="bg-gradient-to-r from-pink-600/20 to-purple-600/20 backdrop-blur-sm border-pink-400/30">
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-3 gap-8 text-center">
+                  <div>
+                    <div className="text-5xl font-bold text-pink-400 mb-2">3</div>
+                    <p className="text-white text-lg mb-2">vendas/mês</p>
+                    <div className="bg-white/10 rounded-lg p-4">
+                      <p className="text-2xl font-bold text-white">R$ XXX+</p>
+                      <p className="text-purple-200 text-sm">de comissão mensal</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-5xl font-bold text-purple-400 mb-2">10</div>
+                    <p className="text-white text-lg mb-2">vendas/mês</p>
+                    <div className="bg-white/10 rounded-lg p-4">
+                      <p className="text-2xl font-bold text-white">R$ X.XXX+</p>
+                      <p className="text-purple-200 text-sm">de comissão mensal</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-5xl font-bold text-blue-400 mb-2">30</div>
+                    <p className="text-white text-lg mb-2">vendas/mês</p>
+                    <div className="bg-white/10 rounded-lg p-4">
+                      <p className="text-2xl font-bold text-white">R$ XX.XXX+</p>
+                      <p className="text-purple-200 text-sm">de comissão mensal</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 text-center">
+                  <p className="text-xl text-white font-semibold mb-2">
+                    💡 Quanto mais você divulga, mais você ganha!
+                  </p>
+                  <p className="text-purple-100">
+                    E o melhor: você ainda ganha comissões recorrentes enquanto os clientes continuam usando o sistema.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-20 px-4 bg-gradient-to-r from-purple-900/50 to-pink-900/50">
         <div className="max-w-4xl mx-auto text-center">
@@ -539,6 +676,11 @@ const AffiliateLanding = () => {
       <footer className="py-8 px-4 bg-black/40">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center space-y-4">
+            <img 
+              src={logoConverta} 
+              alt="Converta+" 
+              className="h-8 opacity-70 mb-2"
+            />
             <p className="text-gray-400 text-lg text-center">
               © 2025 Converta+ - Plataforma de Automação Inteligente com IA
             </p>
