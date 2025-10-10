@@ -501,7 +501,7 @@ const AffiliateLanding = () => {
       </section>
 
       {/* How to Promote & Monetize Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+      <section className="py-20 px-4 bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">

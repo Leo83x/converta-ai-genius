@@ -7,7 +7,7 @@ const AffiliateConfirmation = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <img 
