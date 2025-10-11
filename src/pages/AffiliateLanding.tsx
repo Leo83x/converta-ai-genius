@@ -1,111 +1,25 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3, Brain, Store, Utensils, Dumbbell, ShoppingBag, Home, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import logoConverta from '@/assets/logo-converta.png';
 
 const AffiliateLanding = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const CTAButton = ({ className = "", size = "default" }: { className?: string, size?: "default" | "lg" }) => (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          size={size}
-          className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`}
-        >
-          Quero Saber Mais
-          <ArrowRight className="w-5 h-5 ml-2" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent 
-        className="sm:max-w-md bg-gray-900 border-purple-500/30 z-50"
-      >
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white text-center">
-            Garanta Sua Vaga na Live!
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="mt-4">
-          <form 
-            method="post" 
-            action="https://webhook.sellflux.com/webhook/v2/form/lead/9237094161277821b8021f44fb13b9b1?not_query=true&redirect_url=https%3A%2F%2Flive.convertamais.online%2Fconfirmado"
-            className="space-y-4"
-          >
-            <div>
-              <Label htmlFor="name-1" className="text-white flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Nome Completo
-              </Label>
-              <Input
-                id="name-1"
-                name="name"
-                type="text"
-                placeholder="Seu nome completo"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="email-1" className="text-white flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                E-mail
-              </Label>
-              <Input
-                id="email-1"
-                name="email"
-                type="email"
-                placeholder="seu@email.com"
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="tel-1" className="text-white flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                WhatsApp
-              </Label>
-              <div className="flex gap-2">
-                <select 
-                  id="ddi-1" 
-                  className="bg-white/10 border-white/20 text-white rounded-md px-3 py-2 w-20"
-                >
-                  <option value="55" className="bg-gray-800">🇧🇷 +55</option>
-                </select>
-                <Input
-                  data-phone-with-ddi=""
-                  type="tel"
-                  id="tel-1"
-                  name="phone"
-                  maxLength={15}
-                  placeholder="(00) 00000-0000"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 flex-1"
-                  required
-                />
-              </div>
-            </div>
-            
-            <Button 
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 text-lg"
-            >
-              Confirmar Cadastro
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </form>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Button 
+      size={size}
+      className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`}
+      onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}
+    >
+      Agendar Reunião Online
+      <ArrowRight className="w-5 h-5 ml-2" />
+    </Button>
   );
 
   useEffect(() => {
@@ -381,13 +295,13 @@ const AffiliateLanding = () => {
             {[
               {
                 icon: DollarSign,
-                title: 'Altas Comissões',
-                description: 'Ganhe altas comissões sem limites por venda. Valores atrativos pagos mensalmente.'
+                title: 'Comissões Atrativas',
+                description: '50% na primeira mensalidade + 10% recorrente todo mês enquanto o cliente estiver ativo.'
               },
               {
                 icon: Gift,
-                title: 'Sistema Gratuito',
-                description: 'Use o Converta+ por 1 ano completo (valor de R$ 197/mês) sem pagar nada.'
+                title: 'Investimento Único',
+                description: 'Apenas R$ 1.997 uma única vez. Sem mensalidades ou taxas escondidas.'
               },
               {
                 icon: Shield,
@@ -420,28 +334,37 @@ const AffiliateLanding = () => {
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 O Que Você Recebe
               </h2>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
-                Você garante <strong className="text-white">acesso completo ao sistema por 1 ano</strong> + 
-                se torna representante oficial com direito a comissões e materiais exclusivos.
-              </p>
+              <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-400/30 rounded-lg p-6 mb-8">
+                <p className="text-3xl font-bold text-white mb-2">Investimento: R$ 1.997</p>
+                <p className="text-xl text-green-300">Pagamento único • Sem mensalidades • Sem taxas escondidas</p>
+              </div>
+              
               <div className="bg-gray-700 rounded-lg p-6 mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">Benefícios inclusos:</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">O que você recebe:</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Converta+ por 1 ano (R$ 2.364)</span>
+                    <span className="text-gray-300">Acesso ao Programa de Representantes</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Programa para Representantes</span>
+                    <span className="text-gray-300">50% na 1ª mensalidade + 10% recorrente</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
-                    <span className="text-gray-300">Materiais de Venda</span>
+                    <span className="text-gray-300">Materiais de Venda Prontos</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
                     <span className="text-gray-300">Treinamento Completo</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-400" />
+                    <span className="text-gray-300">Suporte Técnico Dedicado</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-400" />
+                    <span className="text-gray-300">Sistema de Comissões Transparente</span>
                   </div>
                 </div>
               </div>
@@ -473,8 +396,8 @@ const AffiliateLanding = () => {
                 icon: Sparkles
               },
               {
-                title: 'Altas Comissões',
-                description: 'Altas comissões por venda + comissões recorrentes. Melhor que a maioria dos programas.',
+                title: 'Comissões Generosas',
+                description: '50% de comissão na primeira mensalidade + 10% recorrente mensal. Rentabilize rápido!',
                 icon: TrendingUp
               },
               {
@@ -483,8 +406,8 @@ const AffiliateLanding = () => {
                 icon: Users
               },
               {
-                title: 'Sem Mensalidade de Representante',
-                description: 'Pague uma vez e seja representante para sempre. Não cobramos taxas mensais ou anuais.',
+                title: 'Investimento Único',
+                description: 'R$ 1.997 uma única vez. Sem mensalidades ou taxas recorrentes. Seja representante para sempre.',
                 icon: Shield
               }
             ].map((advantage, index) => (
@@ -597,6 +520,15 @@ const AffiliateLanding = () => {
               Potencial de Rentabilização
             </h3>
 
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-6 mb-8">
+              <p className="text-lg text-purple-100 mb-4 text-center">
+                <strong className="text-white">Mensalidade do cliente:</strong> R$ 197/mês
+              </p>
+              <p className="text-lg text-purple-100 text-center">
+                <strong className="text-pink-300">Sua comissão:</strong> R$ 98,50 na primeira mensalidade + R$ 19,70/mês recorrente
+              </p>
+            </div>
+
             <Card className="bg-gradient-to-r from-pink-600/20 to-purple-600/20 backdrop-blur-sm border-pink-400/30">
               <CardContent className="p-8">
                 <div className="grid md:grid-cols-3 gap-8 text-center">
@@ -604,34 +536,49 @@ const AffiliateLanding = () => {
                     <div className="text-5xl font-bold text-pink-400 mb-2">3</div>
                     <p className="text-white text-lg mb-2">vendas/mês</p>
                     <div className="bg-white/10 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white">R$ XXX+</p>
-                      <p className="text-purple-200 text-sm">de comissão mensal</p>
+                      <p className="text-2xl font-bold text-white">R$ 295,50</p>
+                      <p className="text-purple-200 text-sm">1º mês (50% de 3 vendas)</p>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-4 mt-2">
+                      <p className="text-xl font-bold text-green-300">+ R$ 59,10/mês</p>
+                      <p className="text-purple-200 text-sm">recorrente (10% de 3 clientes ativos)</p>
                     </div>
                   </div>
                   <div>
                     <div className="text-5xl font-bold text-purple-400 mb-2">10</div>
                     <p className="text-white text-lg mb-2">vendas/mês</p>
                     <div className="bg-white/10 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white">R$ X.XXX+</p>
-                      <p className="text-purple-200 text-sm">de comissão mensal</p>
+                      <p className="text-2xl font-bold text-white">R$ 985,00</p>
+                      <p className="text-purple-200 text-sm">1º mês (50% de 10 vendas)</p>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-4 mt-2">
+                      <p className="text-xl font-bold text-green-300">+ R$ 197,00/mês</p>
+                      <p className="text-purple-200 text-sm">recorrente (10% de 10 clientes ativos)</p>
                     </div>
                   </div>
                   <div>
                     <div className="text-5xl font-bold text-blue-400 mb-2">30</div>
                     <p className="text-white text-lg mb-2">vendas/mês</p>
                     <div className="bg-white/10 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white">R$ XX.XXX+</p>
-                      <p className="text-purple-200 text-sm">de comissão mensal</p>
+                      <p className="text-2xl font-bold text-white">R$ 2.955,00</p>
+                      <p className="text-purple-200 text-sm">1º mês (50% de 30 vendas)</p>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-4 mt-2">
+                      <p className="text-xl font-bold text-green-300">+ R$ 591,00/mês</p>
+                      <p className="text-purple-200 text-sm">recorrente (10% de 30 clientes ativos)</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-8 text-center">
                   <p className="text-xl text-white font-semibold mb-2">
-                    💡 Quanto mais você divulga, mais você ganha!
+                    💰 Renda Recorrente Crescente!
                   </p>
-                  <p className="text-purple-100">
-                    E o melhor: você ainda ganha comissões recorrentes enquanto os clientes continuam usando o sistema.
+                  <p className="text-purple-100 mb-2">
+                    Quanto mais você vende, maior fica sua renda recorrente mensal.
+                  </p>
+                  <p className="text-lg text-pink-300 font-semibold">
+                    Com apenas 10 clientes ativos todo mês, você já recupera seu investimento!
                   </p>
                 </div>
               </CardContent>
@@ -694,6 +641,18 @@ const AffiliateLanding = () => {
           </div>
         </div>
       </footer>
+
+      {/* Fixed Mobile CTA Button */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent z-50">
+        <Button 
+          size="lg"
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6"
+          onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}
+        >
+          Agendar Reunião Online
+          <ArrowRight className="w-5 h-5 ml-2" />
+        </Button>
+      </div>
     </div>
   );
 };
