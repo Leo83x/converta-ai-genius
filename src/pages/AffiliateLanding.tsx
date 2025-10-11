@@ -5,10 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Target, TrendingUp, Gift, Shield, Sparkles, Bot, BarChart3, Brain, Store, Utensils, Dumbbell, ShoppingBag, Home, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import logoConverta from '@/assets/logo-converta.png';
 const AffiliateLanding = () => {
-  const navigate = useNavigate();
   const [showFixedButton, setShowFixedButton] = useState(false);
   const CTAButton = ({
     className = "",
@@ -143,7 +141,9 @@ const AffiliateLanding = () => {
       {/* Header */}
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-center">
-          <img src={logoConverta} alt="Converta+" className="h-10 cursor-pointer" onClick={() => navigate("/")} />
+          <a href="https://convertamais.online/" className="cursor-pointer">
+            <img src={logoConverta} alt="Converta+" className="h-10" />
+          </a>
         </div>
       </header>
 
@@ -606,8 +606,8 @@ const AffiliateLanding = () => {
             <p className="text-gray-400 text-lg text-center">
               © 2025 Converta+ - Plataforma de Automação Inteligente com IA
             </p>
-            <Button onClick={() => navigate('/')} variant="outline" className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white">
-              Site Principal
+            <Button asChild variant="outline" className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white">
+              <a href="https://convertamais.online/">Site Principal</a>
             </Button>
           </div>
         </div>
