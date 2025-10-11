@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import logoConverta from '@/assets/logo-converta.png';
 const AffiliateLanding = () => {
   const navigate = useNavigate();
+  const [showFixedButton, setShowFixedButton] = useState(false);
   const CTAButton = ({
     className = "",
     size = "default"
@@ -19,6 +20,17 @@ const AffiliateLanding = () => {
       Agendar Reunião Online
       <ArrowRight className="w-5 h-5 ml-2" />
     </Button>;
+  useEffect(() => {
+    // Handle scroll for fixed button visibility
+    const handleScroll = () => {
+      // Show button after scrolling approximately 100vh (second fold)
+      setShowFixedButton(window.scrollY > window.innerHeight);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     // Add phone mask and form handling scripts
     const script1 = document.createElement('script');
@@ -127,7 +139,7 @@ const AffiliateLanding = () => {
       document.head.removeChild(script2);
     };
   }, []);
-  return <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+  return <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 overflow-x-hidden">
       {/* Header */}
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-center">
@@ -601,13 +613,15 @@ const AffiliateLanding = () => {
         </div>
       </footer>
 
-      {/* Fixed Mobile CTA Button */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent z-50">
-        <Button size="lg" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6" onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}>
-          Agendar Reunião Online
-          <ArrowRight className="w-5 h-5 ml-2" />
-        </Button>
-      </div>
+      {/* Fixed Mobile CTA Button - Shows after scrolling past first fold */}
+      {showFixedButton && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent z-50 animate-in slide-in-from-bottom duration-300">
+          <Button size="lg" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6" onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}>
+            Agendar Reunião Online
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+        </div>
+      )}
     </div>;
 };
 export default AffiliateLanding;
