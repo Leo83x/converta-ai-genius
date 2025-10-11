@@ -7,21 +7,18 @@ import { CheckCircle, DollarSign, Users, Zap, ArrowRight, Phone, Mail, User, Tar
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import logoConverta from '@/assets/logo-converta.png';
-
 const AffiliateLanding = () => {
   const navigate = useNavigate();
-
-  const CTAButton = ({ className = "", size = "default" }: { className?: string, size?: "default" | "lg" }) => (
-    <Button 
-      size={size}
-      className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`}
-      onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}
-    >
+  const CTAButton = ({
+    className = "",
+    size = "default"
+  }: {
+    className?: string;
+    size?: "default" | "lg";
+  }) => <Button size={size} className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`} onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}>
       Agendar Reunião Online
       <ArrowRight className="w-5 h-5 ml-2" />
-    </Button>
-  );
-
+    </Button>;
   useEffect(() => {
     // Add phone mask and form handling scripts
     const script1 = document.createElement('script');
@@ -98,7 +95,6 @@ const AffiliateLanding = () => {
         });
       });
     `;
-    
     const script2 = document.createElement('script');
     script2.innerHTML = `
       document.addEventListener('DOMContentLoaded', function () {
@@ -124,27 +120,18 @@ const AffiliateLanding = () => {
         }
       });
     `;
-
     document.head.appendChild(script1);
     document.head.appendChild(script2);
-
     return () => {
       document.head.removeChild(script1);
       document.head.removeChild(script2);
     };
   }, []);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+  return <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
       {/* Header */}
       <header className="px-4 py-6 w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-center">
-          <img 
-            src={logoConverta} 
-            alt="Converta+" 
-            className="h-10 cursor-pointer"
-            onClick={() => navigate("/")}
-          />
+          <img src={logoConverta} alt="Converta+" className="h-10 cursor-pointer" onClick={() => navigate("/")} />
         </div>
       </header>
 
@@ -201,31 +188,25 @@ const AffiliateLanding = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Bot,
-                title: 'Criação de Agentes de IA',
-                description: 'Sistema inteligente que permite criar agentes de IA personalizados para cada tipo de negócio e abordagem comercial.'
-              },
-              {
-                icon: BarChart3,
-                title: 'CRM com Qualificação Automática',
-                description: 'CRM inteligente que qualifica leads automaticamente, organizando prospects por potencial de conversão.'
-              },
-              {
-                icon: Brain,
-                title: 'Inteligência de Performance',
-                description: 'IA que analisa performance dos agentes, conversas, perfis dos leads e campanhas para otimização contínua.'
-              }
-            ].map((feature, index) => (
-              <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+            {[{
+            icon: Bot,
+            title: 'Criação de Agentes de IA',
+            description: 'Sistema inteligente que permite criar agentes de IA personalizados para cada tipo de negócio e abordagem comercial.'
+          }, {
+            icon: BarChart3,
+            title: 'CRM com Qualificação Automática',
+            description: 'CRM inteligente que qualifica leads automaticamente, organizando prospects por potencial de conversão.'
+          }, {
+            icon: Brain,
+            title: 'Inteligência de Performance',
+            description: 'IA que analisa performance dos agentes, conversas, perfis dos leads e campanhas para otimização contínua.'
+          }].map((feature, index) => <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-8 text-center">
                   <feature.icon className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
                   <p className="text-gray-700">{feature.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -243,31 +224,25 @@ const AffiliateLanding = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-16">
-            {[
-              {
-                icon: Users,
-                title: 'Empreendedores',
-                description: 'Pessoas buscando renda extra ou recorrente com tecnologia de ponta e inteligência artificial'
-              },
-              {
-                icon: Target,
-                title: 'Profissionais de Vendas',
-                description: 'Vendedores, consultores e profissionais que já trabalham com vendas online e querem expandir seu portfólio'
-              },
-              {
-                icon: TrendingUp,
-                title: 'Especialistas em Marketing',
-                description: 'Social media, gestores de tráfego, lançadores e profissionais de marketing digital'
-              }
-            ].map((target, index) => (
-              <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
+            {[{
+            icon: Users,
+            title: 'Empreendedores',
+            description: 'Pessoas buscando renda extra ou recorrente com tecnologia de ponta e inteligência artificial'
+          }, {
+            icon: Target,
+            title: 'Profissionais de Vendas',
+            description: 'Vendedores, consultores e profissionais que já trabalham com vendas online e querem expandir seu portfólio'
+          }, {
+            icon: TrendingUp,
+            title: 'Especialistas em Marketing',
+            description: 'Social media, gestores de tráfego, lançadores e profissionais de marketing digital'
+          }].map((target, index) => <Card key={index} className="bg-gray-800 border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
                 <CardContent className="p-8 text-center">
                   <target.icon className="w-12 h-12 text-purple-400 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-white mb-3">{target.title}</h3>
                   <p className="text-gray-300">{target.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
 
           <div className="text-center">
@@ -292,36 +267,29 @@ const AffiliateLanding = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: DollarSign,
-                title: 'Comissões Atrativas',
-                description: '50% na primeira mensalidade + 10% recorrente todo mês enquanto o cliente estiver ativo.'
-              },
-              {
-                icon: Gift,
-                title: 'Investimento Único',
-                description: 'Apenas R$ 1.997 uma única vez. Sem mensalidades ou taxas escondidas.'
-              },
-              {
-                icon: Shield,
-                title: 'Suporte Total',
-                description: 'Materiais de venda, treinamentos, suporte técnico e acompanhamento.'
-              },
-              {
-                icon: Sparkles,
-                title: 'Liberdade Completa',
-                description: 'Venda quando, onde e como quiser. Trabalhe no seu ritmo.'
-              }
-            ].map((benefit, index) => (
-              <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+            {[{
+            icon: DollarSign,
+            title: 'Comissões Atrativas',
+            description: '50% na primeira mensalidade + 10% recorrente todo mês enquanto o cliente estiver ativo.'
+          }, {
+            icon: Gift,
+            title: 'Investimento Único',
+            description: 'Apenas R$ 1.997 uma única vez. Sem mensalidades ou taxas escondidas.'
+          }, {
+            icon: Shield,
+            title: 'Suporte Total',
+            description: 'Materiais de venda, treinamentos, suporte técnico e acompanhamento.'
+          }, {
+            icon: Sparkles,
+            title: 'Liberdade Completa',
+            description: 'Venda quando, onde e como quiser. Trabalhe no seu ritmo.'
+          }].map((benefit, index) => <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <benefit.icon className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
                   <p className="text-gray-700 text-sm">{benefit.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -389,36 +357,29 @@ const AffiliateLanding = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                title: 'Produto de Alta Demanda',
-                description: 'IA e automação são o futuro. Converta+ resolve problemas reais de empresas que precisam vender mais.',
-                icon: Sparkles
-              },
-              {
-                title: 'Comissões Generosas',
-                description: '50% de comissão na primeira mensalidade + 10% recorrente mensal. Rentabilize rápido!',
-                icon: TrendingUp
-              },
-              {
-                title: 'Suporte Diferenciado',
-                description: 'Não deixamos você sozinho. Treinamento, materiais, suporte técnico e acompanhamento.',
-                icon: Users
-              },
-              {
-                title: 'Investimento Único',
-                description: 'R$ 1.997 uma única vez. Sem mensalidades ou taxas recorrentes. Seja representante para sempre.',
-                icon: Shield
-              }
-            ].map((advantage, index) => (
-              <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
+            {[{
+            title: 'Produto de Alta Demanda',
+            description: 'IA e automação são o futuro. Converta+ resolve problemas reais de empresas que precisam vender mais.',
+            icon: Sparkles
+          }, {
+            title: 'Comissões Generosas',
+            description: '50% de comissão na primeira mensalidade + 10% recorrente mensal. Rentabilize rápido!',
+            icon: TrendingUp
+          }, {
+            title: 'Suporte Diferenciado',
+            description: 'Não deixamos você sozinho. Treinamento, materiais, suporte técnico e acompanhamento.',
+            icon: Users
+          }, {
+            title: 'Investimento Único',
+            description: 'R$ 1.997 uma única vez. Sem mensalidades ou taxas recorrentes. Seja representante para sempre.',
+            icon: Shield
+          }].map((advantage, index) => <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-8">
                   <advantage.icon className="w-12 h-12 text-purple-600 mb-4" />
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">{advantage.title}</h3>
                   <p className="text-gray-700 text-lg">{advantage.description}</p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -445,21 +406,36 @@ const AffiliateLanding = () => {
             </h3>
             
             <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-              {[
-                { icon: Store, name: 'E-commerce', color: 'text-blue-400' },
-                { icon: Utensils, name: 'Restaurantes', color: 'text-orange-400' },
-                { icon: Dumbbell, name: 'Academias', color: 'text-red-400' },
-                { icon: ShoppingBag, name: 'Varejo', color: 'text-green-400' },
-                { icon: Home, name: 'Imobiliárias', color: 'text-yellow-400' },
-                { icon: Scissors, name: 'Salões', color: 'text-pink-400' }
-              ].map((segment, index) => (
-                <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+              {[{
+              icon: Store,
+              name: 'E-commerce',
+              color: 'text-blue-400'
+            }, {
+              icon: Utensils,
+              name: 'Restaurantes',
+              color: 'text-orange-400'
+            }, {
+              icon: Dumbbell,
+              name: 'Academias',
+              color: 'text-red-400'
+            }, {
+              icon: ShoppingBag,
+              name: 'Varejo',
+              color: 'text-green-400'
+            }, {
+              icon: Home,
+              name: 'Imobiliárias',
+              color: 'text-yellow-400'
+            }, {
+              icon: Scissors,
+              name: 'Salões',
+              color: 'text-pink-400'
+            }].map((segment, index) => <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
                   <CardContent className="p-6 text-center">
                     <segment.icon className={`w-12 h-12 ${segment.color} mx-auto mb-3`} />
                     <p className="text-white font-semibold">{segment.name}</p>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-8 text-center">
@@ -479,29 +455,23 @@ const AffiliateLanding = () => {
             </h3>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {[
-                {
-                  title: '📱 Redes Sociais',
-                  description: 'Poste sobre automação com IA, mostre cases de sucesso, crie conteúdo educativo sobre vendas no WhatsApp.',
-                  example: '"Conheça o sistema que está revolucionando as vendas no WhatsApp com IA"'
-                },
-                {
-                  title: '💬 Grupos e Comunidades',
-                  description: 'Entre em grupos de empreendedores, lojistas e empresários no WhatsApp, Facebook e LinkedIn.',
-                  example: 'Participe oferecendo valor e apresentando a solução quando apropriado'
-                },
-                {
-                  title: '🎯 Indicação Direta',
-                  description: 'Converse com donos de negócios que você conhece, amigos e familiares empreendedores.',
-                  example: '"Você sabia que já existe IA para atender clientes no WhatsApp automaticamente?"'
-                },
-                {
-                  title: '📧 E-mail Marketing',
-                  description: 'Se você tem uma lista de contatos, envie materiais explicativos sobre o Converta+.',
-                  example: 'Use os templates que fornecemos prontos para adaptar e enviar'
-                }
-              ].map((method, index) => (
-                <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+              {[{
+              title: '📱 Redes Sociais',
+              description: 'Poste sobre automação com IA, mostre cases de sucesso, crie conteúdo educativo sobre vendas no WhatsApp.',
+              example: '"Conheça o sistema que está revolucionando as vendas no WhatsApp com IA"'
+            }, {
+              title: '💬 Grupos e Comunidades',
+              description: 'Entre em grupos de empreendedores, lojistas e empresários no WhatsApp, Facebook e LinkedIn.',
+              example: 'Participe oferecendo valor e apresentando a solução quando apropriado'
+            }, {
+              title: '🎯 Indicação Direta',
+              description: 'Converse com donos de negócios que você conhece, amigos e familiares empreendedores.',
+              example: '"Você sabia que já existe IA para atender clientes no WhatsApp automaticamente?"'
+            }, {
+              title: '📧 E-mail Marketing',
+              description: 'Se você tem uma lista de contatos, envie materiais explicativos sobre o Converta+.',
+              example: 'Use os templates que fornecemos prontos para adaptar e enviar'
+            }].map((method, index) => <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
                   <CardContent className="p-6">
                     <h4 className="text-xl font-bold text-white mb-3">{method.title}</h4>
                     <p className="text-purple-100 mb-4">{method.description}</p>
@@ -509,8 +479,7 @@ const AffiliateLanding = () => {
                       <p className="text-sm text-purple-200 italic">{method.example}</p>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
 
@@ -577,9 +546,7 @@ const AffiliateLanding = () => {
                   <p className="text-purple-100 mb-2">
                     Quanto mais você vende, maior fica sua renda recorrente mensal.
                   </p>
-                  <p className="text-lg text-pink-300 font-semibold">
-                    Com apenas 10 clientes ativos todo mês, você já recupera seu investimento!
-                  </p>
+                  <p className="text-lg text-pink-300 font-semibold">Com apenas 20 clientes, você já recupera seu investimento sem contar a recorrência!</p>
                 </div>
               </CardContent>
             </Card>
@@ -623,19 +590,11 @@ const AffiliateLanding = () => {
       <footer className="py-8 px-4 bg-black/40">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center space-y-4">
-            <img 
-              src={logoConverta} 
-              alt="Converta+" 
-              className="h-8 opacity-70 mb-2"
-            />
+            <img src={logoConverta} alt="Converta+" className="h-8 opacity-70 mb-2" />
             <p className="text-gray-400 text-lg text-center">
               © 2025 Converta+ - Plataforma de Automação Inteligente com IA
             </p>
-            <Button
-              onClick={() => navigate('/')}
-              variant="outline"
-              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white"
-            >
+            <Button onClick={() => navigate('/')} variant="outline" className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white">
               Site Principal
             </Button>
           </div>
@@ -644,17 +603,11 @@ const AffiliateLanding = () => {
 
       {/* Fixed Mobile CTA Button */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent z-50">
-        <Button 
-          size="lg"
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6"
-          onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}
-        >
+        <Button size="lg" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6" onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}>
           Agendar Reunião Online
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AffiliateLanding;
