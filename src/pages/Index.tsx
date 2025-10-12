@@ -135,11 +135,11 @@ const Index = () => {
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Para de perder clientes com seu atendimento atual
+              Pare de perder clientes com seu atendimento atual!
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Conecte um Atendente de IA inteligente ao seu WhatsApp e veja seus leads sendo atendidos, qualificados e convertidos em vendas — sem você precisar digitar uma palavra.
+            Conecte um <span className="font-semibold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Atendente de IA</span> inteligente ao seu WhatsApp e veja seus leads sendo atendidos, qualificados e convertidos em vendas — sem você precisar digitar uma palavra.
           </p>
           <p className="text-lg md:text-xl text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed">
             Tudo isso em poucos cliques, sem precisar de equipe ou conhecimento técnico.
