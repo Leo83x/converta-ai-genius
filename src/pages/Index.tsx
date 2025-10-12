@@ -371,6 +371,114 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Social Proof Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-gray-900 via-purple-900/30 to-gray-900 w-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Resultados{' '}
+              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Comprovados
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Veja o que nossos clientes estão alcançando com o Converta+
+            </p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-8 shadow-xl">
+                <div className="text-5xl font-bold text-white mb-2">+300%</div>
+                <p className="text-purple-100 text-lg">Aumento em vendas</p>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8 shadow-xl">
+                <div className="text-5xl font-bold text-white mb-2">24/7</div>
+                <p className="text-blue-100 text-lg">Atendimento ininterrupto</p>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-pink-600 to-purple-600 rounded-2xl p-8 shadow-xl">
+                <div className="text-5xl font-bold text-white mb-2">-70%</div>
+                <p className="text-pink-100 text-lg">Redução de custos</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Testimonials */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="bg-gray-800/50 border-purple-500/30 backdrop-blur-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-xl">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-300 mb-6 italic">
+                  "O Converta+ transformou completamente nosso atendimento. Agora conseguimos atender muito mais clientes sem aumentar a equipe!"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    MC
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">Maria Clara</p>
+                    <p className="text-gray-400 text-sm">E-commerce de Moda</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-purple-500/30 backdrop-blur-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-xl">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-300 mb-6 italic">
+                  "Em 30 dias, triplicamos nossas conversões. O atendente de IA qualifica os leads perfeitamente e eu só fecho as vendas!"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    RS
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">Roberto Santos</p>
+                    <p className="text-gray-400 text-sm">Consultoria Empresarial</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-purple-500/30 backdrop-blur-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-xl">★</span>
+                  ))}
+                </div>
+                <p className="text-gray-300 mb-6 italic">
+                  "Simplesmente incrível! Nunca mais perco clientes durante a madrugada. O sistema responde na hora e agenda tudo automaticamente."
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    AF
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold">Ana Flávia</p>
+                    <p className="text-gray-400 text-sm">Estúdio de Pilates</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section className="py-20 px-4 bg-slate-100 w-full">
         <div className="max-w-6xl mx-auto">
