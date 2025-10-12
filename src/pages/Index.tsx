@@ -145,66 +145,25 @@ const Index = () => {
             Tudo isso em poucos cliques, sem precisar de equipe ou conhecimento técnico.
           </p>
           
-          {/* Video Section */}
-          <div className="flex flex-col items-center gap-6 mb-8">
-            <div className="flex flex-col items-center gap-4">
-              {!isVideoOpen ? (
-                <button
-                  onClick={() => {
-                    setIsVideoOpen(true);
-                    setHasPlayedOnce(true);
-                  }}
-                  className="group relative"
-                >
-                  {/* Video Thumbnail Container */}
-                  <div className="relative w-full min-h-[200px] max-w-[90vw] aspect-video md:w-[560px] md:h-[315px] md:aspect-auto rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_60px_rgba(168,85,247,0.6)] transition-all hover:shadow-[0_0_80px_rgba(168,85,247,0.8)]">
-                    {/* Video Thumbnail Image */}
-                    <img 
-                      src={videoThumb} 
-                      alt="Veja a plataforma em funcionamento" 
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Play Button */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className={`relative ${!hasPlayedOnce ? 'animate-pulse' : ''}`}>
-                        <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl scale-150" />
-                        <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
-                          <Play className="w-10 h-10 md:w-12 md:h-12 text-white fill-white ml-1" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Overlay Text */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
-                      <p className="text-white text-sm md:text-xl font-semibold text-center whitespace-nowrap">
-                        Veja a plataforma em funcionamento
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ) : (
-                <div className="relative w-full max-w-[90vw] aspect-video md:w-[560px] md:h-[315px] md:aspect-auto rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_60px_rgba(168,85,247,0.7)]">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/WaYx2aP4B5I?autoplay=1"
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="rounded-2xl"
-                  ></iframe>
-                </div>
-              )}
-            </div>
-
+          {/* Hero CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             <Button
               onClick={handleWhatsAppClick}
               size="lg"
               className={`bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-4 text-lg text-white ${isPulsing ? 'animate-[pulse_0.5s_ease-in-out_3]' : ''}`}
             >
-              Experimentar Grátis
+              Ativar meu Atendente de IA agora
+            </Button>
+            <Button
+              onClick={() => {
+                const videoSection = document.getElementById('video-section');
+                videoSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+              size="lg"
+              variant="outline"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-4 text-lg text-white border-0"
+            >
+              Conhecer a Plataforma
             </Button>
           </div>
 
@@ -479,6 +438,72 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Video Section */}
+      <section id="video-section" className="py-20 px-4 bg-slate-100 w-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Veja a Plataforma{' '}
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                em Ação
+              </span>
+            </h2>
+          </div>
+          
+          <div className="flex justify-center">
+            {!isVideoOpen ? (
+              <button
+                onClick={() => {
+                  setIsVideoOpen(true);
+                  setHasPlayedOnce(true);
+                }}
+                className="group relative"
+              >
+                {/* Video Thumbnail Container */}
+                <div className="relative w-full min-h-[200px] max-w-[90vw] aspect-video md:w-[800px] md:h-[450px] md:aspect-auto rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_60px_rgba(168,85,247,0.6)] transition-all hover:shadow-[0_0_80px_rgba(168,85,247,0.8)]">
+                  {/* Video Thumbnail Image */}
+                  <img 
+                    src={videoThumb} 
+                    alt="Veja a plataforma em funcionamento" 
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Play Button */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative animate-pulse">
+                      <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl scale-150" />
+                      <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                        <Play className="w-10 h-10 md:w-12 md:h-12 text-white fill-white ml-1" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Overlay Text */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
+                    <p className="text-white text-sm md:text-xl font-semibold text-center">
+                      Veja a plataforma em funcionamento
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ) : (
+              <div className="relative w-full max-w-[90vw] aspect-video md:w-[800px] md:h-[450px] md:aspect-auto rounded-2xl overflow-hidden border-2 border-purple-500/50 shadow-[0_0_60px_rgba(168,85,247,0.7)]">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/WaYx2aP4B5I?autoplay=1"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="rounded-2xl"
+                ></iframe>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section className="py-20 px-4 bg-slate-100 w-full">
         <div className="max-w-6xl mx-auto">
@@ -657,7 +682,7 @@ const Index = () => {
             size="lg"
             className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg"
           >
-            Experimentar Grátis
+            Ativar meu Atendente de IA agora
           </Button>
         </div>
       )}
