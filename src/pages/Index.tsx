@@ -680,9 +680,9 @@ const Index = () => {
           <Button
             onClick={handleWhatsAppClick}
             size="lg"
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg animate-[pulse_2s_ease-in-out_infinite]"
           >
-            Ativar meu Atendente de IA agora
+            TESTAR GRÁTIS AGORA
           </Button>
         </div>
       )}
