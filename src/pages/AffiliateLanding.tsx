@@ -14,7 +14,7 @@ const AffiliateLanding = () => {
   }: {
     className?: string;
     size?: "default" | "lg";
-  }) => <Button size={size} className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`} onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}>
+  }) => <Button size={size} className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 ${className}`} onClick={() => window.location.href = 'https://convertamais.online/oportunidade/obrigado'}>
       Agendar Reunião Online
       <ArrowRight className="w-5 h-5 ml-2" />
     </Button>;
@@ -606,9 +606,6 @@ const AffiliateLanding = () => {
             <p className="text-gray-400 text-lg text-center">
               © 2025 Converta+ - Plataforma de Automação Inteligente com IA
             </p>
-            <Button asChild variant="outline" className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white">
-              <a href="https://convertamais.online/">Site Principal</a>
-            </Button>
           </div>
         </div>
       </footer>
@@ -616,7 +613,7 @@ const AffiliateLanding = () => {
       {/* Fixed Mobile CTA Button - Shows after scrolling past first fold */}
       {showFixedButton && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent z-50 animate-in slide-in-from-bottom duration-300">
-          <Button size="lg" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6" onClick={() => window.open('https://calendly.com/contato-convertamais/30min', '_blank')}>
+          <Button size="lg" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold shadow-2xl text-lg py-6" onClick={() => window.location.href = 'https://convertamais.online/oportunidade/obrigado'}>
             Agendar Reunião Online
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>

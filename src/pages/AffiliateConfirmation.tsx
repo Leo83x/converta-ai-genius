@@ -1,10 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, MessageCircle, Sparkles, TrendingUp } from "lucide-react";
+import { CheckCircle2, Calendar, Sparkles, TrendingUp, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import logoConverta from "@/assets/logo-converta.png";
 
 const AffiliateConfirmation = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Load Calendly widget script
+    const script = document.createElement('script');
+    script.src = 'https://assets.calendly.com/assets/external/widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
@@ -20,50 +33,48 @@ const AffiliateConfirmation = () => {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-12 md:py-20">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-8 flex justify-center">
-            <div className="rounded-full bg-green-500/20 p-4">
-              <CheckCircle2 className="w-16 h-16 text-green-400" />
-            </div>
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Cadastro Realizado com Sucesso!
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-purple-100 mb-8">
-            Bem-vindo ao Programa de Representantes Converta+
-          </p>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-white/20">
-            <div className="flex items-start gap-4 mb-6">
-              <MessageCircle className="w-8 h-8 text-green-400 flex-shrink-0 mt-1" />
-              <div className="text-left">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Próximo Passo: Confira seu WhatsApp
-                </h3>
-                <p className="text-purple-100">
-                  Em instantes você receberá a apresentação completa do programa de representantes 
-                  diretamente no seu WhatsApp, com todos os detalhes sobre comissões, materiais 
-                  de apoio e como começar a ganhar.
-                </p>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="mb-8 flex justify-center">
+              <div className="rounded-full bg-purple-500/20 p-4">
+                <Calendar className="w-16 h-16 text-purple-400" />
               </div>
             </div>
+            
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              Agende Sua Reunião Online
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-purple-100 mb-8">
+              Escolha o melhor horário para conhecer o Programa de Representantes Converta+
+            </p>
 
-            <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-4">
-              <p className="text-yellow-100 text-sm">
-                <strong>Importante:</strong> Verifique também sua pasta de spam/lixo eletrônico 
-                caso não receba a mensagem em alguns minutos.
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
+              <p className="text-purple-100 text-lg">
+                Agende sua reunião online e conheça todos os detalhes sobre comissões, 
+                materiais de apoio e como começar a ganhar com o programa de representantes.
               </p>
             </div>
           </div>
 
-          <Button
-            onClick={() => navigate("/afiliados")}
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
-          >
-            Voltar para a Página Inicial
-          </Button>
+          {/* Calendly Inline Widget */}
+          <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div 
+              className="calendly-inline-widget" 
+              data-url="https://calendly.com/contato-convertamais/30min" 
+              style={{ minWidth: '320px', height: '700px' }}
+            />
+          </div>
+
+          <div className="text-center mt-8">
+            <Button
+              onClick={() => navigate("/afiliados")}
+              variant="outline"
+              className="border-purple-400/50 text-purple-200 bg-purple-800/30 hover:bg-purple-700/50 hover:text-white px-8 py-6 text-lg"
+            >
+              Voltar para a Página Inicial
+            </Button>
+          </div>
         </div>
       </section>
 
