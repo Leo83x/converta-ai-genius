@@ -286,7 +286,7 @@ const AffiliateLanding = () => {
           }, {
             icon: Gift,
             title: 'Investimento Único',
-            description: 'Apenas R$ 1.997 uma única vez. Sem mensalidades ou taxas escondidas.'
+            description: 'A partir de R$ 1.190 (6 meses) ou R$ 1.990 (12 meses). Pagamento único, sem mensalidades.'
           }, {
             icon: Shield,
             title: 'Suporte Total',
@@ -314,13 +314,44 @@ const AffiliateLanding = () => {
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 O Que Você Recebe
               </h2>
-              <div className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-400/30 rounded-lg p-6 mb-8">
-                <p className="text-3xl font-bold text-white mb-2">Investimento: R$ 1.997</p>
-                <p className="text-xl text-green-300">Pagamento único • Sem mensalidades • Sem taxas escondidas</p>
+              
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                {/* Opção 6 meses */}
+                <div className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-400/30 rounded-lg p-6">
+                  <div className="text-center mb-4">
+                    <p className="text-lg text-purple-300 mb-2">Plano de 6 Meses</p>
+                    <p className="text-4xl font-bold text-white mb-2">R$ 1.190</p>
+                    <p className="text-sm text-purple-200">Pagamento único • Sem mensalidades</p>
+                  </div>
+                  <div className="bg-purple-900/30 rounded-lg p-4 text-center">
+                    <p className="text-sm text-purple-100">
+                      <strong className="text-white">Uso da plataforma:</strong><br/>
+                      6 meses grátis
+                    </p>
+                  </div>
+                </div>
+
+                {/* Opção 12 meses */}
+                <div className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-2 border-green-400/50 rounded-lg p-6 relative">
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">MAIS VANTAJOSO</span>
+                  </div>
+                  <div className="text-center mb-4">
+                    <p className="text-lg text-green-300 mb-2">Plano de 12 Meses</p>
+                    <p className="text-4xl font-bold text-white mb-2">R$ 1.990</p>
+                    <p className="text-sm text-green-200">Pagamento único • Sem mensalidades</p>
+                  </div>
+                  <div className="bg-green-900/30 rounded-lg p-4 text-center">
+                    <p className="text-sm text-green-100">
+                      <strong className="text-white">Uso da plataforma:</strong><br/>
+                      12 meses grátis
+                    </p>
+                  </div>
+                </div>
               </div>
               
               <div className="bg-gray-700 rounded-lg p-6 mb-8">
-                <h3 className="text-2xl font-bold text-white mb-4">O que você recebe:</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">O que você recebe em qualquer plano:</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-left">
                   <div className="flex items-center gap-3">
                     <CheckCircle className="w-6 h-6 text-green-400" />
@@ -383,7 +414,7 @@ const AffiliateLanding = () => {
             icon: Users
           }, {
             title: 'Investimento Único',
-            description: 'R$ 1.997 uma única vez. Sem mensalidades ou taxas recorrentes. Seja representante para sempre.',
+            description: 'A partir de R$ 1.190 (6 meses) ou R$ 1.990 (12 meses). Sem mensalidades ou taxas recorrentes.',
             icon: Shield
           }].map((advantage, index) => <Card key={index} className="bg-white border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-8">
@@ -510,58 +541,76 @@ const AffiliateLanding = () => {
               </p>
             </div>
 
-            <Card className="bg-gradient-to-r from-pink-600/20 to-purple-600/20 backdrop-blur-sm border-pink-400/30">
+            {/* Projeção Plano 6 Meses */}
+            <Card className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm border-purple-400/30 mb-6">
               <CardContent className="p-8">
-                <div className="grid md:grid-cols-3 gap-8 text-center">
-                  <div>
-                    <div className="text-5xl font-bold text-pink-400 mb-2">3</div>
-                    <p className="text-white text-lg mb-2">vendas/mês</p>
-                    <div className="bg-white/10 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white">R$ 295,50</p>
-                      <p className="text-purple-200 text-sm">1º mês (50% de 3 vendas)</p>
+                <h4 className="text-2xl font-bold text-white text-center mb-6">
+                  Projeção de Payback - Plano 6 Meses (R$ 1.190)
+                </h4>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white/10 rounded-lg p-6 text-center">
+                    <p className="text-purple-200 text-lg mb-3">Vendendo apenas</p>
+                    <div className="text-5xl font-bold text-purple-400 mb-3">13</div>
+                    <p className="text-white text-xl mb-4">clientes</p>
+                    <div className="bg-purple-900/50 rounded-lg p-4">
+                      <p className="text-2xl font-bold text-green-300 mb-2">R$ 1.280,50</p>
+                      <p className="text-purple-200 text-sm">Primeira mensalidade (13 × R$ 98,50)</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4 mt-2">
-                      <p className="text-xl font-bold text-green-300">+ R$ 59,10/mês</p>
-                      <p className="text-purple-200 text-sm">recorrente (10% de 3 clientes ativos)</p>
-                    </div>
+                    <p className="text-green-400 font-bold text-lg mt-4">✓ Investimento recuperado!</p>
                   </div>
-                  <div>
-                    <div className="text-5xl font-bold text-purple-400 mb-2">10</div>
-                    <p className="text-white text-lg mb-2">vendas/mês</p>
-                    <div className="bg-white/10 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white">R$ 985,00</p>
-                      <p className="text-purple-200 text-sm">1º mês (50% de 10 vendas)</p>
+                  <div className="bg-white/10 rounded-lg p-6">
+                    <p className="text-purple-200 text-center mb-4">Renda recorrente mensal:</p>
+                    <div className="bg-green-900/30 rounded-lg p-4 mb-3">
+                      <p className="text-xl font-bold text-green-300 text-center">+ R$ 256,10/mês</p>
+                      <p className="text-purple-200 text-sm text-center">13 clientes ativos × R$ 19,70</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4 mt-2">
-                      <p className="text-xl font-bold text-green-300">+ R$ 197,00/mês</p>
-                      <p className="text-purple-200 text-sm">recorrente (10% de 10 clientes ativos)</p>
-                    </div>
+                    <p className="text-sm text-purple-100 text-center">
+                      💰 Essa renda cresce a cada novo cliente que você conquista!
+                    </p>
                   </div>
-                  <div>
-                    <div className="text-5xl font-bold text-blue-400 mb-2">30</div>
-                    <p className="text-white text-lg mb-2">vendas/mês</p>
-                    <div className="bg-white/10 rounded-lg p-4">
-                      <p className="text-2xl font-bold text-white">R$ 2.955,00</p>
-                      <p className="text-purple-200 text-sm">1º mês (50% de 30 vendas)</p>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-4 mt-2">
-                      <p className="text-xl font-bold text-green-300">+ R$ 591,00/mês</p>
-                      <p className="text-purple-200 text-sm">recorrente (10% de 30 clientes ativos)</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 text-center">
-                  <p className="text-xl text-white font-semibold mb-2">
-                    💰 Renda Recorrente Crescente!
-                  </p>
-                  <p className="text-purple-100 mb-2">
-                    Quanto mais você vende, maior fica sua renda recorrente mensal.
-                  </p>
-                  <p className="text-lg text-pink-300 font-semibold">Com apenas 20 clientes, você já recupera seu investimento sem contar a recorrência!</p>
                 </div>
               </CardContent>
             </Card>
+
+            {/* Projeção Plano 12 Meses */}
+            <Card className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-sm border-green-400/30">
+              <CardContent className="p-8">
+                <h4 className="text-2xl font-bold text-white text-center mb-6">
+                  Projeção de Payback - Plano 12 Meses (R$ 1.990)
+                </h4>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white/10 rounded-lg p-6 text-center">
+                    <p className="text-green-200 text-lg mb-3">Vendendo apenas</p>
+                    <div className="text-5xl font-bold text-green-400 mb-3">21</div>
+                    <p className="text-white text-xl mb-4">clientes</p>
+                    <div className="bg-green-900/50 rounded-lg p-4">
+                      <p className="text-2xl font-bold text-green-300 mb-2">R$ 2.068,50</p>
+                      <p className="text-green-200 text-sm">Primeira mensalidade (21 × R$ 98,50)</p>
+                    </div>
+                    <p className="text-green-400 font-bold text-lg mt-4">✓ Investimento recuperado!</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-6">
+                    <p className="text-green-200 text-center mb-4">Renda recorrente mensal:</p>
+                    <div className="bg-green-900/30 rounded-lg p-4 mb-3">
+                      <p className="text-xl font-bold text-green-300 text-center">+ R$ 413,70/mês</p>
+                      <p className="text-green-200 text-sm text-center">21 clientes ativos × R$ 19,70</p>
+                    </div>
+                    <p className="text-sm text-green-100 text-center">
+                      💰 Essa renda cresce a cada novo cliente que você conquista!
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="mt-8 text-center bg-white/10 backdrop-blur-sm rounded-lg p-6">
+              <p className="text-2xl text-white font-bold mb-3">
+                🚀 Quanto mais você vende, mais rápido recupera seu investimento!
+              </p>
+              <p className="text-lg text-purple-100">
+                E a melhor parte: a renda recorrente continua crescendo mês após mês com cada novo cliente ativo.
+              </p>
+            </div>
           </div>
         </div>
       </section>
